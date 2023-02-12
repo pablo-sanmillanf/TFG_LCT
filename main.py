@@ -1,17 +1,24 @@
 # Import libraries using import keyword
 import numpy as np
 import plotter
+import json
+
+# Read the data
+f = open("data.json", "r")
+
+data = json.loads(f.read())
 
 
 # Set the x and y axis to some dummy data
-t1 = np.arange(0, 100, 1)
-f1 = np.cos(np.pi*t1/2)*1.5 + 2.5
 
-t2 = np.arange(0, 300, 1)
-f2 = np.sin(np.pi*t2/2)*1.5 + 2.5
+f1 = np.array(data[0]["data"])
+t1 = np.arange(len(f1))
 
-plt = plotter.GraphPlotter(True)
+f2 = np.array(data[1]["data"])
+t2 = np.arange(len(f2))
 
-plt.add_graph(t1, f1, np.array(["SG++", "SG+", "SG-", "SG--"]))
-plt.add_graph(t2, f2, np.array(["SD--", "SD-", "SD+", "SD++"]))
+plt = plotter.GraphPlotter(False)
+
+plt.add_graph(t1, f1, np.array(data[0]["labels"]))
+plt.add_graph(t2, f2, np.array(data[1]["labels"]))
 plt.print_figure()

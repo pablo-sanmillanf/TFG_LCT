@@ -3,8 +3,34 @@ import numpy as np
 from scipy.interpolate import interp1d
 import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.ticker as plticker
 from matplotlib.widgets import Slider
-from matplotlib.backend_tools import ToolBase, ToolToggleBase
+from matplotlib.backend_tools import ToolBase
+
+
+def on_hover(event, axis, highlight_line):
+    if event.inaxes is not None:
+        if event.inaxes == axis:
+            x = event.xdata
+            y = event.ydata
+            tolerance = 0.1
+            if abs(x - np.around(x)) <= tolerance:
+                for line in event.inaxes.get_lines():
+                    if line == highlight_line:
+                        line.set_xdata(np.full(len(line.get_xdata()), np.around(x)))
+                        line.set_visible(True)
+                        event.canvas.draw()
+
+
+def on_click(event, axis):
+    if event.inaxes is not None:
+        if event.inaxes == axis and event.button == matplotlib.backend_bases.MouseButton.RIGHT:
+            x = event.xdata
+            y = event.ydata
+            tolerance = 0.1
+            if abs(x - np.around(x)) <= tolerance:
+                print(f"Open the menu\tCoords: X: {x}, Y: {y}")
+
 
 
 # Custom Axis to don't allow Y movement
@@ -65,7 +91,7 @@ class Graph:
         self.axis = axis
         
         # plot the x and y using scatter function
-        self.data = self.axis.scatter(x, y, marker="o")
+        self.data = self.axis.scatter(x, y, marker="o", picker=10)
         
         self.color = self.data.get_facecolors()[0].tolist()
         
@@ -105,6 +131,12 @@ class GraphPlotter:
         # function returns tuple(fig, ax)
         self.fig, self.axis = plt.subplots(subplot_kw={"projection" : "My_Axes"}, figsize=(9, 6))
         
+        self.highlight_line = self.axis.axvline(0, linestyle='-', color='red')
+        self.highlight_line.set_visible(False)
+        
+        # Set mouse  action 
+        self.fig.canvas.mpl_connect('motion_notify_event', lambda event: on_hover(event, self.axis, self.highlight_line))
+        self.fig.canvas.mpl_connect('button_press_event', lambda event: on_click(event, self.axis))
 
         # Remove the useless buttons from toolbar
         self.fig.canvas.manager.toolmanager.remove_tool('home')
@@ -120,6 +152,10 @@ class GraphPlotter:
         
         #Set Y values
         plt.yticks(np.arange(1, 5))
+        
+        #Set X grid
+        loc = plticker.MultipleLocator(base=1)
+        self.axis.xaxis.set_major_locator(loc)
         
         # Adjust the bottom and left size according to the
         # requirement of the user
@@ -149,7 +185,7 @@ class GraphPlotter:
     def update(self, val):
         # Adjust the slider value to the graphs length
         adjusted_val = val * (self.max_graph_len - self.graph_visible_points) / 100
-        self.axis.axis([adjusted_val, adjusted_val + self.graph_visible_points, 0.75, 4.25])
+        self.axis.axis([adjusted_val, adjusted_val + self.graph_visible_points, 0.25, 4.75])
         self.fig.canvas.draw_idle()
 
 
