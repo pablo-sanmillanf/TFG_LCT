@@ -1,8 +1,8 @@
 import sys
 
-from resizable_rect import RoundedRect
+from resizable_rect import ResizableRect
 from costom_text import CustomText
-from separator import CustomSeparator
+from separator import Separator
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QPen, QFont
@@ -39,7 +39,7 @@ class Window(QWidget):
         pen = QPen(Qt.green)
         pen.setWidth(5)
         rect.setPen(pen)
-        # self.scene.addItem(rect)
+        self.scene.addItem(rect)
 
         font = QFont()
         font.setFamily('Times')
@@ -52,17 +52,20 @@ class Window(QWidget):
                           " PyQt is working and introduce some of the basic concepts. <br>"
                           " Then we'll take a brief look at the event loop and how"
                           " it relates to GUI programming in Python.", 300, rect, font)
-
-        separator = CustomSeparator(0, 0, 20, rect, get_points(text.point_list))
+        self.scene.addItem(text)
+        left_separator = Separator(0, 0, 20, rect, get_points(text.point_list))
+        right_separator = Separator(0, 0, 20, rect, get_points(text.point_list))
 
         custom_pen = QPen(Qt.black)
         custom_pen.setWidth(5)
-        separator.setPen(custom_pen)
-        # self.scene.addItem(separator)
+        left_separator.setPen(custom_pen)
+        right_separator.setPen(custom_pen)
+        left_separator.setPos(200, 200)
+        right_separator.setPos(300, 200)
 
-        rou = RoundedRect(10, 10, 100, 100)
+        rou = ResizableRect(10, 10, 100, 20, 5)
         self.scene.addItem(rou)
-
+        rou.init_separators((left_separator, right_separator))
         self.button = QPushButton("Push for Window")
         self.button.clicked.connect(self.show_new_window)
 
