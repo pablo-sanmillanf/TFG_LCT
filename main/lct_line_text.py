@@ -1,7 +1,7 @@
 import sys
 
 from resizable_rect import ResizableRect
-from costom_text import CustomText
+from custom_text import CustomText
 from separator import Separator
 
 from PyQt5.QtCore import Qt
