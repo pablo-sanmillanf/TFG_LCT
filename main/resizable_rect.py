@@ -73,7 +73,7 @@ class ResizableRect(RoundedRect):
     def sceneEventFilter(self, watched, event):
         if isinstance(event, QGraphicsSceneMouseEvent) or \
                 (isinstance(event, QEvent) and event.type() == QEvent.UngrabMouse):
-            if self.right_separator is watched or self.left_separator is watched:
+            if self.right_separator.main_separator is watched or self.left_separator.main_separator is watched:
                 self.set_size_and_pos()
         return False
 

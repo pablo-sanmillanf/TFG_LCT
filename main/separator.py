@@ -73,7 +73,13 @@ class InLineSeparator(QGraphicsLineItem):
                 [i[0] for i in self.fixed_points],
                 self.scene().views()[0].mapFromGlobal(QCursor.pos()).y()
             )
-            return QPointF(value.x(), y_value)
+            x_value = value.x()
+            x_list = get_x_values(self.fixed_points, y_value)[0]
+            if x_value < x_list[0]:
+                x_value = x_list[0]
+            elif x_value > x_list[-1]:
+                x_value = x_list[-1]
+            return QPointF(x_value, y_value)
         return super().itemChange(change, value)
 
     def mouseReleaseEvent(self, event):
@@ -113,6 +119,9 @@ class Separator(QGraphicsLineItem):
             self.main_separator.setPos(args[0], args[1])
         else:
             raise TypeError('TypeError in setPos() function')
+
+    def installSceneEventFilter(self, filterItem: QGraphicsItem) -> None:
+        self.main_separator.installSceneEventFilter(filterItem)
 
     def pos(self) -> QtCore.QPointF:
         return self.main_separator.pos()
