@@ -2,9 +2,9 @@ import typing
 
 import numpy as np
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import QPointF
+from PyQt5.QtCore import QPointF, QMutex, QMutexLocker
 from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
+from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem, QGraphicsSceneMouseEvent
 from PyQt5.QtCore import QEvent
 
 
@@ -44,9 +44,13 @@ def get_x_values(list_points: list, y_value: float) -> tuple[list, int]:
 class InLineSeparator(QGraphicsLineItem):
     def __init__(self, x, y, size, parent, fixed_points=None):
         super().__init__(0, 0, 0, size, parent)
-        self.setPos(x, y)
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
+
+        # When position is changed via setPos, change itemChange behaviour
+        self.pos_set = False
+
+        self.setPos(x, y)
 
         # If set, itemChange() is called after a movement
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
@@ -67,19 +71,30 @@ class InLineSeparator(QGraphicsLineItem):
         self.parentItem().aux_separator.setPen(self.pen())
         self.parentItem().aux_separator.installSceneEventFilter(self.parentItem())
 
+    def setPos(self, *args) -> None:
+        self.pos_set = True
+        if len(args) == 1 and isinstance(args[0], (QtCore.QPointF, QtCore.QPoint)):
+            super().setPos(args[0])
+        elif len(args) == 2 and all(isinstance(x, (float, int)) for x in args):
+            super().setPos(args[0], args[1])
+        else:
+            raise TypeError('TypeError in setPos() function')
+
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionChange and self.scene() is not None:
-            y_value, y_value_index = find_nearest_point(
-                [i[0] for i in self.fixed_points],
-                self.scene().views()[0].mapFromGlobal(QCursor.pos()).y()
-            )
-            x_value = value.x()
-            x_list = get_x_values(self.fixed_points, y_value)[0]
-            if x_value < x_list[0]:
-                x_value = x_list[0]
-            elif x_value > x_list[-1]:
-                x_value = x_list[-1]
-            return QPointF(x_value, y_value)
+            if self.pos_set is False:
+                y_value, y_value_index = find_nearest_point(
+                    [i[0] for i in self.fixed_points],
+                    self.scene().views()[0].mapFromGlobal(QCursor.pos()).y()
+                )
+                x_value = value.x()
+                x_list = get_x_values(self.fixed_points, y_value)[0]
+                if x_value < x_list[0]:
+                    x_value = x_list[0]
+                elif x_value > x_list[-1]:
+                    x_value = x_list[-1]
+                return QPointF(x_value, y_value)
+            self.pos_set = False
         return super().itemChange(change, value)
 
     def mouseReleaseEvent(self, event):
@@ -95,7 +110,7 @@ class InLineSeparator(QGraphicsLineItem):
 
         # Execute super function to allow correct object behaviour
         super().mouseReleaseEvent(event)
-
+    
     def __del__(self):
         print("deleted")
 
@@ -103,6 +118,10 @@ class InLineSeparator(QGraphicsLineItem):
 class Separator(QGraphicsLineItem):
     def __init__(self, x, y, size, parent, fixed_points=None):
         super().__init__(0, 0, 0, size, parent)
+
+        # There are several problems of concurrency in the function
+        # sceneEventFilter, so this variable is to set sceneEventFilter thread-safe
+        self.mutex = QMutex()
 
         self.setOpacity(0)
 
@@ -115,11 +134,23 @@ class Separator(QGraphicsLineItem):
 
     def setPos(self, *args) -> None:
         if len(args) == 1 and isinstance(args[0], (QtCore.QPointF, QtCore.QPoint)):
-            self.main_separator.setPos(args[0])
+            req_x = args[0].x()
+            req_y = args[0].y()
         elif len(args) == 2 and all(isinstance(x, (float, int)) for x in args):
-            self.main_separator.setPos(args[0], args[1])
+            req_x = args[0]
+            req_y = args[1]
         else:
             raise TypeError('TypeError in setPos() function')
+
+        y_value = find_nearest_point(
+            [i[0] for i in self.main_separator.fixed_points],
+            req_y
+        )[0]
+        x_value = find_nearest_point(
+            get_x_values(self.main_separator.fixed_points, y_value)[0],
+            req_x
+        )[0]
+        self.main_separator.setPos(x_value, y_value)
 
     def installSceneEventFilter(self, filterItem: QGraphicsItem) -> None:
         if not (filterItem in self.watchers):
@@ -132,9 +163,19 @@ class Separator(QGraphicsLineItem):
     def setPen(self, pen: typing.Union[QtGui.QPen, QtGui.QColor, QtCore.Qt.GlobalColor, QtGui.QGradient]) -> None:
         self.main_separator.setPen(pen)
 
+    def pen(self) -> QtGui.QPen:
+        return self.main_separator.pen()
+
+    def get_y_values(self):
+        return [i[0] for i in self.main_separator.fixed_points]
+
+    def get_x_values(self, y_value):
+        return get_x_values(self.main_separator.fixed_points, y_value)
+
     def sceneEventFilter(self, watched, event):
         if isinstance(event, QEvent):
             if event.type() == QEvent.GrabMouse:
+                locker = QMutexLocker(self.mutex)
                 if self.aux_separator is watched:
                     self.scene().removeItem(self.main_separator)
                     self.main_separator = self.aux_separator
