@@ -1,6 +1,6 @@
 import sys
 
-from resizable_rect import ResizableRect
+from resizable_rect import InLineResizableRect
 from custom_text import CustomText
 from separator import Separator
 
@@ -63,7 +63,7 @@ class Window(QWidget):
         left_separator.setPos(200, 200)
         right_separator.setPos(300, 200)
 
-        rou = ResizableRect(10, 10, 100, 20, 5)
+        rou = InLineResizableRect(10, 10, 100, 20, 5)
         self.scene.addItem(rou)
         rou.init_separators((left_separator, right_separator))
         self.button = QPushButton("Push for Window")

@@ -111,6 +111,7 @@ class Separator(QGraphicsLineItem):
 
         self.setPos(x, y)
         self.aux_separator = None
+        self.watchers = []
 
     def setPos(self, *args) -> None:
         if len(args) == 1 and isinstance(args[0], (QtCore.QPointF, QtCore.QPoint)):
@@ -121,6 +122,8 @@ class Separator(QGraphicsLineItem):
             raise TypeError('TypeError in setPos() function')
 
     def installSceneEventFilter(self, filterItem: QGraphicsItem) -> None:
+        if not (filterItem in self.watchers):
+            self.watchers.append(filterItem)
         self.main_separator.installSceneEventFilter(filterItem)
 
     def pos(self) -> QtCore.QPointF:
@@ -136,6 +139,8 @@ class Separator(QGraphicsLineItem):
                     self.scene().removeItem(self.main_separator)
                     self.main_separator = self.aux_separator
                     self.aux_separator = None
+                    for watcher in self.watchers:
+                        self.main_separator.installSceneEventFilter(watcher)
                 if self.main_separator is watched:
                     if self.aux_separator is not None:
                         self.scene().removeItem(self.aux_separator)

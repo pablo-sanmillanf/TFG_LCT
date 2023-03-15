@@ -41,7 +41,7 @@ class RoundedRect(QGraphicsRectItem):
         painter.drawRoundedRect(self.rect(), self.radius, self.radius)
 
 
-class ResizableRect(RoundedRect):
+class InLineResizableRect(RoundedRect):
 
     def __init__(self, x, y, width, height, radius, *args, **kwargs):
         super().__init__(0, 0, width, height, radius, *args, **kwargs)
