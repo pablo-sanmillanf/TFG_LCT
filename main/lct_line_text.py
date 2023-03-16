@@ -1,6 +1,6 @@
 import sys
 
-from resizable_rect import ResizableRect
+from resizable_rect import MultilineRoundedRect
 from custom_text import CustomText
 from separator import Separator
 
@@ -61,11 +61,11 @@ class Window(QWidget):
         left_separator.setPen(custom_pen)
         right_separator.setPen(custom_pen)
         left_separator.setPos(200, 100)
-        right_separator.setPos(400, 300)
+        right_separator.setPos(400, 130)
 
-        # rou = ResizableRect(20, 5, rect)
-        #self.scene.addItem(rou)
-        #rou.init_separators((left_separator, right_separator))
+        rou = MultilineRoundedRect(20, 5, rect)
+        self.scene.addItem(rou)
+        rou.init_separators((left_separator, right_separator))
         self.button = QPushButton("Push for Window")
         self.button.clicked.connect(self.show_new_window)
 
