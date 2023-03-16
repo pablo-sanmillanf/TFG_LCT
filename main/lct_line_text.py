@@ -17,6 +17,8 @@ from PyQt5.QtWidgets import (
 
 )
 
+from text_classifier import TextClassifier
+
 
 def get_points(tuple_list):
     return [(i[0], [e[0] for e in i[1]]) for i in tuple_list]
@@ -53,19 +55,12 @@ class Window(QWidget):
                           " Then we'll take a brief look at the event loop and how"
                           " it relates to GUI programming in Python.", 300, rect, font)
         self.scene.addItem(text)
-        left_separator = Separator(0, 0, 20, rect, get_points(text.point_list))
-        right_separator = Separator(0, 0, 20, rect, get_points(text.point_list))
 
+        self.classifier = TextClassifier(20, get_points(text.point_list), rect)
         custom_pen = QPen(Qt.black)
         custom_pen.setWidth(5)
-        left_separator.setPen(custom_pen)
-        right_separator.setPen(custom_pen)
-        left_separator.setPos(200, 100)
-        right_separator.setPos(400, 130)
+        self.classifier.set_separator_pen(custom_pen)
 
-        rou = MultilineRoundedRect(20, 5, rect)
-        self.scene.addItem(rou)
-        rou.init_separators((left_separator, right_separator))
         self.button = QPushButton("Push for Window")
         self.button.clicked.connect(self.show_new_window)
 
@@ -76,7 +71,7 @@ class Window(QWidget):
         self.setLayout(hbox)
 
     def show_new_window(self):
-        pass
+        print(self.classifier.split(100, 100))
 
 
 app = QApplication(sys.argv)

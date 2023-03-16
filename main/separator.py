@@ -34,6 +34,10 @@ class Separator(QGraphicsLineItem):
         self.setPos(x, y)
 
     def get_y_values(self):
+        """
+        Return y values from self.fixed_points structure
+        :return: the list of available y points
+        """
         return [i[0] for i in self.fixed_points]
 
     def get_x_values(self, y_value: float) -> list:
@@ -82,7 +86,7 @@ class Separator(QGraphicsLineItem):
     def mouseReleaseEvent(self, event):
         # Set nearest fixed position
         if self.fixed_points is not None:
-            y_value = find_nearest_point([i[0] for i in self.fixed_points], self.pos().y())
+            y_value = find_nearest_point(self.get_y_values(), self.pos().y())
             x_value = find_nearest_point(self.get_x_values(y_value), self.pos().x())
             self.setPos(x_value, y_value)
 

@@ -24,18 +24,26 @@ class MultilineRoundedRect(QGraphicsRectItem):
     left_separator: Separator
     points: list[tuple[float, float, float]]
 
-    def __init__(self, height, radius, parent):
+    def __init__(self, height, radius, offset, parent):
         super().__init__(0, 0, 1, height, parent)
         self.radius = radius
+        self.offset = offset
         self.points = []
+
+        self.left_separator = None
+        self.right_separator = None
 
         self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
 
-    def init_separators(self, separators: tuple[(Separator, float), (Separator, float)]):
+    def init_separators(self, separators: tuple[Separator, Separator]):
         if not isinstance(separators, (np.ndarray, tuple, list)):
             raise TypeError('separators must be a list')
         if not all(isinstance(x, Separator) for x in separators):
             raise TypeError('All the elements of separators must be of type Separator')
+        if self.left_separator is not None:
+            self.left_separator.removeSceneEventFilter(self)
+        if self.right_separator is not None:
+            self.right_separator.removeSceneEventFilter(self)
         self.left_separator = separators[0]
         self.right_separator = separators[1]
         self.left_separator.installSceneEventFilter(self)
@@ -99,7 +107,15 @@ class MultilineRoundedRect(QGraphicsRectItem):
               option: "QStyleOptionGraphicsItem",
               widget: typing.Optional[QWidget] = ...) -> None:
         for point in self.points:
-            painter.drawRoundedRect(QRectF(point[0], point[1], point[2], self.rect().height()), self.radius, self.radius)
+            painter.drawRoundedRect(
+                QRectF(
+                    self.offset + point[0],     # X Value with certain offset
+                    point[1],                   # Y Value
+                    point[2] - 2*self.offset,   # Width minus left and right offset
+                    self.rect().height()        # Height
+                ),
+                self.radius, self.radius
+            )
 
     def sceneEventFilter(self, watched, event):
         if isinstance(event, QGraphicsSceneMouseEvent) or \
