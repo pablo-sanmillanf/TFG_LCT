@@ -1,16 +1,27 @@
-from PyQt5.QtCore import QEvent
+from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QPen
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
 
 from separator import Separator, find_nearest_point
-from resizable_rect import MultilineRoundedRect
+from multiline_rounded_rect import MultilineRoundedRect
 
 
 class TextClassifier(QGraphicsLineItem):
+    """
+    This class controls all the behaviour of the QGraphicsItems associated with the graphical text
+    classification. That is, the rectangles and the separators between them.
+    """
     rects: list[MultilineRoundedRect]
     separators: list[Separator]
 
-    def __init__(self, size, fixed_points, parent):
+    def __init__(self, size: float, fixed_points: list[tuple[float, list[float]]], parent: QGraphicsItem) -> None:
+        """
+        Create TextClassifier object. Only one object form this class should be created
+        :param size: The height that the rectangles and the separators will have. Should be greater than text size.
+        :param fixed_points: Available points for the separators. The structure must
+                             be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+        :param parent: The QGraphicsItem parent of this element. Can't be None
+        """
         super().__init__(0, 0, 0, 1, parent)
         self.setOpacity(0)
         self.size = size
@@ -21,12 +32,14 @@ class TextClassifier(QGraphicsLineItem):
         self.pen = None
 
         self.separators = []
-        self.separators.append(Separator(fixed_points[0][1][0], fixed_points[0][0], size, parent, fixed_points))
-        self.separators.append(Separator(fixed_points[-1][1][-1], fixed_points[-1][0], size, parent, fixed_points))
+        self.separators.append(Separator(fixed_points[0][1][0], fixed_points[0][0], size, fixed_points, parent))
+        self.separators.append(Separator(fixed_points[-1][1][-1], fixed_points[-1][0], size, fixed_points, parent))
 
-        # Set immobile the first and the last separator
+        # Set immobile and not selectable the first and the last separator
         self.separators[0].setFlags(self.separators[0].flags() & ~QGraphicsItem.ItemIsMovable)
+        self.separators[0].setCursor(Qt.ArrowCursor)
         self.separators[1].setFlags(self.separators[1].flags() & ~QGraphicsItem.ItemIsMovable)
+        self.separators[1].setCursor(Qt.ArrowCursor)
 
         # Set filters
         self.separators[0].installSceneEventFilter(self)
@@ -60,6 +73,13 @@ class TextClassifier(QGraphicsLineItem):
         for tuple_point in self.fixed_points:
             if tuple_point[0] == y_value:
                 return tuple_point[1]
+
+    def get_separator_points(self) -> list[tuple[float, float]]:
+        """
+        Return a list with the coordinates of all separators.
+        :return: The list of coordinates
+        """
+        return [(sep.pos().x(), sep.pos().y()) for sep in self.separators]
 
     def check_point_availability(self, x: float, y: float) -> tuple[float, float]:
         """
@@ -128,8 +148,9 @@ class TextClassifier(QGraphicsLineItem):
             real_x,
             real_y,
             self.size,
-            self.parent,
-            self.set_fixed_points_for_new_separator(index)
+            self.set_fixed_points_for_new_separator(index),
+            self.parent
+
         )
         new_rect = MultilineRoundedRect(self.size, self.radius, self.offset, self.parent)
         new_separator.installSceneEventFilter(self)
@@ -139,6 +160,8 @@ class TextClassifier(QGraphicsLineItem):
         self.rects.insert(index + 1, new_rect)
         self.rects[index].init_separators((self.separators[index], self.separators[index + 1]))
         self.rects[index + 1].init_separators((self.separators[index + 1], self.separators[index + 2]))
+
+        self.update_fixed_points_surrounded_separators(index + 1)
 
         return True
 
@@ -210,27 +233,43 @@ class TextClassifier(QGraphicsLineItem):
                             new_fixed_points[-1][1].append(x_value)
             else:
                 break  # If left values are higher, end loop
+
         return new_fixed_points
 
-    def sceneEventFilter(self, watched, event):
+    def update_fixed_points_surrounded_separators(self, index: int) -> None:
+        """
+        Update the fixed_points of the surrounding separators for a given index separator.
+        :param index: Index of the separator whose neighbors have to be updated
+        """
+        if index != 0 and index != (len(self.separators) - 1):
+            # Set fixed points for the anterior and posterior Separator
+            if index != 1:
+                self.separators[index - 1].fixed_points = self.set_fixed_points(
+                    self.separators[index - 2].pos().x(),
+                    self.separators[index - 2].pos().y(),
+                    self.separators[index].pos().x(),
+                    self.separators[index].pos().y()
+                )
+            if index != (len(self.separators) - 2):
+                self.separators[index + 1].fixed_points = self.set_fixed_points(
+                    self.separators[index].pos().x(),
+                    self.separators[index].pos().y(),
+                    self.separators[index + 2].pos().x(),
+                    self.separators[index + 2].pos().y()
+                )
+
+    def sceneEventFilter(self, watched: QGraphicsItem, event: QEvent) -> bool:
+        """
+        Filters events for the item watched. event is the filtered event.
+
+        In this case, this function only watch Separator items, and it is used to update the fixed_points
+        of the surrounding separators.
+
+        :param watched: Item from which the event has occurred
+        :param event: The object that indicates the type of event triggered
+        :return: False, to allow the event to be treated by other Items
+        """
         if isinstance(event, QEvent) and event.type() == QEvent.UngrabMouse:
             if isinstance(watched, Separator):
-                index = self.separators.index(watched)
-                if index != 0 and index != (len(self.separators) - 1):
-                    # Set fixed points for the anterior and posterior Separator
-                    if index != 1:
-                        self.separators[index - 1].fixed_points = self.set_fixed_points(
-                            self.separators[index - 2].pos().x(),
-                            self.separators[index - 2].pos().y(),
-                            self.separators[index].pos().x(),
-                            self.separators[index].pos().y()
-                        )
-                    if index != (len(self.separators) - 2):
-                        self.separators[index + 1].fixed_points = self.set_fixed_points(
-                            self.separators[index].pos().x(),
-                            self.separators[index].pos().y(),
-                            self.separators[index + 2].pos().x(),
-                            self.separators[index + 2].pos().y()
-                        )
-
+                self.update_fixed_points_surrounded_separators(self.separators.index(watched))
         return False

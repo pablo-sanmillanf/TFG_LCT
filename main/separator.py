@@ -1,8 +1,10 @@
+from typing import Any
+
 import numpy as np
 from PyQt5 import QtCore
-from PyQt5.QtCore import QPointF
+from PyQt5.QtCore import QPointF, Qt
 from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
+from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem, QGraphicsSceneMouseEvent
 
 
 def find_nearest_point(candidate_points: list, point_reference: float) -> float:
@@ -16,12 +18,30 @@ def find_nearest_point(candidate_points: list, point_reference: float) -> float:
 
 
 class Separator(QGraphicsLineItem):
-    def __init__(self, x, y, size, parent, fixed_points):
+    """
+    This class represents a QGraphicsLineItem that can only move between the points contained in the
+    fixed_points structure.
+    To avoid redundant information this structure must be: [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+    """
+    def __init__(self, x: float, y: float, size: float,
+                 fixed_points: list[tuple[float, list[float]]], parent: QGraphicsItem) -> None:
+        """
+        Create Separator object. The requested position will be adjusted to the nearest position contained in
+        fixed_points
+        :param x: X coordinate of the Separator
+        :param y: Y coordinate of the Separator
+        :param size: The height of the Separator
+        :param fixed_points: fixed_points: Available points for the separators. The structure must
+                             be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+        :param parent: The QGraphicsItem parent of this Separator. Can't be None
+        """
         super().__init__(0, 0, 0, size, parent)
 
         self.setFlags(QGraphicsItem.ItemIsMovable |
                       QGraphicsItem.ItemIgnoresParentOpacity |
                       QGraphicsItem.ItemSendsGeometryChanges)  # If set, itemChange() is called after a movement
+
+        self.setCursor(Qt.SplitHCursor)
 
         # When position is changed via setPos, change itemChange behaviour
         self.pos_set = False
@@ -50,6 +70,11 @@ class Separator(QGraphicsLineItem):
                 return tuple_point[1]
 
     def setPos(self, *args) -> None:
+        """
+        Set position of the Separator. The requested position will be adjusted to the nearest position
+        contained in fixed_points
+        :param args: The position, structured as a QPointF or a list with two elements (x and y)
+        """
         self.pos_set = True
         if len(args) == 1 and isinstance(args[0], (QtCore.QPointF, QtCore.QPoint)):
             req_x = args[0].x()
@@ -64,7 +89,15 @@ class Separator(QGraphicsLineItem):
         x_value = find_nearest_point(self.get_x_values(y_value), req_x)
         super().setPos(x_value, y_value)
 
-    def itemChange(self, change, value):
+    def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> QPointF:
+        """
+        Manages the changes associated to the Separator. In the case of the Separator,
+        only position changes will be treated
+        :param change: The object that indicates the type of event change triggered
+        :param value: An object associated with this change. In our case, this will be
+                      the requested position of the element
+        :return: The position to be placed
+        """
         if change == QGraphicsItem.ItemPositionChange and self.scene() is not None:
             if self.pos_set is False:
                 y_value = find_nearest_point(
@@ -82,7 +115,12 @@ class Separator(QGraphicsLineItem):
                 self.pos_set = False
         return super().itemChange(change, value)
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        """
+        Manages the behaviour of the Separator when the user release the object. In this case, the object goes
+        automatically to the nearest allowed position.
+        :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
+        """
         # Set nearest fixed position
         if self.fixed_points is not None:
             y_value = find_nearest_point(self.get_y_values(), self.pos().y())
@@ -91,7 +129,3 @@ class Separator(QGraphicsLineItem):
 
         # Execute super function to allow correct object behaviour
         super().mouseReleaseEvent(event)
-
-    def __del__(self):
-        print("Separator deleted")
-
