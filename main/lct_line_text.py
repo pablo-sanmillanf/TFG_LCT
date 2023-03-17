@@ -1,8 +1,6 @@
 import sys
 
-from resizable_rect import MultilineRoundedRect
 from custom_text import CustomText
-from separator import Separator
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QPen, QFont
@@ -61,17 +59,24 @@ class Window(QWidget):
         custom_pen.setWidth(5)
         self.classifier.set_separator_pen(custom_pen)
 
-        self.button = QPushButton("Push for Window")
-        self.button.clicked.connect(self.show_new_window)
+        self.buttonS = QPushButton("Split")
+        self.buttonS.clicked.connect(self.split_action)
+
+        self.buttonJ = QPushButton("Join")
+        self.buttonJ.clicked.connect(self.join_action)
 
         hbox = QHBoxLayout(self)
-        hbox.addWidget(self.button)
+        hbox.addWidget(self.buttonS)
+        hbox.addWidget(self.buttonJ)
         hbox.addWidget(view)
 
         self.setLayout(hbox)
 
-    def show_new_window(self):
+    def split_action(self):
         print(self.classifier.split(100, 100))
+
+    def join_action(self):
+        print(self.classifier.join(100, 100))
 
 
 app = QApplication(sys.argv)

@@ -18,14 +18,13 @@ def find_nearest_point(candidate_points: list, point_reference: float) -> float:
 class Separator(QGraphicsLineItem):
     def __init__(self, x, y, size, parent, fixed_points):
         super().__init__(0, 0, 0, size, parent)
-        self.setFlag(QGraphicsItem.ItemIsMovable)
-        self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
+
+        self.setFlags(QGraphicsItem.ItemIsMovable |
+                      QGraphicsItem.ItemIgnoresParentOpacity |
+                      QGraphicsItem.ItemSendsGeometryChanges)  # If set, itemChange() is called after a movement
 
         # When position is changed via setPos, change itemChange behaviour
         self.pos_set = False
-
-        # If set, itemChange() is called after a movement
-        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
 
         if not isinstance(fixed_points, (np.ndarray, np.generic, list)):
             raise TypeError('fixed_x_points must be a list')
@@ -94,5 +93,5 @@ class Separator(QGraphicsLineItem):
         super().mouseReleaseEvent(event)
 
     def __del__(self):
-        print("deleted")
+        print("Separator deleted")
 

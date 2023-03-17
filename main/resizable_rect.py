@@ -49,16 +49,16 @@ class MultilineRoundedRect(QGraphicsRectItem):
         self.left_separator.installSceneEventFilter(self)
         self.right_separator.installSceneEventFilter(self)
 
-        self.set_points()
+        self.set_points(self.left_separator)
 
     def get_lines_y_values(self):
         lines = []
-        for y_value in self.left_separator.get_y_values():
+        for y_value in sorted(set(self.left_separator.get_y_values() + self.right_separator.get_y_values())):
             if self.left_separator.pos().y() <= y_value <= self.right_separator.pos().y():
                 lines.append(y_value)
         return lines
 
-    def set_points(self):
+    def set_points(self, moved_separator: Separator):
         lines = self.get_lines_y_values()
         self.points.clear()
         if len(lines) == 1:
@@ -75,13 +75,13 @@ class MultilineRoundedRect(QGraphicsRectItem):
                 (
                     self.left_separator.pos().x(),  # X Value
                     lines[0],  # Y Value
-                    self.left_separator.get_x_values(lines[0])[-1] - self.left_separator.pos().x()  # Width
+                    moved_separator.get_x_values(lines[0])[-1] - self.left_separator.pos().x()  # Width
                 )
             )
 
             # Set the rest of line rounded rectangles except the last one
             for i in range(1, len(lines) - 1):
-                x_values = self.left_separator.get_x_values(lines[i])
+                x_values = moved_separator.get_x_values(lines[i])
                 self.points.append(
                     (
                         x_values[0],  # X Value
@@ -91,7 +91,7 @@ class MultilineRoundedRect(QGraphicsRectItem):
                 )
 
             # Set the last line rounded rectangle
-            left_x_border = self.left_separator.get_x_values(lines[-1])[0]
+            left_x_border = moved_separator.get_x_values(lines[-1])[0]
             self.points.append(
                 (
                     left_x_border,  # X Value
@@ -109,10 +109,10 @@ class MultilineRoundedRect(QGraphicsRectItem):
         for point in self.points:
             painter.drawRoundedRect(
                 QRectF(
-                    self.offset + point[0],     # X Value with certain offset
-                    point[1],                   # Y Value
-                    point[2] - 2*self.offset,   # Width minus left and right offset
-                    self.rect().height()        # Height
+                    self.offset + point[0],             # X Value with certain offset
+                    point[1],                           # Y Value
+                    max(point[2] - 2*self.offset, 0),   # Width minus left and right offset
+                    self.rect().height()                # Height
                 ),
                 self.radius, self.radius
             )
@@ -121,7 +121,10 @@ class MultilineRoundedRect(QGraphicsRectItem):
         if isinstance(event, QGraphicsSceneMouseEvent) or \
                 (isinstance(event, QEvent) and event.type() == QEvent.UngrabMouse):
             if self.right_separator is watched or self.left_separator is watched:
-                self.set_points()
+                self.set_points(watched)
                 self.scene().views()[0].viewport().repaint()
         return False
+
+    def __del__(self):
+        print("Rect deleted")
 
