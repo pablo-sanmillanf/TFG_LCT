@@ -2,6 +2,7 @@ from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QPen
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
 
+from descriptor import Descriptor
 from separator import Separator, find_nearest_point
 from multiline_rounded_rect import MultilineRoundedRect
 
@@ -9,31 +10,42 @@ from multiline_rounded_rect import MultilineRoundedRect
 class TextClassifier(QGraphicsLineItem):
     """
     This class controls all the behaviour of the QGraphicsItems associated with the graphical text
-    classification. That is, the rectangles and the separators between them.
+    classification. That is, the rectangles and its descriptors and the separators between them.
     """
+    descriptors: list[Descriptor]
     rects: list[MultilineRoundedRect]
     separators: list[Separator]
 
-    def __init__(self, size: float, fixed_points: list[tuple[float, list[float]]], parent: QGraphicsItem) -> None:
+    def __init__(self, max_width: float, line_height: float, fixed_points: list[tuple[float, list[float]]],
+                 default_text: str, parent: QGraphicsItem) -> None:
         """
         Create TextClassifier object. Only one object form this class should be created
-        :param size: The height that the rectangles and the separators will have. Should be greater than text size.
+        :param max_width: The maximum width of this element. Is determined by the max text width.
+        :param line_height: The height that the rectangles and the separators will have. Should be
+                            greater than text height.
         :param fixed_points: Available points for the separators. The structure must
                              be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+        :param default_text: The default text that will appear in the descriptors.
         :param parent: The QGraphicsItem parent of this element. Can't be None
         """
         super().__init__(0, 0, 0, 1, parent)
         self.setOpacity(0)
-        self.size = size
+        self.max_width = max_width
+        self.height = line_height
         self.fixed_points = fixed_points
-        self.parent = parent
+        self.default_text = default_text
         self.radius = 5
         self.offset = 2
         self.pen = None
 
+        # Set separators
         self.separators = []
-        self.separators.append(Separator(fixed_points[0][1][0], fixed_points[0][0], size, fixed_points, parent))
-        self.separators.append(Separator(fixed_points[-1][1][-1], fixed_points[-1][0], size, fixed_points, parent))
+        self.separators.append(
+            Separator(fixed_points[0][1][0], fixed_points[0][0], line_height, fixed_points, parent)
+        )
+        self.separators.append(
+            Separator(fixed_points[-1][1][-1], fixed_points[-1][0], line_height, fixed_points, parent)
+        )
 
         # Set immobile and not selectable the first and the last separator
         self.separators[0].setFlags(self.separators[0].flags() & ~QGraphicsItem.ItemIsMovable)
@@ -44,9 +56,16 @@ class TextClassifier(QGraphicsLineItem):
         # Set filters
         self.separators[0].installSceneEventFilter(self)
         self.separators[1].installSceneEventFilter(self)
+
+        # Set rectangles
         self.rects = []
-        self.rects.append(MultilineRoundedRect(size, self.radius, self.offset, parent))
+        self.rects.append(MultilineRoundedRect(max_width, line_height, self.radius, self.offset, parent))
         self.rects[0].init_separators((self.separators[0], self.separators[1]))
+
+        # Set descriptors
+        self.descriptors = []
+        self.descriptors.append(Descriptor(max_width, default_text, parent))
+        self.descriptors[0].init_separators((self.separators[0], self.separators[1]))
 
     def set_separator_pen(self, pen: QPen) -> None:
         """
@@ -147,12 +166,13 @@ class TextClassifier(QGraphicsLineItem):
         new_separator = Separator(
             real_x,
             real_y,
-            self.size,
+            self.height,
             self.set_fixed_points_for_new_separator(index),
-            self.parent
+            self.parentItem()
 
         )
-        new_rect = MultilineRoundedRect(self.size, self.radius, self.offset, self.parent)
+        new_rect = MultilineRoundedRect(self.max_width, self.height, self.radius, self.offset, self.parentItem())
+        new_descriptor = Descriptor(self.max_width, self.default_text, self.parentItem())
         new_separator.installSceneEventFilter(self)
         new_separator.setPen(self.pen)
 
@@ -161,7 +181,12 @@ class TextClassifier(QGraphicsLineItem):
         self.rects[index].init_separators((self.separators[index], self.separators[index + 1]))
         self.rects[index + 1].init_separators((self.separators[index + 1], self.separators[index + 2]))
 
-        self.update_fixed_points_surrounded_separators(index + 1)
+        self.descriptors.insert(index + 1, new_descriptor)
+        self.descriptors[index].init_separators((self.separators[index], self.separators[index + 1]))
+        self.descriptors[index + 1].init_separators((self.separators[index + 1], self.separators[index + 2]))
+
+        self.update_fixed_points_separator(index)
+        self.update_fixed_points_separator(index + 2)
 
         return True
 
@@ -184,12 +209,19 @@ class TextClassifier(QGraphicsLineItem):
         if self.separators[index].pos().x() != real_x or self.separators[index].pos().y() != real_y:
             return False
 
-        removed_separator = self.separators.pop(index)
         removed_rect = self.rects.pop(index)
-        self.scene().removeItem(removed_separator)
-        self.scene().removeItem(removed_rect)
+        removed_descriptor = self.descriptors.pop(index)
+        removed_separator = self.separators.pop(index)
+
+        self.update_fixed_points_separator(index - 1)
+        self.update_fixed_points_separator(index)
 
         self.rects[index - 1].init_separators((self.separators[index - 1], self.separators[index]))
+        self.descriptors[index - 1].init_separators((self.separators[index - 1], self.separators[index]))
+
+        self.scene().removeItem(removed_rect)
+        self.scene().removeItem(removed_descriptor)
+        self.scene().removeItem(removed_separator)
 
         return True
 
@@ -236,27 +268,18 @@ class TextClassifier(QGraphicsLineItem):
 
         return new_fixed_points
 
-    def update_fixed_points_surrounded_separators(self, index: int) -> None:
+    def update_fixed_points_separator(self, index: int) -> None:
         """
-        Update the fixed_points of the surrounding separators for a given index separator.
-        :param index: Index of the separator whose neighbors have to be updated
+        Update the fixed_points of the separator for a given index separator.
+        :param index: Index of the separator
         """
-        if index != 0 and index != (len(self.separators) - 1):
-            # Set fixed points for the anterior and posterior Separator
-            if index != 1:
-                self.separators[index - 1].fixed_points = self.set_fixed_points(
-                    self.separators[index - 2].pos().x(),
-                    self.separators[index - 2].pos().y(),
-                    self.separators[index].pos().x(),
-                    self.separators[index].pos().y()
-                )
-            if index != (len(self.separators) - 2):
-                self.separators[index + 1].fixed_points = self.set_fixed_points(
-                    self.separators[index].pos().x(),
-                    self.separators[index].pos().y(),
-                    self.separators[index + 2].pos().x(),
-                    self.separators[index + 2].pos().y()
-                )
+        if (len(self.separators) - 2) >= index >= 1:
+            self.separators[index].fixed_points = self.set_fixed_points(
+                self.separators[index - 1].pos().x(),
+                self.separators[index - 1].pos().y(),
+                self.separators[index + 1].pos().x(),
+                self.separators[index + 1].pos().y()
+            )
 
     def sceneEventFilter(self, watched: QGraphicsItem, event: QEvent) -> bool:
         """
@@ -271,5 +294,6 @@ class TextClassifier(QGraphicsLineItem):
         """
         if isinstance(event, QEvent) and event.type() == QEvent.UngrabMouse:
             if isinstance(watched, Separator):
-                self.update_fixed_points_surrounded_separators(self.separators.index(watched))
+                self.update_fixed_points_separator(self.separators.index(watched) - 1)
+                self.update_fixed_points_separator(self.separators.index(watched) + 1)
         return False

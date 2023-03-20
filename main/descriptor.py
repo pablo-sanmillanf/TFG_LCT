@@ -3,8 +3,8 @@ import typing
 import numpy as np
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QRectF, QPointF, QEvent
-from PyQt5.QtGui import QPainterPath, QCursor, QTextDocument
-from PyQt5.QtWidgets import QGraphicsTextItem, QWidget, QStyleOptionGraphicsItem, QGraphicsItem, QGraphicsRectItem, \
+from PyQt5.QtGui import QPainterPath, QFont
+from PyQt5.QtWidgets import QGraphicsTextItem, QWidget, QStyleOptionGraphicsItem, QGraphicsItem, \
     QGraphicsSceneMouseEvent
 
 from separator import Separator
@@ -18,7 +18,14 @@ class Descriptor(QGraphicsTextItem):
     This class is a variant of QGraphicsTextItem that is used to set the value of a clause. Those values
     should be SD++, SD+, SD-, SD-- and/or SG--, SG-, SG+, SG++
     """
-    def __init__(self, max_width, text, parent, font=None):
+    def __init__(self, max_width: float | int, text: str, parent: QGraphicsItem, font: QFont = None) -> None:
+        """
+        Create Descriptor object.
+        :param max_width: The maximum width of this element. Is determined by the max text width.
+        :param text: The default text that will appear in the descriptor.
+        :param parent: The QGraphicsItem parent of this Separator. Can't be None
+        :param font: The Descriptor's text font.
+        """
         super().__init__(parent)
         self.setPos(0, 0)
 
@@ -34,10 +41,9 @@ class Descriptor(QGraphicsTextItem):
         self.height = self.get_text_height()
         self.setHtml('<p align="justify">' + text + '</p>')
 
-        self.padding_width = self.get_separator_offsets_width()
-        self.padding_height = self.get_separator_offsets_height()[0]
+        self.padding_height = self.get_separator_offsets_height()
 
-        self.size = [max_width, 500]
+        self.size = [max_width, self.height]
 
         self.setTextInteractionFlags(Qt.TextEditable)
 
@@ -64,36 +70,15 @@ class Descriptor(QGraphicsTextItem):
 
         return aux.boundingRect().height()
 
-    def get_separator_offsets_width(self) -> tuple:
+    def get_separator_offsets_height(self) -> float:
         """
-        This function gets the width in pixels of the padding introduced by the QGraphicsTextItem
-        element. To do this, the following system of equations must be solved:
-            - padding + space + padding = len_text1
-            - padding + space + space + padding = len_text2
-        Those values will be used to place the text
-
-        :return: The padding introduced by QGraphicsTextItem.
-        """
-        text1 = QGraphicsTextItem(" ")
-        text2 = QGraphicsTextItem("  ")
-        text1.setFont(self.font())
-        text2.setFont(self.font())
-
-        return text1.boundingRect().width() - text2.boundingRect().width() / 2
-
-    def get_separator_offsets_height(self) -> tuple:
-        """
-        This function gets the height in pixels of the height of the strip used to represent
-        the text with the given font. In addition, it also gets the height in pixels of the
-        padding introduced by the QGraphicsTextItem element. To do so,the following system of
-        equations must be solved:
+        This function gets the height in pixels of the padding introduced by the QGraphicsTextItem
+        element. To do so,the following system of equations must be solved:
             - padding + strip + padding = height_1
             - padding + strip + strip + padding = height_2
         Those values will be used to place the text
 
-        :return:
-            - padding: The padding height introduced by QGraphicsTextItem.
-            - strip: The height that occupies the text
+        :return: The padding height introduced by QGraphicsTextItem.
         """
         aux = QGraphicsTextItem()
         aux.setFont(self.font())
@@ -104,11 +89,7 @@ class Descriptor(QGraphicsTextItem):
         aux.setHtml('<p align="justify">Test<br>Test</p>')
         height_2 = aux.boundingRect().height()
 
-        # Resolve the system of equations
-        padding = height_1 - height_2 / 2
-        strip = height_2 - height_1
-
-        return padding, strip
+        return height_1 - height_2 / 2
 
     def init_separators(self, separators: tuple[Separator, Separator]) -> None:
         """
@@ -133,7 +114,7 @@ class Descriptor(QGraphicsTextItem):
 
     def get_lines_y_values(self) -> list[float]:
         """
-        Find the y values of the lines to be filled by this MultilineRoundedRect
+        Find the y values of the lines to place the text
         :return: The list with the y values
         """
         lines = []
@@ -144,8 +125,7 @@ class Descriptor(QGraphicsTextItem):
 
     def set_points(self, moved_separator: Separator) -> None:
         """
-        Fill the list self.points with the values to be used to paint the rectangles. Each position of the
-        list is: (X_position, Y_position, Width).
+        Fill the list self.points with the values to be used to locate the text.
         This function is called every time a Separator has moved.
         :param moved_separator: The separator that has moved. Can be left_separator or right_separator
         """
@@ -200,21 +180,36 @@ class Descriptor(QGraphicsTextItem):
 
     def set_bounding_rect(self, lines):
         """
-        Set the bounding rect size and position according to the y vales given.
+        Set the bounding rect line_height and position according to the y vales given.
         :param lines: The list with the y values
         """
         self.setPos(self.pos().x(), lines[0] + self.height)
+        self.prepareGeometryChange()  # Has to be called before bounding rect updating
         self.size[1] = lines[-1] + self.height - lines[0]
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
+        """
+        Handle keyboard press events. In this case, edits the position of the texts and the text
+        :param event: The object that indicates the type of event triggered. In this case, has information
+                      about the key pressed
+        """
         super().keyPressEvent(event)
         self.width = self.get_text_width(self.document().toPlainText())
         self.set_points(self.left_separator)
 
     def boundingRect(self) -> QRectF:
+        """
+        Returns the bounding rect that occupies the element.
+        :return: The bounding rect as a QRectF
+        """
         return QRectF(0, 0, self.size[0], self.size[1])
 
     def shape(self) -> QPainterPath:
+        """
+        Returns a QPainterPath with the zones within the bounding rect that can be selected for further editing
+        of the text. Each of these zones represents a rectangle that covers the text in one line.
+        :return: A QPainterPath with the custom shape
+        """
         path = QPainterPath()
         self.width = self.get_text_width(self.document().toPlainText())
         offset = -self.pos() + QPointF(0, self.height - self.padding_height)

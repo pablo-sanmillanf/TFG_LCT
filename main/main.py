@@ -15,9 +15,6 @@ from PyQt5.QtWidgets import (
 
 )
 
-from descriptor import Descriptor
-from multiline_rounded_rect import MultilineRoundedRect
-from separator import Separator
 from text_classifier import TextClassifier
 
 
@@ -57,23 +54,7 @@ class Window(QWidget):
                           " it relates to GUI programming in Python.", 300, rect, font)
         self.scene.addItem(text)
 
-        left_separator = Separator(0, 0, 20, get_points(text.point_list), rect)
-        right_separator = Separator(0, 0, 20, get_points(text.point_list), rect)
-
-        custom_pen = QPen(Qt.black)
-        custom_pen.setWidth(5)
-        left_separator.setPen(custom_pen)
-        right_separator.setPen(custom_pen)
-        left_separator.setPos(200, 100)
-        right_separator.setPos(400, 130)
-
-        rou = MultilineRoundedRect(20, 5, 2, rect)
-        rou.init_separators((left_separator, right_separator))
-
-        descriptor = Descriptor(500, "text", rect, font)
-        descriptor.init_separators((left_separator, right_separator))
-
-        """self.classifier = TextClassifier(20, get_points(text.point_list), rect)
+        self.classifier = TextClassifier(500, 20, get_points(text.point_list), "SD~;SG~", rect)
         custom_pen = QPen(Qt.black)
         custom_pen.setWidth(5)
         self.classifier.set_separator_pen(custom_pen)
@@ -82,20 +63,20 @@ class Window(QWidget):
         self.buttonS.clicked.connect(self.split_action)
 
         self.buttonJ = QPushButton("Join")
-        self.buttonJ.clicked.connect(self.join_action)"""
+        self.buttonJ.clicked.connect(self.join_action)
 
         hbox = QHBoxLayout(self)
-        """hbox.addWidget(self.buttonS)
-        hbox.addWidget(self.buttonJ)"""
+        hbox.addWidget(self.buttonS)
+        hbox.addWidget(self.buttonJ)
         hbox.addWidget(view)
 
         self.setLayout(hbox)
 
-    """def split_action(self):
-        print(self.classifier.split(100, 100))
+    def split_action(self):
+        print("Split", self.classifier.split(100, 100))
 
     def join_action(self):
-        print(self.classifier.join(100, 100))"""
+        print("Join", self.classifier.join(100, 100))
 
 
 app = QApplication(sys.argv)

@@ -16,20 +16,23 @@ from PyQt5 import QtGui
 
 class MultilineRoundedRect(QGraphicsRectItem):
     """
-    This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his size and the number
-    of QGraphicsRectItem to fill the gap between the associated Separators.
+    This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his line_height and
+    the number of QGraphicsRectItem to fill the gap between the associated Separators.
     Assuming the "|" are the separators and the "=" are the rectangles, this is more or less what it will look like:
     |=====================================================================
     ======================================================================
     ====================================|
     """
+    size: list[float | int]
     right_separator: Separator
     left_separator: Separator
     points: list[tuple[float, float, float]]
 
-    def __init__(self, height: float | int, radius: float | int, offset: float | int, parent: QGraphicsItem) -> None:
+    def __init__(self, max_width: float | int, height: float | int,
+                 radius: float | int, offset: float | int, parent: QGraphicsItem) -> None:
         """
         Create MultilineRoundedRect object.
+        :param max_width: The maximum width of this element. Is determined by the max text width.
         :param height: The height of the rectangles
         :param radius: The radius of the rounded corners
         :param offset: The space between the border of a separator and
@@ -42,6 +45,8 @@ class MultilineRoundedRect(QGraphicsRectItem):
 
         self.left_separator = None
         self.right_separator = None
+
+        self.size = [max_width, height]
 
         self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
 
@@ -85,6 +90,7 @@ class MultilineRoundedRect(QGraphicsRectItem):
         :param moved_separator: The separator that has moved. Can be left_separator or right_separator
         """
         lines = self.get_lines_y_values()
+        self.set_bounding_rect(lines)
         self.points.clear()
         if len(lines) == 1:
             self.points.append(
@@ -136,6 +142,22 @@ class MultilineRoundedRect(QGraphicsRectItem):
         else:
             raise TypeError('Separators swapped')
 
+    def set_bounding_rect(self, lines):
+        """
+        Set the bounding rect line_height and position according to the y vales given.
+        :param lines: The list with the y values
+        """
+        self.setPos(self.pos().x(), lines[0])
+        self.prepareGeometryChange()  # Has to be called before bounding rect updating
+        self.size[1] = lines[-1] + self.rect().height() - lines[0]
+
+    def boundingRect(self) -> QRectF:
+        """
+        Returns the bounding rect that occupies the element.
+        :return: The bounding rect as a QRectF
+        """
+        return QRectF(0, 0, self.size[0], self.size[1])
+
     def paint(self,
               painter: QtGui.QPainter,
               option: "QStyleOptionGraphicsItem",
@@ -150,7 +172,7 @@ class MultilineRoundedRect(QGraphicsRectItem):
             painter.drawRoundedRect(
                 QRectF(
                     self.offset + point[0],             # X Value with certain offset
-                    point[1],                           # Y Value
+                    point[1] - self.pos().y(),          # Y Value
                     max(point[2] - 2*self.offset, 0),   # Width minus left and right offset
                     self.rect().height()                # Height
                 ),

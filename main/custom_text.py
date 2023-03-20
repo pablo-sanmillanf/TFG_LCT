@@ -47,7 +47,7 @@ class CustomText(QGraphicsTextItem):
     def get_line_separator_points(self, text: str, last_line: bool) -> np.ndarray:
         """
         This function calculates the word separations for a given line. Since the text is
-        justified, the size of each space character will vary according to how much the
+        justified, the line_height of each space character will vary according to how much the
         words on that line occupy to fit the total length.
 
         :param text: The text of the given line
@@ -107,7 +107,7 @@ class CustomText(QGraphicsTextItem):
 
     def get_lines(self, text_list: list) -> list:
         """
-        Transforms the given list of words into a list of lines, according to the maximum size that
+        Transforms the given list of words into a list of lines, according to the maximum line_height that
         can be occupied by a line. Also gives information abot if a line is the last of its paragraph
         :param text_list: List of the words of the text
         :return: A list of tuples in which each tuple contains a line of text and a boolean indicating
