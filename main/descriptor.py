@@ -10,8 +10,10 @@ from PyQt5.QtWidgets import QGraphicsTextItem, QWidget, QStyleOptionGraphicsItem
 from separator import Separator
 
 
-# Validating text:
-# https://stackoverflow.com/questions/17079535/qt-editable-qgraphicstextitem-validating-text-and-emitting-signal-on-change
+TEXT_SEPARATOR = "~"
+ALLOWED_CHARACTERS = ["+", "-"]
+ALLOWED_STRINGS = ["++", "--"]
+
 
 class Descriptor(QGraphicsTextItem):
     """
@@ -46,6 +48,10 @@ class Descriptor(QGraphicsTextItem):
         self.size = [max_width, self.height]
 
         self.setTextInteractionFlags(Qt.TextEditable)
+
+        self.non_editable_text_list = text.split(TEXT_SEPARATOR)
+        self.editable_text_list = [TEXT_SEPARATOR] * (len(self.non_editable_text_list) - 1)
+        self.highlighted_part = 0
 
     def get_text_width(self, text):
         """
@@ -178,6 +184,51 @@ class Descriptor(QGraphicsTextItem):
         else:
             raise TypeError('Separators swapped')
 
+    def check_char(self, char: str):
+        """
+        Check if the given char is valid to be added to the text.
+        :param char: The character to be checked
+        :return: True if the check is correct, False otherwise.
+        """
+        if char not in ALLOWED_CHARACTERS:
+            return False
+        if self.editable_text_list[self.highlighted_part] != TEXT_SEPARATOR and \
+                (self.editable_text_list[self.highlighted_part] + char) not in ALLOWED_STRINGS:
+            return False
+        return True
+
+    def update_text(self):
+        """
+        Update the content of the QTextDocument with the info in self.editable_text_list and
+        self.non_editable_text_list. Also update the text position.
+        """
+        self.document().setHtml(self.highlight_editable_text(self.highlighted_part))
+        self.width = self.get_text_width(self.document().toPlainText())
+        self.set_points(self.left_separator)
+
+    def highlight_editable_text(self, index) -> str:
+        """
+        Highlights the n-TEXT_SEPARATOR in the text. The TEXT_SEPARATOR highlighted is given by the index parameter.
+        :param index: Index of TEXT_SEPARATOR that is going to be highlighted.
+        :return: The resulting string
+        """
+        aux = ""
+        for i in range(len(self.editable_text_list)):
+            if i == index:
+                aux += (self.non_editable_text_list[i] + "<span style='color:white;background-color:#1F51FF;'>"
+                        + self.editable_text_list[i])
+            elif i == index + 1:
+                aux += ("</span>" + self.non_editable_text_list[i] + self.editable_text_list[i])
+            else:
+                aux += (self.non_editable_text_list[i] + self.editable_text_list[i])
+
+        if index == len(self.editable_text_list) - 1:
+            aux += ("</span>" + self.non_editable_text_list[-1])
+        else:
+            aux += self.non_editable_text_list[-1]
+
+        return aux
+
     def set_bounding_rect(self, lines):
         """
         Set the bounding rect line_height and position according to the y vales given.
@@ -187,15 +238,55 @@ class Descriptor(QGraphicsTextItem):
         self.prepareGeometryChange()  # Has to be called before bounding rect updating
         self.size[1] = lines[-1] + self.height - lines[0]
 
+    def setFont(self, font: QtGui.QFont) -> None:
+        """
+        Set text with a given font.
+        :param font: The font object
+        """
+        super().setFont(font)
+        self.width = self.get_text_width(self.document().toPlainText())
+        self.height = self.get_text_height()
+        self.padding_height = self.get_separator_offsets_height()
+        self.scene().update()
+
+    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        """
+        Manages the behaviour of the Descriptor when the user release the object. In this case, the object highlight
+        part of the text.
+        :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
+        """
+        self.highlighted_part = 0
+        self.document().setHtml(self.highlight_editable_text(self.highlighted_part))
+        super().mousePressEvent(event)
+
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         """
         Handle keyboard press events. In this case, edits the position of the texts and the text
         :param event: The object that indicates the type of event triggered. In this case, has information
                       about the key pressed
         """
-        super().keyPressEvent(event)
-        self.width = self.get_text_width(self.document().toPlainText())
-        self.set_points(self.left_separator)
+        print(event.key())
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            self.highlighted_part += 1
+            if self.highlighted_part < len(self.non_editable_text_list):
+                self.document().setHtml(self.highlight_editable_text(self.highlighted_part))
+        elif event.key() == Qt.Key_Backspace:
+            # Remove last char
+            if self.highlighted_part < len(self.editable_text_list):
+                self.editable_text_list[self.highlighted_part] = self.editable_text_list[self.highlighted_part][:-1]
+                if self.editable_text_list[self.highlighted_part] == "":
+                    self.editable_text_list[self.highlighted_part] = TEXT_SEPARATOR
+                self.update_text()
+        elif self.check_char(chr(event.key())):
+            # Add char to the highlighted text
+            if self.highlighted_part < len(self.editable_text_list):
+                if self.editable_text_list[self.highlighted_part] == TEXT_SEPARATOR:
+                    self.editable_text_list[self.highlighted_part] = chr(event.key())
+                else:
+                    self.editable_text_list[self.highlighted_part] += chr(event.key())
+                    if self.editable_text_list[self.highlighted_part] in ALLOWED_STRINGS:
+                        self.highlighted_part += 1
+                self.update_text()
 
     def boundingRect(self) -> QRectF:
         """
