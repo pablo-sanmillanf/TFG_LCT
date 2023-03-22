@@ -1,10 +1,12 @@
+import typing
 from typing import Any
 
 import numpy as np
-from PyQt5 import QtCore
-from PyQt5.QtCore import QPointF, Qt
-from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem, QGraphicsSceneMouseEvent
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtCore import QPointF, Qt, QRectF
+from PyQt5.QtGui import QCursor, QPainterPath
+from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem, QGraphicsSceneMouseEvent, QWidget, \
+    QStyleOptionGraphicsItem
 
 
 def find_nearest_point(candidate_points: list, point_reference: float) -> float:
@@ -23,19 +25,26 @@ class Separator(QGraphicsLineItem):
     fixed_points structure.
     To avoid redundant information this structure must be: [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
     """
-    def __init__(self, x: float, y: float, size: float,
+    size: QRectF
+
+    def __init__(self, x: float, y: float, height: float,
                  fixed_points: list[tuple[float, list[float]]], parent: QGraphicsItem) -> None:
         """
         Create Separator object. The requested position will be adjusted to the nearest position contained in
         fixed_points
         :param x: X coordinate of the Separator
         :param y: Y coordinate of the Separator
-        :param size: The height of the Separator
+        :param height: The height of the Separator
         :param fixed_points: fixed_points: Available points for the separators. The structure must
                              be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         """
-        super().__init__(0, 0, 0, size, parent)
+        super().__init__(0, 0, 0, height, parent)
+
+        self.border_left_pos = False
+        self.border_right_pos = False
+        self.size = QRectF(0, 0, 0, 0)
+        self.height = height
 
         self.setFlags(QGraphicsItem.ItemIsMovable |
                       QGraphicsItem.ItemIgnoresParentOpacity |
@@ -69,6 +78,77 @@ class Separator(QGraphicsLineItem):
             if tuple_point[0] == y_value:
                 return tuple_point[1]
 
+    def set_bounding_rect(self) -> None:
+        """
+        Set the bounding rect. If the item is not in the border, the bounding rect is the regular bounding rect.
+        If it is on the border, modify the bounding rect to span the original and the copy created at the beginning
+        of the next row (if the original was at the end of the line) or at the end of the previous row (if the
+        original was at the beginning of the line).
+        """
+        if self.border_left_pos and not self.border_right_pos:
+            y_values = self.get_y_values()
+            y_value_previous_line = y_values[y_values.index(self.pos().y()) - 1]
+            x_values_previous_line = self.get_x_values(y_value_previous_line)
+            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.size = QRectF(
+                -self.pen().widthF() / 2,
+                y_value_previous_line - self.pos().y(),
+                x_values_previous_line[-1] - self.pos().x() + self.pen().widthF(),
+                self.pos().y() - y_value_previous_line + self.height
+            )
+
+        elif not self.border_left_pos and self.border_right_pos:
+            y_values = self.get_y_values()
+            y_value_next_line = y_values[y_values.index(self.pos().y()) + 1]
+            x_values_next_line = self.get_x_values(y_value_next_line)
+            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.size = QRectF(
+                -self.pen().widthF() / 2 + x_values_next_line[0] - self.pos().x(),
+                0,
+                self.pos().x() - x_values_next_line[0] + self.pen().widthF(),
+                y_value_next_line - self.pos().y() + self.height
+            )
+
+    def is_on_the_border(self) -> bool:
+        """
+        Return True if the element is on the border of a line.
+        :return: True if is on the border.
+        """
+        return self.border_left_pos or self.border_right_pos
+
+    def complete_pos(self, left_pos: bool) -> QtCore.QPointF:
+        """
+        Return element position as a QPointF. If the element is on the border, depending on the value of left_pos,
+        this function will return one position or another. If it is True, it will return left border element position.
+        If it is False, it will return right border element position. If the element is not on the border, left_pos
+        don't care. This function should be called instead of pos().
+        :param left_pos: A boolean that indicates which position should be returned. True, if left border element
+                         position, False if right border element position.
+        :return: Element position.
+        """
+        if not self.border_left_pos and not self.border_right_pos:
+            return self.pos()
+        elif self.border_left_pos and not self.border_right_pos:
+            if left_pos:
+                return self.pos()
+            else:
+                y_values = self.get_y_values()
+                y_value_previous_line = y_values[y_values.index(self.pos().y()) - 1]
+                return QPointF(
+                    self.get_x_values(y_value_previous_line)[-1],
+                    y_value_previous_line
+                )
+        elif not self.border_left_pos and self.border_right_pos:
+            if left_pos:
+                y_values = self.get_y_values()
+                y_value_next_line = y_values[y_values.index(self.pos().y()) + 1]
+                return QPointF(
+                    self.get_x_values(y_value_next_line)[0],
+                    y_value_next_line
+                )
+            else:
+                return self.pos()
+
     def setPos(self, *args) -> None:
         """
         Set position of the Separator. The requested position will be adjusted to the nearest position
@@ -88,6 +168,79 @@ class Separator(QGraphicsLineItem):
         y_value = find_nearest_point(self.get_y_values(), req_y)
         x_value = find_nearest_point(self.get_x_values(y_value), req_x)
         super().setPos(x_value, y_value)
+
+    def shape(self) -> QPainterPath:
+        """
+        Returns a QPainterPath with the zones within the bounding rect that can be selected for further editing
+        of the text. Each of these zones represents a rectangle that covers the text in one line.
+        :return: A QPainterPath with the custom shape
+        """
+        path = super().shape()
+        if not self.border_left_pos and not self.border_right_pos:
+            return path
+        elif self.border_left_pos and not self.border_right_pos:
+            path.addRect(
+                QRectF(
+                    self.boundingRect().width() - self.pen().widthF(),
+                    self.height - self.boundingRect().height(),
+                    self.boundingRect().width(),
+                    self.height
+                    )
+            )
+            return path
+        elif not self.border_left_pos and self.border_right_pos:
+            path.addRect(
+                QRectF(
+                    -self.boundingRect().width() + self.pen().widthF(),
+                    self.boundingRect().height() - self.height,
+                    -self.boundingRect().width() + 2 * self.pen().widthF(),
+                    self.boundingRect().height()
+                )
+            )
+            return path
+
+        raise RuntimeError("Problems with custom shape in Separator object")
+
+    def boundingRect(self) -> QRectF:
+        """
+        Returns the bounding rect that occupies the element.
+        :return: The bounding rect as a QRectF
+        """
+        if not self.border_left_pos and not self.border_right_pos:
+            return super().boundingRect()
+        elif (self.border_left_pos and not self.border_right_pos) or \
+                (not self.border_left_pos and self.border_right_pos):
+            return self.size
+        else:
+            raise RuntimeError("Problems with custom bounding rect in Separator object")
+
+    def paint(self,
+              painter: QtGui.QPainter,
+              option: "QStyleOptionGraphicsItem",
+              widget: typing.Optional[QWidget] = ...) -> None:
+        """
+        Paints the separator using the information stored in self.fixed_points.
+        :param painter: The object to paint the rectangles in the canvas
+        :param option: This parameter will be ignored
+        :param widget: This parameter will be ignored
+        """
+        super().paint(painter, option, widget)
+        if self.border_left_pos and not self.border_right_pos:
+            painter.translate(
+                QPointF(
+                    self.boundingRect().width() - self.pen().widthF(),
+                    self.height - self.boundingRect().height()
+                )
+            )
+            super().paint(painter, option, widget)
+        elif not self.border_left_pos and self.border_right_pos:
+            painter.translate(
+                QPointF(
+                    -self.boundingRect().width() + self.pen().widthF(),
+                    self.boundingRect().height() - self.height
+                )
+            )
+            super().paint(painter, option, widget)
 
     def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> QPointF:
         """
@@ -115,6 +268,24 @@ class Separator(QGraphicsLineItem):
                 self.pos_set = False
         return super().itemChange(change, value)
 
+    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        """
+        Manages the behaviour of the Separator when the user release the object. In this case, the object changes its
+        bounding rect if self.border_left_pos or self.border_right_pos are active.
+        :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
+        """
+        if self.border_left_pos and not self.border_right_pos:
+            self.setPos(self.scene().views()[0].mapFromGlobal(QCursor.pos()))
+            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.border_left_pos = False
+        elif not self.border_left_pos and self.border_right_pos:
+            self.setPos(self.scene().views()[0].mapFromGlobal(QCursor.pos()))
+            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.border_right_pos = False
+        elif self.border_left_pos and self.border_right_pos:
+            raise RuntimeError("Problems with mousePressEvent in Separator object")
+        super().mousePressEvent(event)
+
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         """
         Manages the behaviour of the Separator when the user release the object. In this case, the object goes
@@ -123,9 +294,21 @@ class Separator(QGraphicsLineItem):
         """
         # Set nearest fixed position
         if self.fixed_points is not None:
-            y_value = find_nearest_point(self.get_y_values(), self.pos().y())
-            x_value = find_nearest_point(self.get_x_values(y_value), self.pos().x())
+            y_list_values = self.get_y_values()
+            y_value = find_nearest_point(y_list_values, self.pos().y())
+
+            x_list_values = self.get_x_values(y_value)
+            x_value = find_nearest_point(x_list_values, self.pos().x())
+
             self.setPos(x_value, y_value)
+
+            if x_list_values.index(x_value) == 0 and y_list_values.index(y_value) > 0:
+                self.border_left_pos = True
+                self.set_bounding_rect()
+            elif x_list_values.index(x_value) == len(x_list_values) - 1 and \
+                    y_list_values.index(y_value) < len(y_list_values) - 1:
+                self.border_right_pos = True
+                self.set_bounding_rect()
 
         # Execute super function to allow correct object behaviour
         super().mouseReleaseEvent(event)

@@ -128,7 +128,7 @@ class Descriptor(QGraphicsTextItem):
         """
         lines = []
         for y_value in sorted(set(self.left_separator.get_y_values() + self.right_separator.get_y_values())):
-            if self.left_separator.pos().y() <= y_value <= self.right_separator.pos().y():
+            if self.left_separator.complete_pos(True).y() <= y_value <= self.right_separator.complete_pos(False).y():
                 lines.append(y_value)
         return lines
 
@@ -139,53 +139,55 @@ class Descriptor(QGraphicsTextItem):
         :param moved_separator: The separator that has moved. Can be left_separator or right_separator
         """
         lines = self.get_lines_y_values()
-        self.points.clear()
-        self.set_bounding_rect(lines)
-        if len(lines) == 1:
-            self.points.append(
-                QPointF(
-                    (self.right_separator.pos().x() + self.left_separator.pos().x() - self.width) / 2,  # X Value
-                    self.left_separator.pos().y(),  # Y Value
-                )
-            )
-        elif len(lines) > 1:
-            # Set first line rounded rectangle
-            first_line_x_values = moved_separator.get_x_values(lines[0])
-
-            # It will always be true except if left_separator is in the last x position of
-            # a line and the right_separator is moving
-            if first_line_x_values is not None:
+        if len(lines) >= 1:
+            self.points.clear()
+            self.set_bounding_rect(lines)
+            if len(lines) == 1:
                 self.points.append(
                     QPointF(
-                        (self.left_separator.pos().x() + first_line_x_values[-1] - self.width) / 2,  # X Value
-                        lines[0],  # Y Value
+                        (self.right_separator.complete_pos(False).x() +
+                         self.left_separator.complete_pos(True).x() - self.width) / 2,  # X Value
+                        self.left_separator.complete_pos(True).y(),  # Y Value
                     )
                 )
+            elif len(lines) > 1:
+                # Set first line rounded rectangle
+                first_line_x_values = moved_separator.get_x_values(lines[0])
 
-            # Set the rest of line rounded rectangles except the last one
-            for i in range(1, len(lines) - 1):
-                x_values = moved_separator.get_x_values(lines[i])
-                self.points.append(
-                    QPointF(
-                        (x_values[0] + x_values[-1] - self.width) / 2,  # X Value
-                        lines[i],  # Y Value
+                # It will always be true except if left_separator is in the last x position of
+                # a line and the right_separator is moving
+                if first_line_x_values is not None:
+                    self.points.append(
+                        QPointF(
+                            (self.left_separator.complete_pos(True).x() + first_line_x_values[-1]
+                             - self.width) / 2,  # X Value
+                            lines[0],  # Y Value
+                        )
                     )
-                )
 
-            # Set the last line rounded rectangle
-            last_line_x_values = moved_separator.get_x_values(lines[-1])
-
-            # It will always be true except if right_separator is in the first x position of
-            # a line and the left_separator is moving
-            if last_line_x_values is not None:
-                self.points.append(
-                    QPointF(
-                        (last_line_x_values[0] + self.right_separator.pos().x() - self.width) / 2,  # X Value
-                        self.right_separator.pos().y(),  # Y Value
+                # Set the rest of line rounded rectangles except the last one
+                for i in range(1, len(lines) - 1):
+                    x_values = moved_separator.get_x_values(lines[i])
+                    self.points.append(
+                        QPointF(
+                            (x_values[0] + x_values[-1] - self.width) / 2,  # X Value
+                            lines[i],  # Y Value
+                        )
                     )
-                )
-        else:
-            raise TypeError('Separators swapped')
+
+                # Set the last line rounded rectangle
+                last_line_x_values = moved_separator.get_x_values(lines[-1])
+
+                # It will always be true except if right_separator is in the first x position of
+                # a line and the left_separator is moving
+                if last_line_x_values is not None:
+                    self.points.append(
+                        QPointF(
+                            (last_line_x_values[0] + self.right_separator.complete_pos(True).x()
+                             - self.width) / 2,  # X Value
+                            self.right_separator.complete_pos(True).y(),  # Y Value
+                        )
+                    )
 
     def update_text(self, style: str) -> None:
         """

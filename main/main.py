@@ -1,9 +1,11 @@
 import sys
 
+from PyQt5 import QtGui
+
 from custom_text import CustomText
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter, QPen, QFont
+from PyQt5.QtGui import QPainter, QPen, QFont, QBrush
 from PyQt5.QtWidgets import (
     QApplication,
     QGraphicsRectItem,
@@ -76,7 +78,9 @@ class Window(QWidget):
         print("Split", self.classifier.split(100, 100))
 
     def join_action(self):
+        brush = QBrush(Qt.red)
         print("Join", self.classifier.join(100, 100))
+        self.classifier.set_rects_brush(brush)
 
 
 app = QApplication(sys.argv)

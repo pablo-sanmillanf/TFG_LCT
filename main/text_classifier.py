@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QEvent, Qt
-from PyQt5.QtGui import QPen
+from PyQt5.QtGui import QPen, QBrush
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
 
 from descriptor import Descriptor
@@ -115,14 +115,20 @@ class TextClassifier(QGraphicsLineItem):
         if separator_index != -1:
             for line in self.fixed_points:
                 if line[0] >= y:
-                    for x_value in line[1]:
-                        if (line[0] == y and x_value >= x) or line[0] > y:
-                            if self.separators[separator_index].pos().x() == x_value and \
-                                    self.separators[separator_index].pos().y() == line[0]:
+                    for i in range(len(line[1])):
+                        if (line[0] == y and line[1][i] >= x) or line[0] > y:
+                            if self.separators[separator_index].is_on_the_border():
+                                if not (i == 0 and i == len(line[1]) - 1):
+                                    return line[1][i], line[0]
+                                if i == 0:
+                                    # If this position is busy, increment by one the index in separators array
+                                    separator_index += 1
+                            elif self.separators[separator_index].complete_pos(True).x() == line[1][i] and \
+                                    self.separators[separator_index].complete_pos(True).y() == line[0]:
                                 # If this position is busy, increment by one the index in separators array
                                 separator_index += 1
                             else:
-                                return x_value, line[0]
+                                return line[1][i], line[0]
         return -1000, -1000
 
     def find_index_separator(self, x: float, y: float) -> int:
@@ -134,10 +140,15 @@ class TextClassifier(QGraphicsLineItem):
         """
         for i in range(len(self.separators)):
             # Check if this separator is in subsequent lines
-            if self.separators[i].pos().y() > y:
+            if self.separators[i].complete_pos(True).y() > y:
                 return i - 1
-            elif self.separators[i].pos().y() == y and self.separators[i].pos().x() > x:
+            elif self.separators[i].complete_pos(True).y() == y and self.separators[i].complete_pos(True).x() > x:
                 return i - 1
+            if self.separators[i].is_on_the_border():
+                if self.separators[i].complete_pos(False).y() > y:
+                    return i - 1
+                elif self.separators[i].complete_pos(False).y() == y and self.separators[i].complete_pos(False).x() > x:
+                    return i - 1
         return -1
 
     def split(self, x: float, y: float) -> bool:
@@ -206,7 +217,8 @@ class TextClassifier(QGraphicsLineItem):
         if index == -1:
             return False
 
-        if self.separators[index].pos().x() != real_x or self.separators[index].pos().y() != real_y:
+        if self.separators[index].complete_pos(True).x() != real_x or \
+                self.separators[index].complete_pos(True).y() != real_y:
             return False
 
         removed_rect = self.rects.pop(index)
@@ -231,11 +243,11 @@ class TextClassifier(QGraphicsLineItem):
         :param index: Index of the element after which the new separator is to be inserted
         :return: The fixed_points structure for the new separator
         """
-        start_x = self.separators[index].pos().x()
-        start_y = self.separators[index].pos().y()
+        start_x = self.separators[index].complete_pos(True).x()
+        start_y = self.separators[index].complete_pos(True).y()
 
-        end_x = self.separators[index + 1].pos().x()
-        end_y = self.separators[index + 1].pos().y()
+        end_x = self.separators[index + 1].complete_pos(False).x()
+        end_y = self.separators[index + 1].complete_pos(False).y()
         return self.set_fixed_points(start_x, start_y, end_x, end_y)
 
     def set_fixed_points(self,
@@ -275,11 +287,19 @@ class TextClassifier(QGraphicsLineItem):
         """
         if (len(self.separators) - 2) >= index >= 1:
             self.separators[index].fixed_points = self.set_fixed_points(
-                self.separators[index - 1].pos().x(),
-                self.separators[index - 1].pos().y(),
-                self.separators[index + 1].pos().x(),
-                self.separators[index + 1].pos().y()
+                self.separators[index - 1].complete_pos(True).x(),
+                self.separators[index - 1].complete_pos(True).y(),
+                self.separators[index + 1].complete_pos(False).x(),
+                self.separators[index + 1].complete_pos(False).y()
             )
+
+    def set_rects_brush(self, brush: QBrush) -> None:
+        """
+        Apply a brush to all the rects.
+        :param brush: The brush to apply to the rects
+        """
+        for rect in self.rects:
+            rect.setBrush(brush)
 
     def sceneEventFilter(self, watched: QGraphicsItem, event: QEvent) -> bool:
         """
