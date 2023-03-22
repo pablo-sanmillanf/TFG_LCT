@@ -258,7 +258,6 @@ class Descriptor(QGraphicsTextItem):
         :param event: The object that indicates the type of event triggered. In this case, has information
                       about the key pressed
         """
-        print(event.key())
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             self.selected_part += 1
             if self.selected_part < len(self.non_editable_text_list):
@@ -267,7 +266,6 @@ class Descriptor(QGraphicsTextItem):
 
         elif self.selected_part < len(self.editable_text_list):  # If we have selected a valid editable text part
             if event.key() == Qt.Key_Backspace:  # Remove last char
-
                 if self.highlighted:
                     self.highlighted = False
                     self.editable_text_list[self.selected_part] = ""
@@ -281,7 +279,6 @@ class Descriptor(QGraphicsTextItem):
             elif Qt.Key_Space <= event.key() <= Qt.Key_ydiaeresis:  # If readable character
                 char = chr(event.key())
                 if char in ALLOWED_CHARACTERS:  # If valid char
-
                     if self.highlighted:
                         self.highlighted = False
                         self.editable_text_list[self.selected_part] = char
@@ -289,16 +286,9 @@ class Descriptor(QGraphicsTextItem):
                     elif self.editable_text_list[self.selected_part] == TEXT_SEPARATOR:
                         self.editable_text_list[self.selected_part] = char
                         self.update_text(UNDERLINE_STYLE)
-                    else:
+                    elif (self.editable_text_list[self.selected_part] + char) in ALLOWED_STRINGS:
                         self.editable_text_list[self.selected_part] += char
-
-                        # If this editable part is full, go to the next
-                        if self.editable_text_list[self.selected_part] in ALLOWED_STRINGS:
-                            self.selected_part += 1
-                            self.highlighted = True
-                            self.update_text(HIGHLIGHT_STYLE)
-                        else:
-                            self.update_text(UNDERLINE_STYLE)
+                        self.update_text(UNDERLINE_STYLE)
 
     def boundingRect(self) -> QRectF:
         """
