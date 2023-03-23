@@ -1,7 +1,9 @@
+import numpy as np
 from PyQt5.QtCore import QEvent, Qt
-from PyQt5.QtGui import QPen, QBrush
+from PyQt5.QtGui import QPen
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
 
+import descriptor
 from descriptor import Descriptor
 from separator import Separator, find_nearest_point
 from multiline_rounded_rect import MultilineRoundedRect
@@ -17,7 +19,7 @@ class TextClassifier(QGraphicsLineItem):
     separators: list[Separator]
 
     def __init__(self, max_width: float, line_height: float, fixed_points: list[tuple[float, list[float]]],
-                 default_text: str, parent: QGraphicsItem) -> None:
+                 default_text: str, colors: list[str], parent: QGraphicsItem) -> None:
         """
         Create TextClassifier object. Only one object form this class should be created
         :param max_width: The maximum width of this element. Is determined by the max text width.
@@ -37,6 +39,7 @@ class TextClassifier(QGraphicsLineItem):
         self.radius = 5
         self.offset = 2
         self.pen = None
+        self.colors = self.set_color_list(colors)
 
         # Set separators
         self.separators = []
@@ -59,13 +62,40 @@ class TextClassifier(QGraphicsLineItem):
 
         # Set rectangles
         self.rects = []
-        self.rects.append(MultilineRoundedRect(max_width, line_height, self.radius, self.offset, parent))
+        self.rects.append(MultilineRoundedRect(max_width, line_height, self.radius, self.offset, self.colors, parent))
         self.rects[0].init_separators((self.separators[0], self.separators[1]))
 
         # Set descriptors
         self.descriptors = []
         self.descriptors.append(Descriptor(max_width, default_text, parent))
         self.descriptors[0].init_separators((self.separators[0], self.separators[1]))
+        self.descriptors[0].editable_text_changed.connect(self.rects[0].editable_text_changed_slot)
+
+    def set_color_list(self, color_list: list[str]) -> dict[str, list[str]]:
+        """
+        Create a dictionary from a list of colors. This dictionary will have as a key of each element the color
+        itself and as a value, a list containing the values of the different editable parts of the descriptor text.
+        :param color_list: The list with the colors.
+        :return: The dictionary.
+        """
+        editable_texts_number = len(self.default_text.split(descriptor.TEXT_SEPARATOR)) - 1
+        allo_str_len = len(descriptor.ALLOWED_STRINGS)
+
+        if len(color_list) != np.power(allo_str_len, editable_texts_number) + 1:
+            raise RuntimeError("There should be " + str(np.power(allo_str_len, editable_texts_number) + 1) +
+                               "colors for text_classifier module but got" + str(len(color_list)) + "instead.")
+
+        colors = {color_list[0]: []}
+
+        for i in range(1, len(color_list) - 1):
+            value = []
+            for e in reversed(range(editable_texts_number)):
+                if e == 0:
+                    value.append(descriptor.ALLOWED_STRINGS[i % allo_str_len])
+                else:
+                    value.append(descriptor.ALLOWED_STRINGS[np.floor_divide(i, allo_str_len*e) % allo_str_len])
+            colors[color_list[i]] = value
+        return colors
 
     def set_separator_pen(self, pen: QPen) -> None:
         """
@@ -182,10 +212,19 @@ class TextClassifier(QGraphicsLineItem):
             self.parentItem()
 
         )
-        new_rect = MultilineRoundedRect(self.max_width, self.height, self.radius, self.offset, self.parentItem())
+        new_rect = MultilineRoundedRect(
+            self.max_width,
+            self.height,
+            self.radius,
+            self.offset,
+            self.colors,
+            self.parentItem()
+        )
         new_descriptor = Descriptor(self.max_width, self.default_text, self.parentItem())
         new_separator.installSceneEventFilter(self)
         new_separator.setPen(self.pen)
+
+        new_descriptor.editable_text_changed.connect(new_rect.editable_text_changed_slot)
 
         self.separators.insert(index + 1, new_separator)
         self.rects.insert(index + 1, new_rect)
@@ -292,14 +331,6 @@ class TextClassifier(QGraphicsLineItem):
                 self.separators[index + 1].complete_pos(False).x(),
                 self.separators[index + 1].complete_pos(False).y()
             )
-
-    def set_rects_brush(self, brush: QBrush) -> None:
-        """
-        Apply a brush to all the rects.
-        :param brush: The brush to apply to the rects
-        """
-        for rect in self.rects:
-            rect.setBrush(brush)
 
     def sceneEventFilter(self, watched: QGraphicsItem, event: QEvent) -> bool:
         """

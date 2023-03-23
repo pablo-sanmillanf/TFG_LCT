@@ -1,6 +1,8 @@
 import typing
 
 import numpy as np
+from PyQt5.QtGui import QColor
+
 from separator import Separator
 
 from PyQt5.QtCore import QEvent, QRectF
@@ -24,12 +26,13 @@ class MultilineRoundedRect(QGraphicsRectItem):
     ====================================|
     """
     size: list[float | int]
-    right_separator: Separator
-    left_separator: Separator
+    right_separator: Separator = None
+    left_separator: Separator = None
     points: list[tuple[float, float, float]]
+    colors: dict[str, list[str]]
 
-    def __init__(self, max_width: float | int, height: float | int,
-                 radius: float | int, offset: float | int, parent: QGraphicsItem) -> None:
+    def __init__(self, max_width: float | int, height: float | int, radius: float | int, offset: float | int,
+                 colors: dict[str, list[str]], parent: QGraphicsItem) -> None:
         """
         Create MultilineRoundedRect object.
         :param max_width: The maximum width of this element. Is determined by the max text width.
@@ -43,12 +46,11 @@ class MultilineRoundedRect(QGraphicsRectItem):
         self.offset = offset
         self.points = []
 
-        self.left_separator = None
-        self.right_separator = None
-
         self.size = [max_width, height]
 
         self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
+        self.colors = colors
+        self.editable_text_changed_slot([])
 
     def init_separators(self, separators: tuple[Separator, Separator]) -> None:
         """
@@ -197,3 +199,16 @@ class MultilineRoundedRect(QGraphicsRectItem):
                 self.set_points(watched)
                 self.scene().views()[0].viewport().repaint()
         return False
+
+    def editable_text_changed_slot(self, editable_text_list: list[str]) -> None:
+        """
+        Change the background color of the rect depending on the text values of editable_text_list.
+        :param editable_text_list: A list with the editable descriptor text parts.
+        """
+        index = 0
+        try:
+            index = list(self.colors.values()).index(editable_text_list)
+        except ValueError:
+            pass
+        self.setBrush(QColor(list(self.colors.keys())[index]))
+        self.scene().views()[0].viewport().repaint()

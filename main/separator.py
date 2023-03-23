@@ -25,6 +25,8 @@ class Separator(QGraphicsLineItem):
     fixed_points structure.
     To avoid redundant information this structure must be: [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
     """
+    border_right_pos: bool
+    border_left_pos: bool
     size: QRectF
 
     def __init__(self, x: float, y: float, height: float,

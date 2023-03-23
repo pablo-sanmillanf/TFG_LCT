@@ -1,7 +1,4 @@
 import sys
-
-from PyQt5 import QtGui
-
 from custom_text import CustomText
 
 from PyQt5.QtCore import Qt
@@ -27,6 +24,25 @@ def get_points(tuple_list):
 class Window(QWidget):
     def __init__(self):
         super().__init__()
+        colors = [
+            "blue",
+            "gold",
+            "goldenrod",
+            "yellow",
+            "orange",
+            "red",
+            "sienna",
+            "firebrick",
+            "deeppink",
+            "magenta",
+            "orangered",
+            "brown",
+            "yellowgreen",
+            "chocolate",
+            "coral",
+            "papayawhip",
+            "bisque",
+        ]
 
         # Defining a scene rect of 400x200, with it's origin at 0,0.
         # If we don't set this on creation, we can set it later with .setSceneRect
@@ -54,9 +70,10 @@ class Window(QWidget):
                           " PyQt is working and introduce some of the basic concepts. <br>"
                           " Then we'll take a brief look at the event loop and how"
                           " it relates to GUI programming in Python.", 300, rect, font)
+        text.setZValue(1)
         self.scene.addItem(text)
 
-        self.classifier = TextClassifier(500, 20, get_points(text.point_list), "SD~;SG~", rect)
+        self.classifier = TextClassifier(500, 20, get_points(text.point_list), "SD~;SG~", colors, rect)
         custom_pen = QPen(Qt.black)
         custom_pen.setWidth(5)
         self.classifier.set_separator_pen(custom_pen)
@@ -78,9 +95,7 @@ class Window(QWidget):
         print("Split", self.classifier.split(100, 100))
 
     def join_action(self):
-        brush = QBrush(Qt.red)
         print("Join", self.classifier.join(100, 100))
-        self.classifier.set_rects_brush(brush)
 
 
 app = QApplication(sys.argv)

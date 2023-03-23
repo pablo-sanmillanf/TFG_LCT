@@ -2,7 +2,7 @@ import typing
 
 import numpy as np
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QRectF, QPointF, QEvent
+from PyQt5.QtCore import Qt, QRectF, QPointF, QEvent, pyqtSignal
 from PyQt5.QtGui import QPainterPath, QFont
 from PyQt5.QtWidgets import QGraphicsTextItem, QWidget, QStyleOptionGraphicsItem, QGraphicsItem, \
     QGraphicsSceneMouseEvent
@@ -12,7 +12,7 @@ from separator import Separator
 
 TEXT_SEPARATOR = "~"
 ALLOWED_CHARACTERS = ["+", "-"]
-ALLOWED_STRINGS = ["++", "--"]
+ALLOWED_STRINGS = ["++", "+", "-", "--"]
 HIGHLIGHT_STYLE = "color:white;background-color:#1F51FF;"
 UNDERLINE_STYLE = "text-decoration: underline;"
 
@@ -22,6 +22,20 @@ class Descriptor(QGraphicsTextItem):
     This class is a variant of QGraphicsTextItem that is used to set the value of a clause. Those values
     should be SD++, SD+, SD-, SD-- and/or SG--, SG-, SG+, SG++
     """
+
+    size: list[float | int]
+    right_separator: Separator = None
+    left_separator: Separator = None
+    points: list[QPointF] = []
+    width: float
+    height: float
+    padding_height: float
+    highlighted: bool = False
+    selected_part: int = 0
+    editable_text_list: list[str]
+    non_editable_text_list: list[str]
+    editable_text_changed = pyqtSignal(list)
+
     def __init__(self, max_width: float | int, text: str, parent: QGraphicsItem, font: QFont = None) -> None:
         """
         Create Descriptor object.
@@ -32,9 +46,6 @@ class Descriptor(QGraphicsTextItem):
         """
         super().__init__(parent)
         self.setPos(0, 0)
-
-        self.left_separator = None
-        self.right_separator = None
 
         self.points = []
 
@@ -151,6 +162,7 @@ class Descriptor(QGraphicsTextItem):
                     )
                 )
             elif len(lines) > 1:
+
                 # Set first line rounded rectangle
                 first_line_x_values = moved_separator.get_x_values(lines[0])
 
@@ -183,9 +195,9 @@ class Descriptor(QGraphicsTextItem):
                 if last_line_x_values is not None:
                     self.points.append(
                         QPointF(
-                            (last_line_x_values[0] + self.right_separator.complete_pos(True).x()
+                            (last_line_x_values[0] + self.right_separator.complete_pos(False).x()
                              - self.width) / 2,  # X Value
-                            self.right_separator.complete_pos(True).y(),  # Y Value
+                            self.right_separator.complete_pos(False).y(),  # Y Value
                         )
                     )
 
@@ -196,6 +208,7 @@ class Descriptor(QGraphicsTextItem):
         :param style: A string with CSS format that contains the style of the text
         """
         self.document().setHtml(self.style_editable_text(self.selected_part, style))
+        self.editable_text_changed.emit(self.editable_text_list)
         self.width = self.get_text_width(self.document().toPlainText())
         self.set_points(self.left_separator)
 
@@ -242,6 +255,15 @@ class Descriptor(QGraphicsTextItem):
         self.height = self.get_text_height()
         self.padding_height = self.get_separator_offsets_height()
         self.scene().update()
+
+    def focusOutEvent(self, event: QtGui.QFocusEvent) -> None:
+        """
+        Manages the behaviour of the Descriptor when the user click in an area that is not the Descriptor.
+        In this case, the object removes all the custom styles applied to the text.
+        :param event: The object that indicates the type of event triggered. In this case is a QFocusEvent
+        """
+        self.document().setHtml(self.style_editable_text(self.selected_part, ""))
+        super().focusOutEvent(event)
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         """
