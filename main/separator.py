@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem, QGraphicsSceneMous
     QStyleOptionGraphicsItem
 
 
-def find_nearest_point(candidate_points: list, point_reference: float) -> float:
+def find_nearest_point(candidate_points: list[float], point_reference: float) -> float:
     """
     Find the nearest float to point_reference from the list candidate_points.
     :param candidate_points: A list of floats with the possible values
@@ -42,7 +42,7 @@ class Separator(QGraphicsLineItem):
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         """
         super().__init__(0, 0, 0, height, parent)
-
+        self.setZValue(2)
         self.border_left_pos = False
         self.border_right_pos = False
         self.size = QRectF(0, 0, 0, 0)
@@ -62,6 +62,7 @@ class Separator(QGraphicsLineItem):
         self.fixed_points = fixed_points
 
         self.setPos(x, y)
+        self.check_bounds()
 
     def get_y_values(self):
         """
@@ -79,6 +80,22 @@ class Separator(QGraphicsLineItem):
         for tuple_point in self.fixed_points:
             if tuple_point[0] == y_value:
                 return tuple_point[1]
+
+    def check_bounds(self):
+
+        y_list_values = self.get_y_values()
+        y_value = self.pos().y()
+
+        x_list_values = self.get_x_values(y_value)
+        x_value = self.pos().x()
+
+        if x_list_values.index(x_value) == 0 and y_list_values.index(y_value) > 0:
+            self.border_left_pos = True
+            self.set_bounding_rect()
+        elif x_list_values.index(x_value) == len(x_list_values) - 1 and \
+                y_list_values.index(y_value) < len(y_list_values) - 1:
+            self.border_right_pos = True
+            self.set_bounding_rect()
 
     def set_bounding_rect(self) -> None:
         """
@@ -150,6 +167,15 @@ class Separator(QGraphicsLineItem):
                 )
             else:
                 return self.pos()
+
+    def setPen(self, pen: typing.Union[QtGui.QPen, QtGui.QColor, QtCore.Qt.GlobalColor, QtGui.QGradient]) -> None:
+        """
+        Sets a pen style to the Separator.
+        :param pen: The QPen object.
+        """
+        super().setPen(pen)
+        if self.is_on_the_border():
+            self.set_bounding_rect()
 
     def setPos(self, *args) -> None:
         """
@@ -257,7 +283,8 @@ class Separator(QGraphicsLineItem):
             if self.pos_set is False:
                 y_value = find_nearest_point(
                     self.get_y_values(),
-                    self.scene().views()[0].mapFromGlobal(QCursor.pos()).y()
+                    self.parentItem().mapFromScene(self.scene().views()[0].mapFromGlobal(QCursor.pos())).y() +
+                    self.scene().views()[0].verticalScrollBar().value()
                 )
                 x_value = value.x()
                 x_list = self.get_x_values(y_value)
@@ -277,11 +304,13 @@ class Separator(QGraphicsLineItem):
         :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
         """
         if self.border_left_pos and not self.border_right_pos:
-            self.setPos(self.scene().views()[0].mapFromGlobal(QCursor.pos()))
+            cursor_pos = self.parentItem().mapFromScene(self.scene().views()[0].mapFromGlobal(QCursor.pos()))
+            self.setPos(cursor_pos.x(), cursor_pos.y() + self.scene().views()[0].verticalScrollBar().value())
             self.prepareGeometryChange()  # Has to be called before bounding rect updating
             self.border_left_pos = False
         elif not self.border_left_pos and self.border_right_pos:
-            self.setPos(self.scene().views()[0].mapFromGlobal(QCursor.pos()))
+            cursor_pos = self.parentItem().mapFromScene(self.scene().views()[0].mapFromGlobal(QCursor.pos()))
+            self.setPos(cursor_pos.x(), cursor_pos.y() + self.scene().views()[0].verticalScrollBar().value())
             self.prepareGeometryChange()  # Has to be called before bounding rect updating
             self.border_right_pos = False
         elif self.border_left_pos and self.border_right_pos:
@@ -295,22 +324,12 @@ class Separator(QGraphicsLineItem):
         :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
         """
         # Set nearest fixed position
-        if self.fixed_points is not None:
-            y_list_values = self.get_y_values()
-            y_value = find_nearest_point(y_list_values, self.pos().y())
+        y_value = find_nearest_point(self.get_y_values(), self.pos().y())
+        x_value = find_nearest_point(self.get_x_values(y_value), self.pos().x())
 
-            x_list_values = self.get_x_values(y_value)
-            x_value = find_nearest_point(x_list_values, self.pos().x())
+        self.setPos(x_value, y_value)
 
-            self.setPos(x_value, y_value)
-
-            if x_list_values.index(x_value) == 0 and y_list_values.index(y_value) > 0:
-                self.border_left_pos = True
-                self.set_bounding_rect()
-            elif x_list_values.index(x_value) == len(x_list_values) - 1 and \
-                    y_list_values.index(y_value) < len(y_list_values) - 1:
-                self.border_right_pos = True
-                self.set_bounding_rect()
+        self.check_bounds()
 
         # Execute super function to allow correct object behaviour
         super().mouseReleaseEvent(event)

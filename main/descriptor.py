@@ -36,19 +36,21 @@ class Descriptor(QGraphicsTextItem):
     non_editable_text_list: list[str]
     editable_text_changed = pyqtSignal(list)
 
-    def __init__(self, max_width: float | int, text: str, parent: QGraphicsItem, font: QFont = None) -> None:
+    def __init__(self, max_width: float | int, y_offset: int | float, text: str,
+                 parent: QGraphicsItem, font: QFont = None) -> None:
         """
         Create Descriptor object.
         :param max_width: The maximum width of this element. Is determined by the max text width.
+        :param y_offset: Set y offset for all the points calculated.
         :param text: The default text that will appear in the descriptor.
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         :param font: The Descriptor's text font.
         """
         super().__init__(parent)
         self.setPos(0, 0)
-
+        self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
         self.points = []
-
+        self.y_offset = y_offset
         if font is not None:
             self.setFont(font)
 
@@ -241,7 +243,7 @@ class Descriptor(QGraphicsTextItem):
         Set the bounding rect line_height and position according to the y vales given.
         :param lines: The list with the y values
         """
-        self.setPos(self.pos().x(), lines[0] + self.height)
+        self.setPos(self.pos().x(), lines[0] + self.y_offset)
         self.prepareGeometryChange()  # Has to be called before bounding rect updating
         self.size[1] = lines[-1] + self.height - lines[0]
 
@@ -329,7 +331,7 @@ class Descriptor(QGraphicsTextItem):
         """
         path = QPainterPath()
         self.width = self.get_text_width(self.document().toPlainText())
-        offset = -self.pos() + QPointF(0, self.height - self.padding_height)
+        offset = -self.pos() + QPointF(0, self.y_offset - self.padding_height)
         for point in self.points:
             path.addRect(QRectF(point + offset, point + offset + QPointF(self.width, self.height)))
         return path
@@ -345,7 +347,7 @@ class Descriptor(QGraphicsTextItem):
         :param widget: This parameter will be ignored
         """
         painter.setFont(self.font())
-        previous_point = self.pos() + QPointF(0, -self.height + self.padding_height)
+        previous_point = self.pos() + QPointF(0, -self.y_offset + self.padding_height)
         for i in range(len(self.points)):
             painter.translate(self.points[i] - previous_point)
             self.document().drawContents(painter)

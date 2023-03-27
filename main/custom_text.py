@@ -1,7 +1,11 @@
+from typing import List, Any
+
 import numpy as np
+from PyQt5 import QtGui
+from PyQt5.QtCore import QPointF
 
 from PyQt5.QtWidgets import (
-    QGraphicsTextItem,
+    QGraphicsTextItem, QGraphicsItem,
 )
 
 
@@ -11,23 +15,31 @@ class CustomText(QGraphicsTextItem):
     To insert line breaks, the characters "<br>" surrounded by spaces must be entered in the text.
     If these conditions are not met, a malfunction results.
     """
-    def __init__(self, text, line_height, parent, font=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setParentItem(parent)
-        self.setPos(0, 0)
-        self.setTextWidth(parent.boundingRect().width() - 10)
+    point_list: list[Any]
+
+    def __init__(self, text, width, line_height, parent):
+        super().__init__(parent)
+        self.setTextWidth(width - 10)
+        self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
+        self.setPos(5, 5)
+        self.setZValue(1)
         self.line_height = line_height
-
-        if font is not None:
-            self.setFont(font)
-
-        self.setHtml('<p align="justify" style="line-height: ' + str(line_height) + '%">' + text + '</p>')
-
         self.point_list = []
+        self.text = text
+        self.set_text(text)
 
-        self.get_separator_points(text.split())
+    def set_text(self, text) -> None:
+        """
+        Set the text of the element justified and with the element's line height.
+        :param text: The text
+        """
+        self.text = text
+        self.point_list.clear()
+        self.setHtml('<p align="justify" style="line-height: ' + str(self.line_height) + '%">' + text + '</p>')
 
-    def get_separator_points(self, text_list: list) -> None:
+        self.set_separator_points(text.split())
+
+    def set_separator_points(self, text_list: list) -> None:
         """
         This function calculates the points of separation between the different words of
         a given text.
@@ -191,3 +203,29 @@ class CustomText(QGraphicsTextItem):
         line_spacing = height_2 - height_1
 
         return padding, strip, line_spacing
+
+    def get_points(self) -> list[tuple[float, list[float]]]:
+        """
+        Return the list of points with this structure:
+        [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+        :return: The list with the points
+        """
+        return [(i[0], [e[0] for e in i[1]]) for i in self.point_list]
+
+    def get_points_as_QPointF(self) -> list[QPointF]:
+        """
+        Returns the list of points as QPointF.
+        :return: The list with the points
+        """
+        points = []
+        for line in self.text.point_list:
+            for x_value in line[1]:
+                points.append(QPointF(x_value[0], line[0]))
+        return points
+    def setFont(self, font: QtGui.QFont) -> None:
+        """
+        Set text with a given font.
+        :param font: The font object
+        """
+        super().setFont(font)
+        self.set_text(self.text)

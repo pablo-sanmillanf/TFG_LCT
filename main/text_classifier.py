@@ -1,6 +1,6 @@
 import numpy as np
-from PyQt5.QtCore import QEvent, Qt
-from PyQt5.QtGui import QPen
+from PyQt5.QtCore import QEvent, Qt, QPointF
+from PyQt5.QtGui import QPen, QFont
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
 
 import descriptor
@@ -28,16 +28,18 @@ class TextClassifier(QGraphicsLineItem):
         :param fixed_points: Available points for the separators. The structure must
                              be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
         :param default_text: The default text that will appear in the descriptors.
+        :param colors: A list of colors that will be used by the rectangles as a background color depending on the
+                       values of its Descriptors.
         :param parent: The QGraphicsItem parent of this element. Can't be None
         """
-        super().__init__(0, 0, 0, 1, parent)
+        super().__init__(parent)
         self.setOpacity(0)
         self.max_width = max_width
         self.height = line_height
         self.fixed_points = fixed_points
         self.default_text = default_text
-        self.radius = 5
-        self.offset = 2
+        self.radius = line_height / 4
+        self.offset = 0
         self.pen = None
         self.colors = self.set_color_list(colors)
 
@@ -67,7 +69,7 @@ class TextClassifier(QGraphicsLineItem):
 
         # Set descriptors
         self.descriptors = []
-        self.descriptors.append(Descriptor(max_width, default_text, parent))
+        self.descriptors.append(Descriptor(max_width, line_height * 1.2, default_text, parent))
         self.descriptors[0].init_separators((self.separators[0], self.separators[1]))
         self.descriptors[0].editable_text_changed.connect(self.rects[0].editable_text_changed_slot)
 
@@ -93,7 +95,7 @@ class TextClassifier(QGraphicsLineItem):
                 if e == 0:
                     value.append(descriptor.ALLOWED_STRINGS[i % allo_str_len])
                 else:
-                    value.append(descriptor.ALLOWED_STRINGS[np.floor_divide(i, allo_str_len*e) % allo_str_len])
+                    value.append(descriptor.ALLOWED_STRINGS[np.floor_divide(i, allo_str_len * e) % allo_str_len])
             colors[color_list[i]] = value
         return colors
 
@@ -105,6 +107,22 @@ class TextClassifier(QGraphicsLineItem):
         self.pen = pen
         for separator in self.separators:
             separator.setPen(pen)
+
+    def set_multiline_rects_offset(self, offset: int | float) -> None:
+        """
+        Set the offset for all the multiline rounded rects
+        :param offset: The offset in pixels
+        """
+        for rect in self.rects:
+            rect.offset = offset
+
+    def set_descriptors_font(self, font: QFont) -> None:
+        """
+        Set a font for all the descriptors.
+        :param font: The requested font
+        """
+        for item in self.descriptors:
+            item.setFont(font)
 
     def get_y_values(self):
         """
@@ -123,12 +141,12 @@ class TextClassifier(QGraphicsLineItem):
             if tuple_point[0] == y_value:
                 return tuple_point[1]
 
-    def get_separator_points(self) -> list[tuple[float, float]]:
+    def get_separator_points(self) -> list[QPointF]:
         """
         Return a list with the coordinates of all separators.
         :return: The list of coordinates
         """
-        return [(sep.pos().x(), sep.pos().y()) for sep in self.separators]
+        return [sep.pos() for sep in self.separators]
 
     def check_point_availability(self, x: float, y: float) -> tuple[float, float]:
         """
@@ -148,7 +166,7 @@ class TextClassifier(QGraphicsLineItem):
                     for i in range(len(line[1])):
                         if (line[0] == y and line[1][i] >= x) or line[0] > y:
                             if self.separators[separator_index].is_on_the_border():
-                                if not (i == 0 and i == len(line[1]) - 1):
+                                if not (i == 0 or i == len(line[1]) - 1):
                                     return line[1][i], line[0]
                                 if i == 0:
                                     # If this position is busy, increment by one the index in separators array
@@ -170,14 +188,16 @@ class TextClassifier(QGraphicsLineItem):
         """
         for i in range(len(self.separators)):
             # Check if this separator is in subsequent lines
-            if self.separators[i].complete_pos(True).y() > y:
-                return i - 1
-            elif self.separators[i].complete_pos(True).y() == y and self.separators[i].complete_pos(True).x() > x:
-                return i - 1
-            if self.separators[i].is_on_the_border():
-                if self.separators[i].complete_pos(False).y() > y:
-                    return i - 1
-                elif self.separators[i].complete_pos(False).y() == y and self.separators[i].complete_pos(False).x() > x:
+            if self.separators[i].complete_pos(False).y() > y or \
+                    (self.separators[i].complete_pos(False).y() == y and
+                     self.separators[i].complete_pos(False).x() > x):
+
+                if self.separators[i - 1].is_on_the_border():
+                    if self.separators[i - 1].complete_pos(True).y() < y or \
+                            (self.separators[i - 1].complete_pos(True).y() == y and
+                             self.separators[i - 1].complete_pos(True).x() < x):
+                        return i - 1
+                else:
                     return i - 1
         return -1
 
@@ -220,7 +240,7 @@ class TextClassifier(QGraphicsLineItem):
             self.colors,
             self.parentItem()
         )
-        new_descriptor = Descriptor(self.max_width, self.default_text, self.parentItem())
+        new_descriptor = Descriptor(self.max_width, self.height * 1.2, self.default_text, self.parentItem())
         new_separator.installSceneEventFilter(self)
         new_separator.setPen(self.pen)
 

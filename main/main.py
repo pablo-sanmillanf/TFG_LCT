@@ -1,82 +1,25 @@
 import sys
-from custom_text import CustomText
-
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter, QPen, QFont, QBrush
 from PyQt5.QtWidgets import (
     QApplication,
-    QGraphicsRectItem,
-    QGraphicsScene,
-    QGraphicsView,
     QHBoxLayout,
     QPushButton,
-    QWidget,
+    QWidget, QVBoxLayout,
 
 )
-
-from text_classifier import TextClassifier
-
-
-def get_points(tuple_list):
-    return [(i[0], [e[0] for e in i[1]]) for i in tuple_list]
+from text_handler import TextHandler
 
 
 class Window(QWidget):
     def __init__(self):
         super().__init__()
-        colors = [
-            "blue",
-            "gold",
-            "goldenrod",
-            "yellow",
-            "orange",
-            "red",
-            "sienna",
-            "firebrick",
-            "deeppink",
-            "magenta",
-            "orangered",
-            "brown",
-            "yellowgreen",
-            "chocolate",
-            "coral",
-            "papayawhip",
-            "bisque",
-        ]
 
-        # Defining a scene rect of 400x200, with it's origin at 0,0.
-        # If we don't set this on creation, we can set it later with .setSceneRect
-        self.scene = QGraphicsScene(0, 0, 500, 500)
-
-        view = QGraphicsView(self.scene)
-        view.setRenderHint(QPainter.Antialiasing)
-        view.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-        view.setMinimumSize(502, 502)
-
-        rect = QGraphicsRectItem(0, 0, 500, 500)
-        pen = QPen(Qt.green)
-        pen.setWidth(5)
-        rect.setPen(pen)
-        self.scene.addItem(rect)
-
-        font = QFont()
-        font.setFamily('Times')
-        font.setBold(True)
-        font.setPointSize(10)
-
-        text = CustomText("In this tutorial we'll learn how to use PyQt to create "
-                          "desktop applications with Python. First we'll create a "
-                          "series of simple windows on your desktop to ensure that"
-                          " PyQt is working and introduce some of the basic concepts. <br>"
-                          " Then we'll take a brief look at the event loop and how"
-                          " it relates to GUI programming in Python.", 300, rect, font)
-        text.setZValue(1)
-        self.scene.addItem(text)
-
-        self.classifier = TextClassifier(500, 20, get_points(text.point_list), "SD~;SG~", colors, rect)
-        custom_pen = QPen(Qt.black)
-        custom_pen.setWidth(5)
-        self.classifier.set_separator_pen(custom_pen)
+        self.handler = TextHandler(20, 20, 500, 500,
+                                   "In this tutorial we'll learn how to use PyQt to create "
+                                   "desktop applications with Python. First we'll create a "
+                                   "series of simple windows on your desktop to ensure that"
+                                   " PyQt is working and introduce some of the basic concepts. <br>"
+                                   " Then we'll take a brief look at the event loop and how"
+                                   " it relates to GUI programming in Python.", 13)
 
         self.buttonS = QPushButton("Split")
         self.buttonS.clicked.connect(self.split_action)
@@ -84,18 +27,28 @@ class Window(QWidget):
         self.buttonJ = QPushButton("Join")
         self.buttonJ.clicked.connect(self.join_action)
 
+        self.buttonT = QPushButton("Get Text")
+        self.buttonT.clicked.connect(self.text_action)
         hbox = QHBoxLayout(self)
-        hbox.addWidget(self.buttonS)
-        hbox.addWidget(self.buttonJ)
-        hbox.addWidget(view)
+
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.buttonS)
+        vbox.addWidget(self.buttonJ)
+        vbox.addWidget(self.buttonT)
+
+        hbox.addLayout(vbox)
+        hbox.addWidget(self.handler)
 
         self.setLayout(hbox)
 
     def split_action(self):
-        print("Split", self.classifier.split(100, 100))
+        print("Split", self.handler.split(100, 100))
 
     def join_action(self):
-        print("Join", self.classifier.join(100, 100))
+        print("Join", self.handler.join(100, 100))
+
+    def text_action(self):
+        print(self.handler.get_text_classified())
 
 
 app = QApplication(sys.argv)

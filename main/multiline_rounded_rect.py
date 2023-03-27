@@ -107,17 +107,13 @@ class MultilineRoundedRect(QGraphicsRectItem):
             elif len(lines) > 1:
                 # Set first line rounded rectangle
                 first_line_x_values = moved_separator.get_x_values(lines[0])
-
-                # It will always be true except if left_separator is in the last x position of
-                # a line and the right_separator is moving
-                if first_line_x_values is not None:
-                    self.points.append(
-                        (
-                            self.left_separator.complete_pos(True).x(),  # X Value
-                            lines[0],  # Y Value
-                            first_line_x_values[-1] - self.left_separator.complete_pos(True).x()  # Width
-                        )
+                self.points.append(
+                    (
+                        self.left_separator.complete_pos(True).x(),  # X Value
+                        lines[0],  # Y Value
+                        first_line_x_values[-1] - self.left_separator.complete_pos(True).x()  # Width
                     )
+                )
 
                 # Set the rest of line rounded rectangles except the last one
                 for i in range(1, len(lines) - 1):
@@ -132,17 +128,13 @@ class MultilineRoundedRect(QGraphicsRectItem):
 
                 # Set the last line rounded rectangle
                 last_line_x_values = moved_separator.get_x_values(lines[-1])
-
-                # It will always be true except if right_separator is in the first x position of
-                # a line and the left_separator is moving
-                if last_line_x_values is not None:
-                    self.points.append(
-                        (
-                            last_line_x_values[0],  # X Value
-                            self.right_separator.complete_pos(False).y(),  # Y Value
-                            self.right_separator.complete_pos(False).x() - last_line_x_values[0]  # Width
-                        )
+                self.points.append(
+                    (
+                        last_line_x_values[0],  # X Value
+                        self.right_separator.complete_pos(False).y(),  # Y Value
+                        self.right_separator.complete_pos(False).x() - last_line_x_values[0]  # Width
                     )
+                )
 
     def set_bounding_rect(self, lines):
         """
