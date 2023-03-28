@@ -132,7 +132,7 @@ class Descriptor(QGraphicsTextItem):
         self.left_separator.installSceneEventFilter(self)
         self.right_separator.installSceneEventFilter(self)
 
-        self.set_points(self.left_separator)
+        self.update_points(self.left_separator)
 
     def get_lines_y_values(self) -> list[float]:
         """
@@ -145,7 +145,7 @@ class Descriptor(QGraphicsTextItem):
                 lines.append(y_value)
         return lines
 
-    def set_points(self, moved_separator: Separator) -> None:
+    def update_points(self, moved_separator: Separator) -> None:
         """
         Fill the list self.points with the values to be used to locate the text.
         This function is called every time a Separator has moved.
@@ -212,7 +212,7 @@ class Descriptor(QGraphicsTextItem):
         self.document().setHtml(self.style_editable_text(self.selected_part, style))
         self.editable_text_changed.emit(self.editable_text_list)
         self.width = self.get_text_width(self.document().toPlainText())
-        self.set_points(self.left_separator)
+        self.update_points(self.left_separator)
 
     def style_editable_text(self, index: int, style: str) -> str:
         """
@@ -367,5 +367,5 @@ class Descriptor(QGraphicsTextItem):
         if isinstance(event, QGraphicsSceneMouseEvent) or \
                 (isinstance(event, QEvent) and event.type() == QEvent.UngrabMouse):
             if self.right_separator is watched or self.left_separator is watched:
-                self.set_points(watched)
+                self.update_points(watched)
         return False

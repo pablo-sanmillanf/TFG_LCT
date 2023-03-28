@@ -73,7 +73,7 @@ class CustomText(QGraphicsTextItem):
         if not isinstance(text, str):
             raise TypeError('text must be a string')
 
-        text_list = text.split()
+        text_list = text.split(" ")
         points = np.empty(len(text_list) + 1, dtype=object)
 
         # Create an auxiliary QGraphicsTextItem to calculate the points
@@ -108,12 +108,12 @@ class CustomText(QGraphicsTextItem):
 
         # Set last element
         if not last_line:
-            points[-1] = (self.textWidth() - padding / 2 + self.pos().x(), "\n")
+            points[-1] = (self.textWidth() - padding / 2 + self.pos().x(), "")
         else:
             aux_text.setPlainText(text)
             points[-1] = (
                 aux_text.boundingRect().width() - padding +
-                half_space + space_adjust / 2 + space_adjust * (len(text_list) - 1) + self.pos().x(), "\n"
+                half_space + space_adjust / 2 + space_adjust * (len(text_list) - 1) + self.pos().x(), ""
             )
         return points
 
@@ -133,7 +133,7 @@ class CustomText(QGraphicsTextItem):
         init = 0
         for i in range(len(text_list)):
             if text_list[i] == "<br>":
-                result.append((" ".join(text_list[init:i]), True))
+                result.append((" ".join(text_list[init:i]) + "\n", True))
                 init = i + 1
             else:
                 aux_text.setPlainText(" ".join(text_list[init:i + 1]))
@@ -222,6 +222,7 @@ class CustomText(QGraphicsTextItem):
             for x_value in line[1]:
                 points.append(QPointF(x_value[0], line[0]))
         return points
+
     def setFont(self, font: QtGui.QFont) -> None:
         """
         Set text with a given font.

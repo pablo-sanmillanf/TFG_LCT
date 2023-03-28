@@ -62,7 +62,6 @@ class Separator(QGraphicsLineItem):
         self.fixed_points = fixed_points
 
         self.setPos(x, y)
-        self.check_bounds()
 
     def get_y_values(self):
         """
@@ -81,21 +80,13 @@ class Separator(QGraphicsLineItem):
             if tuple_point[0] == y_value:
                 return tuple_point[1]
 
-    def check_bounds(self):
-
-        y_list_values = self.get_y_values()
-        y_value = self.pos().y()
-
-        x_list_values = self.get_x_values(y_value)
-        x_value = self.pos().x()
-
-        if x_list_values.index(x_value) == 0 and y_list_values.index(y_value) > 0:
-            self.border_left_pos = True
-            self.set_bounding_rect()
-        elif x_list_values.index(x_value) == len(x_list_values) - 1 and \
-                y_list_values.index(y_value) < len(y_list_values) - 1:
-            self.border_right_pos = True
-            self.set_bounding_rect()
+    def set_height(self, height: float | int) -> None:
+        """
+        Change height of the Separator object.
+        :param height: Height in pixels.
+        """
+        self.height = height
+        self.setLine(0, 0, 0, height)
 
     def set_bounding_rect(self) -> None:
         """
@@ -193,9 +184,20 @@ class Separator(QGraphicsLineItem):
         else:
             raise TypeError('TypeError in setPos() function')
 
+        y_list_values = self.get_y_values()
         y_value = find_nearest_point(self.get_y_values(), req_y)
+
+        x_list_values = self.get_x_values(y_value)
         x_value = find_nearest_point(self.get_x_values(y_value), req_x)
         super().setPos(x_value, y_value)
+
+        if x_list_values.index(x_value) == 0 and y_list_values.index(y_value) > 0:
+            self.border_left_pos = True
+            self.set_bounding_rect()
+        elif x_list_values.index(x_value) == len(x_list_values) - 1 and \
+                y_list_values.index(y_value) < len(y_list_values) - 1:
+            self.border_right_pos = True
+            self.set_bounding_rect()
 
     def shape(self) -> QPainterPath:
         """
@@ -324,12 +326,7 @@ class Separator(QGraphicsLineItem):
         :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
         """
         # Set nearest fixed position
-        y_value = find_nearest_point(self.get_y_values(), self.pos().y())
-        x_value = find_nearest_point(self.get_x_values(y_value), self.pos().x())
-
-        self.setPos(x_value, y_value)
-
-        self.check_bounds()
+        self.setPos(self.pos())
 
         # Execute super function to allow correct object behaviour
         super().mouseReleaseEvent(event)

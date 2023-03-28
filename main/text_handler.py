@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QFont, QPen, QPainter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem
 
@@ -55,11 +55,11 @@ class TextHandler(QGraphicsView):
 
         self.text = CustomText(text, width, 300, self.items_parent)
 
-        self.change_text_size(text_size)
-
         self.classifier = TextClassifier(
             width, text_size * 2, self.text.get_points(), "SD~;SG~", COLORS, self.items_parent
         )
+
+        self.change_text_size(text_size)
 
         custom_pen = QPen(Qt.black)
         custom_pen.setWidth(5)
@@ -80,6 +80,10 @@ class TextHandler(QGraphicsView):
         return self.classifier.join(x_value, y_value)
 
     def change_text_size(self, text_size):
+        # Save text_list from the original text_size to reposition all the separators
+        text_list_previous_size = self.get_text_classified()
+
+        # Set text size
         self.font.setPointSize(text_size)
         self.text.setFont(self.font)
         self.scene.setSceneRect(
@@ -88,6 +92,12 @@ class TextHandler(QGraphicsView):
             self.size().width(),
             self.items_parent.pos().y() + self.text.boundingRect().height()
         )
+
+        # Change rects and separators height
+        self.classifier.set_line_height(text_size * 2)
+
+        # Reposition separators to the new text size
+        self.set_separators_reposition(text_list_previous_size)
 
     def get_text_classified(self):
         text_list = [""] * (len(self.classifier.separators) - 1)
@@ -101,7 +111,7 @@ class TextHandler(QGraphicsView):
                 if separator_points[separator_index].x() == self.text.point_list[y_index][1][x_index][0] and \
                         separator_points[separator_index].y() == self.text.point_list[y_index][0]:
                     separator_index += 1
-                if self.text.point_list[y_index][1][x_index][1] != '\n':
+                if self.text.point_list[y_index][1][x_index][1] != '':
                     text_list[separator_index - 1] += (self.text.point_list[y_index][1][x_index][1] + " ")
 
         # Remove last space in every item and empty items
@@ -113,3 +123,27 @@ class TextHandler(QGraphicsView):
             else:
                 text_list[i - popped_elements] = text_list[i - popped_elements][:-1]
         return text_list
+
+    def set_separators_reposition(self, text_list):
+        text_list_index = 0
+        separator_points = [QPointF(self.text.point_list[0][1][0][0], self.text.point_list[0][0])]
+        aux_text = ""
+
+        for y_index in range(len(self.text.point_list)):
+            for x_index in range(len(self.text.point_list[y_index][1])):
+                if self.text.point_list[y_index][1][x_index][1] != '':
+                    aux_text += (self.text.point_list[y_index][1][x_index][1] + " ")
+
+                    # Do the comparison without the last space character
+                    if aux_text[:-1] not in text_list[text_list_index]:
+                        text_list_index += 1
+                        aux_text = self.text.point_list[y_index][1][x_index][1] + " "
+                        separator_points.append(
+                            QPointF(self.text.point_list[y_index][1][x_index][0], self.text.point_list[y_index][0])
+                        )
+        # Add last element
+        separator_points.append(
+            QPointF(self.text.point_list[-1][1][-1][0], self.text.point_list[-1][0])
+        )
+
+        self.classifier.update_general_fixed_points_and_separators_pos(self.text.get_points(), separator_points)

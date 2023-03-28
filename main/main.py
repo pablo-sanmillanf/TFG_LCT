@@ -49,6 +49,7 @@ class Window(QWidget):
 
     def text_action(self):
         print(self.handler.get_text_classified())
+        self.handler.change_text_size(10)
 
 
 app = QApplication(sys.argv)

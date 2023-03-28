@@ -71,7 +71,7 @@ class MultilineRoundedRect(QGraphicsRectItem):
         self.left_separator.installSceneEventFilter(self)
         self.right_separator.installSceneEventFilter(self)
 
-        self.set_points(self.left_separator)
+        self.update_points(self.left_separator)
 
     def get_lines_y_values(self) -> list[float]:
         """
@@ -84,7 +84,7 @@ class MultilineRoundedRect(QGraphicsRectItem):
                 lines.append(y_value)
         return lines
 
-    def set_points(self, moved_separator: Separator) -> None:
+    def update_points(self, moved_separator: Separator) -> None:
         """
         Fill the list self.points with the values to be used to paint the rectangles. Each position of the
         list is: (X_position, Y_position, Width).
@@ -188,7 +188,7 @@ class MultilineRoundedRect(QGraphicsRectItem):
         if isinstance(event, QGraphicsSceneMouseEvent) or \
                 (isinstance(event, QEvent) and event.type() == QEvent.UngrabMouse):
             if self.right_separator is watched or self.left_separator is watched:
-                self.set_points(watched)
+                self.update_points(watched)
                 self.scene().views()[0].viewport().repaint()
         return False
 

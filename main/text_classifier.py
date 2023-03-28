@@ -148,6 +148,66 @@ class TextClassifier(QGraphicsLineItem):
         """
         return [sep.pos() for sep in self.separators]
 
+    def set_separator_points(self, points: list[QPointF]) -> None:
+        """
+        Set the coordinates of all separators with the given QPointF list.
+        :param points: The points list.
+        """
+        if len(points) != len(self.separators):
+            raise RuntimeError("There are not the same points as separators in set_separator_points() function")
+
+        for i in range(len(points)):
+            self.separators[i].setPos(points[i])
+
+    def update_general_fixed_points_and_separators_pos(self, new_fixed_points: list[tuple[float, list[float]]],
+                                                       new_separator_points: list[QPointF]) -> None:
+        """
+        Update the fixed points and the position of all the separators. This function should be called if the
+        text size or the text itself changes.
+        :param new_fixed_points: The new fixed points for yhe text_classifier object.
+        :param new_separator_points: The new location for all the separators.
+        """
+        self.fixed_points = new_fixed_points
+
+        # To update the specifics fixed_points for the separators, first we change its fixed_points to the generic
+        # fixed_points, then we specify the position for all the separators and finally, we change the fixed_points
+        # to restrict the separator movement
+
+        for separator in self.separators:
+            separator.fixed_points = new_fixed_points
+
+        self.set_separator_points(new_separator_points)
+
+        for i in range(len(self.separators)):
+            self.update_fixed_points_separator(i)
+
+        # Update all the rects and the descriptors to adjust to new separator positions
+        for i in range(len(self.rects)):
+            self.rects[i].update_points(self.separators[i])
+            self.rects[i].update()
+            self.descriptors[i].update_points(self.separators[i])
+            self.descriptors[i].update()
+
+    def set_line_height(self, line_height: float | int) -> None:
+        """
+        Set line height for all the separators, rects and descriptors. In the case of the descriptors, the value
+        modified will be the y_offset, to adjust to the new rect height. In the case of the rects, the radius will
+        also be modified.
+        :param line_height: Line height in pixels.
+        """
+        self.height = line_height
+        self.radius = line_height / 4
+
+        for rect in self.rects:
+            rect.radius = self.radius
+            rect.setRect(0, 0, 1, self.height)
+
+        for separator in self.separators:
+            separator.set_height(self.height)
+
+        for descript in self.descriptors:
+            descript.y_offset = self.height * 1.2
+
     def check_point_availability(self, x: float, y: float) -> tuple[float, float]:
         """
         Check if the given point is occupied by existing separator and if so, find another free point.
