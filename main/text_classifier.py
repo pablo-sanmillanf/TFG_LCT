@@ -73,6 +73,39 @@ class TextClassifier(QGraphicsLineItem):
         self.descriptors[0].init_separators((self.separators[0], self.separators[1]))
         self.descriptors[0].editable_text_changed.connect(self.rects[0].editable_text_changed_slot)
 
+    def reset(self, fixed_points: list[tuple[float, list[float]]]) -> None:
+        """
+        Reset the object with new fixed points. That is, remove all the separators except the first ant the last and
+        all the associated multiline rounded rects and descriptors.
+        :param fixed_points: The new fixed_points
+        """
+        self.fixed_points = fixed_points
+
+        self.rects[0].init_separators((self.separators[0], self.separators[-1]))
+        self.descriptors[0].init_separators((self.separators[0], self.separators[-1]))
+
+        last_index = len(self.separators) - 1
+
+        for _ in range(1, last_index):
+            removed_rect = self.rects.pop(1)
+            removed_descriptor = self.descriptors.pop(1)
+            removed_separator = self.separators.pop(1)
+
+            self.scene().removeItem(removed_rect)
+            self.scene().removeItem(removed_descriptor)
+            self.scene().removeItem(removed_separator)
+
+        self.separators[0].fixed_points = fixed_points
+        self.separators[1].fixed_points = fixed_points
+
+        self.separators[0].setPos(fixed_points[0][1][0], fixed_points[0][0])
+        self.separators[1].setPos(fixed_points[-1][1][-1], fixed_points[-1][0])
+
+        self.rects[0].update_points(self.separators[0])
+        self.rects[0].update()
+        self.descriptors[0].update_points(self.separators[0])
+        self.descriptors[0].update()
+
     def set_color_list(self, color_list: list[str]) -> dict[str, list[str]]:
         """
         Create a dictionary from a list of colors. This dictionary will have as a key of each element the color
@@ -85,7 +118,7 @@ class TextClassifier(QGraphicsLineItem):
 
         if len(color_list) != np.power(allo_str_len, editable_texts_number) + 1:
             raise RuntimeError("There should be " + str(np.power(allo_str_len, editable_texts_number) + 1) +
-                               "colors for text_classifier module but got" + str(len(color_list)) + "instead.")
+                               " colors for text_classifier module but got " + str(len(color_list)) + " instead.")
 
         colors = {color_list[0]: []}
 
@@ -98,6 +131,24 @@ class TextClassifier(QGraphicsLineItem):
                     value.append(descriptor.ALLOWED_STRINGS[np.floor_divide(i, allo_str_len * e) % allo_str_len])
             colors[color_list[i]] = value
         return colors
+
+    def set_default_descriptor(self, default_descriptor: str, colors: list[str]) -> None:
+        """
+        Set the default descriptor for all the descriptors. Should contain one or more "~" characters. The list of
+        colors will be the colors that the rounded rects will have depending on the value of the descriptor. The length
+        of this list should be the same as the possible combinations of the descriptor text plus one (the default one).
+        Also, the colors list should be of any HTML valid color.
+        :param default_descriptor: The default string that will appear in the descriptor. Should contain one or more
+                                   "~" characters.
+        :param colors: List of all available colors
+        """
+        self.default_text = default_descriptor
+        self.colors = self.set_color_list(colors)
+        for rect in self.rects:
+            rect.colors = self.colors
+
+        for desc in self.descriptors:
+            desc.set_default_text(default_descriptor)
 
     def set_separator_pen(self, pen: QPen) -> None:
         """
@@ -207,6 +258,19 @@ class TextClassifier(QGraphicsLineItem):
 
         for descript in self.descriptors:
             descript.y_offset = self.height * 1.2
+
+    def set_width(self, width: float | int) -> None:
+        """
+        Set width for all the rects and descriptors.
+        :param width: Width in pixels
+        """
+        self.max_width = width
+
+        for rect in self.rects:
+            rect.set_max_width(width)
+
+        for descript in self.descriptors:
+            descript.set_max_width(width)
 
     def check_point_availability(self, x: float, y: float) -> tuple[float, float]:
         """

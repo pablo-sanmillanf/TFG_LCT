@@ -198,6 +198,12 @@ class Separator(QGraphicsLineItem):
                 y_list_values.index(y_value) < len(y_list_values) - 1:
             self.border_right_pos = True
             self.set_bounding_rect()
+        elif self.border_left_pos:
+            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.border_left_pos = False
+        elif self.border_right_pos:
+            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.border_right_pos = False
 
     def shape(self) -> QPainterPath:
         """

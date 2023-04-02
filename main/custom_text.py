@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import Any
 
 import numpy as np
 from PyQt5 import QtGui
@@ -34,10 +34,17 @@ class CustomText(QGraphicsTextItem):
         :param text: The text
         """
         self.text = text
-        self.point_list.clear()
         self.setHtml('<p align="justify" style="line-height: ' + str(self.line_height) + '%">' + text + '</p>')
 
-        self.set_separator_points(text.split())
+        self.set_separator_points(text.split(" "))
+
+    def set_width(self, width: float | int) -> None:
+        """
+        Set the text width for the item and recalculates the separator points
+        :param width: Maximum width in pixels
+        """
+        self.setTextWidth(width - 10)
+        self.set_separator_points(self.text.split(" "))
 
     def set_separator_points(self, text_list: list) -> None:
         """
@@ -47,6 +54,7 @@ class CustomText(QGraphicsTextItem):
         """
         lines = self.get_lines(text_list)
         padding, strip, line_spacing = self.set_separator_offsets_height()
+        self.point_list.clear()
 
         for i in range(len(lines)):
             self.point_list.append(

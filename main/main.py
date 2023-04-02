@@ -8,6 +8,26 @@ from PyQt5.QtWidgets import (
 )
 from text_handler import TextHandler
 
+COLORS = [
+    "lavender",
+    "gold",
+    "goldenrod",
+    "yellow",
+    "orange",
+    "red",
+    "sienna",
+    "firebrick",
+    "deeppink",
+    "magenta",
+    "orangered",
+    "brown",
+    "yellowgreen",
+    "chocolate",
+    "coral",
+    "papayawhip",
+    "bisque",
+]
+
 
 class Window(QWidget):
     def __init__(self):
@@ -19,7 +39,7 @@ class Window(QWidget):
                                    "series of simple windows on your desktop to ensure that"
                                    " PyQt is working and introduce some of the basic concepts. <br>"
                                    " Then we'll take a brief look at the event loop and how"
-                                   " it relates to GUI programming in Python.", 13)
+                                   " it relates to GUI programming in Python.", 13, COLORS)
 
         self.buttonS = QPushButton("Split")
         self.buttonS.clicked.connect(self.split_action)
@@ -49,7 +69,10 @@ class Window(QWidget):
 
     def text_action(self):
         print(self.handler.get_text_classified())
-        self.handler.change_text_size(10)
+        self.handler.set_text("In this tutorial we'll learn how to use PyQt to create "
+                              "desktop applications with Python. First we'll create a "
+                              "series of simple windows on your desktop to ensure that"
+                              " PyQt is working and introduce some of the basic concepts.")
 
 
 app = QApplication(sys.argv)

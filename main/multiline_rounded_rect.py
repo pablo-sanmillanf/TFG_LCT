@@ -73,6 +73,14 @@ class MultilineRoundedRect(QGraphicsRectItem):
 
         self.update_points(self.left_separator)
 
+    def set_max_width(self, width: float | int) -> None:
+        """
+        Set the maximum width for the rounded rects.
+        :param width: Maximum width in pixels
+        """
+        self.prepareGeometryChange()  # Has to be called before bounding rect updating
+        self.size[0] = width
+
     def get_lines_y_values(self) -> list[float]:
         """
         Find the y values of the lines to be filled by this MultilineRoundedRect

@@ -1,3 +1,4 @@
+from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QFont, QPen, QPainter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem
@@ -6,42 +7,20 @@ from text_classifier import TextClassifier
 from custom_text import CustomText
 
 
-COLORS = [
-            "lavender",
-            "gold",
-            "goldenrod",
-            "yellow",
-            "orange",
-            "red",
-            "sienna",
-            "firebrick",
-            "deeppink",
-            "magenta",
-            "orangered",
-            "brown",
-            "yellowgreen",
-            "chocolate",
-            "coral",
-            "papayawhip",
-            "bisque",
-        ]
-
-
 class TextHandler(QGraphicsView):
     """
     This class controls all the behaviour of the QGraphicsItems associated with the graphical text
     classification. That is, the rectangles and its descriptors and the separators between them.
     """
 
-    def __init__(self, x_padding, y_padding, width, height, text, text_size):
+    def __init__(self, x_padding, y_padding, min_width, min_height, text, text_size, colors):
         super().__init__()
-
-        self.scene = QGraphicsScene(0, 0, width + 2 * x_padding, height)
+        self.scene = QGraphicsScene(0, 0, min_width, min_height)
 
         self.setScene(self.scene)
         self.setRenderHint(QPainter.Antialiasing)
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-        self.setFixedSize(width + 2 * x_padding, height)
+        self.setMinimumSize(min_width, min_height)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.items_parent = QGraphicsLineItem()
@@ -53,13 +32,13 @@ class TextHandler(QGraphicsView):
         self.font.setFamily('Times')
         self.font.setBold(True)
 
-        self.text = CustomText(text, width, 300, self.items_parent)
+        self.text = CustomText(text, min_width - 2 * x_padding, 300, self.items_parent)
 
         self.classifier = TextClassifier(
-            width, text_size * 2, self.text.get_points(), "SD~;SG~", COLORS, self.items_parent
+            min_width - 2 * x_padding, text_size * 2, self.text.get_points(), "SD~;SG~", colors, self.items_parent
         )
 
-        self.change_text_size(text_size)
+        self.set_text_size(text_size)
 
         custom_pen = QPen(Qt.black)
         custom_pen.setWidth(5)
@@ -74,12 +53,35 @@ class TextHandler(QGraphicsView):
         self.classifier.set_multiline_rects_offset(pen.widthF() / 4)
 
     def split(self, x_value, y_value):
+        """
+        Splits the nearest rectangle to the given coordinates in two, placing a separator where
+        the split has been made.
+        :param x_value: The x coordinate
+        :param y_value: The y coordinate
+        :return: True if success, False if error. There can be a mistake if the coordinates
+                 are out of bounds or if there is no more space to place a separator
+        """
         return self.classifier.split(x_value, y_value)
 
     def join(self, x_value, y_value):
+        """
+        Remove a separator and join the two remaining rectangles.
+        :param x_value: The x coordinate
+        :param y_value: The y coordinate
+        :return: True if success, False if error. There can be a mistake if the coordinates
+                 are out of bounds or if in the given coordinates there is no separator
+        """
         return self.classifier.join(x_value, y_value)
 
-    def change_text_size(self, text_size):
+    def set_text(self, text: str) -> None:
+        """
+        Set the text to be analyzed.
+        :param text: The text that will appear.
+        """
+        self.text.set_text(text)
+        self.classifier.reset(self.text.get_points())
+
+    def set_text_size(self, text_size):
         # Save text_list from the original text_size to reposition all the separators
         text_list_previous_size = self.get_text_classified()
 
@@ -147,3 +149,42 @@ class TextHandler(QGraphicsView):
         )
 
         self.classifier.update_general_fixed_points_and_separators_pos(self.text.get_points(), separator_points)
+
+    def set_default_descriptor(self, default_descriptor: str, colors: list[str]) -> None:
+        """
+        Set the default descriptor for all the descriptors. Should contain one or more "~" characters. The list of
+        colors will be the colors that the rounded rects will have depending on the value of the descriptor. The length
+        of this list should be the same as the possible combinations of the descriptor text plus one (the default one).
+        Also, the colors list should be of any HTML valid color.
+        :param default_descriptor: The default string that will appear in the descriptor. Should contain one or more
+                                   "~" characters.
+        :param colors: List of all available colors
+        """
+        self.classifier.set_default_descriptor(default_descriptor, colors)
+
+    def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
+        """
+        This function allows to resize the QGraphicsView item and the scene in it.
+        :param event: The ResizeEvent object.
+        """
+        super().resizeEvent(event)
+        if event.size().width() != event.oldSize().width():
+            # Save text_list from the original text_size to reposition all the separators
+            text_list_previous_size = self.get_text_classified()
+
+            real_width = event.size().width() - 2 * self.items_parent.pos().x()
+
+            # Set text width
+            self.text.set_width(real_width)
+
+            self.scene.setSceneRect(
+                0,
+                0,
+                self.size().width(),
+                self.items_parent.pos().y() + self.text.boundingRect().height()
+            )
+
+            # Reposition separators to the new text size
+            self.set_separators_reposition(text_list_previous_size)
+
+            self.classifier.set_width(real_width)

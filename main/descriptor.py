@@ -36,13 +36,13 @@ class Descriptor(QGraphicsTextItem):
     non_editable_text_list: list[str]
     editable_text_changed = pyqtSignal(list)
 
-    def __init__(self, max_width: float | int, y_offset: int | float, text: str,
+    def __init__(self, max_width: float | int, y_offset: int | float, default_text: str,
                  parent: QGraphicsItem, font: QFont = None) -> None:
         """
         Create Descriptor object.
         :param max_width: The maximum width of this element. Is determined by the max text width.
         :param y_offset: Set y offset for all the points calculated.
-        :param text: The default text that will appear in the descriptor.
+        :param default_text: The default text that will appear in the descriptor.
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         :param font: The Descriptor's text font.
         """
@@ -54,9 +54,9 @@ class Descriptor(QGraphicsTextItem):
         if font is not None:
             self.setFont(font)
 
-        self.width = self.get_text_width(text)
+        self.width = self.get_text_width(default_text)
         self.height = self.get_text_height()
-        self.setHtml('<p align="justify">' + text + '</p>')
+        self.setHtml('<p align="justify">' + default_text + '</p>')
 
         self.padding_height = self.get_separator_offsets_height()
 
@@ -64,10 +64,23 @@ class Descriptor(QGraphicsTextItem):
 
         self.setTextInteractionFlags(Qt.TextEditable)
 
-        self.non_editable_text_list = text.split(TEXT_SEPARATOR)
+        self.non_editable_text_list = default_text.split(TEXT_SEPARATOR)
         self.editable_text_list = [TEXT_SEPARATOR] * (len(self.non_editable_text_list) - 1)
         self.selected_part = 0
         self.highlighted = False
+
+    def set_default_text(self, default_text: str) -> None:
+        """
+        Set the default text for this descriptor.
+        :param default_text: The default text that will appear in the descriptor.
+        """
+        self.width = self.get_text_width(default_text)
+        self.setHtml('<p align="justify">' + default_text + '</p>')
+        self.non_editable_text_list = default_text.split(TEXT_SEPARATOR)
+        self.editable_text_list = [TEXT_SEPARATOR] * (len(self.non_editable_text_list) - 1)
+        self.selected_part = 0
+        self.highlighted = False
+        self.update_text("")
 
     def get_text_width(self, text):
         """
@@ -133,6 +146,14 @@ class Descriptor(QGraphicsTextItem):
         self.right_separator.installSceneEventFilter(self)
 
         self.update_points(self.left_separator)
+
+    def set_max_width(self, width: float | int) -> None:
+        """
+        Set the maximum width for the rounded rects.
+        :param width: Maximum width in pixels
+        """
+        self.prepareGeometryChange()  # Has to be called before bounding rect updating
+        self.size[0] = width
 
     def get_lines_y_values(self) -> list[float]:
         """
