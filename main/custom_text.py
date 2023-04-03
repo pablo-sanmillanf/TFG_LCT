@@ -1,8 +1,5 @@
-from typing import Any
-
 import numpy as np
 from PyQt5 import QtGui
-from PyQt5.QtCore import QPointF
 
 from PyQt5.QtWidgets import (
     QGraphicsTextItem, QGraphicsItem,
@@ -15,9 +12,16 @@ class CustomText(QGraphicsTextItem):
     To insert line breaks, the characters "<br>" surrounded by spaces must be entered in the text.
     If these conditions are not met, a malfunction results.
     """
-    point_list: list[Any]
 
-    def __init__(self, text, width, line_height, parent):
+    def __init__(self, text: str, width: float | int, line_height: float | int, parent: QGraphicsItem):
+        """
+        Create CustomText object.
+        :param text: The text to represent by the element.
+        :param width: The maximum width for a line.
+        :param line_height: Represents the space between strips in the text. Is a number as a percentage so should be
+                            greater than 100
+        :param parent: The QGraphicsItem parent.
+        """
         super().__init__(parent)
         self.setTextWidth(width - 10)
         self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
@@ -28,7 +32,7 @@ class CustomText(QGraphicsTextItem):
         self.text = text
         self.set_text(text)
 
-    def set_text(self, text) -> None:
+    def set_text(self, text: str) -> None:
         """
         Set the text of the element justified and with the element's line height.
         :param text: The text
@@ -219,17 +223,6 @@ class CustomText(QGraphicsTextItem):
         :return: The list with the points
         """
         return [(i[0], [e[0] for e in i[1]]) for i in self.point_list]
-
-    def get_points_as_QPointF(self) -> list[QPointF]:
-        """
-        Returns the list of points as QPointF.
-        :return: The list with the points
-        """
-        points = []
-        for line in self.text.point_list:
-            for x_value in line[1]:
-                points.append(QPointF(x_value[0], line[0]))
-        return points
 
     def setFont(self, font: QtGui.QFont) -> None:
         """

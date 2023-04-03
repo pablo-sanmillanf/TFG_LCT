@@ -69,7 +69,7 @@ class TextClassifier(QGraphicsLineItem):
 
         # Set descriptors
         self.descriptors = []
-        self.descriptors.append(Descriptor(max_width, line_height * 1.2, default_text, parent))
+        self.descriptors.append(Descriptor(max_width, line_height * 1.2, default_text, line_height / 3, parent))
         self.descriptors[0].init_separators((self.separators[0], self.separators[1]))
         self.descriptors[0].editable_text_changed.connect(self.rects[0].editable_text_changed_slot)
 
@@ -258,6 +258,7 @@ class TextClassifier(QGraphicsLineItem):
 
         for descript in self.descriptors:
             descript.y_offset = self.height * 1.2
+            descript.set_text_size(self.height / 3)
 
     def set_width(self, width: float | int) -> None:
         """
@@ -364,7 +365,9 @@ class TextClassifier(QGraphicsLineItem):
             self.colors,
             self.parentItem()
         )
-        new_descriptor = Descriptor(self.max_width, self.height * 1.2, self.default_text, self.parentItem())
+        new_descriptor = Descriptor(
+            self.max_width, self.height * 1.2, self.default_text, self.height / 3, self.parentItem()
+        )
         new_separator.installSceneEventFilter(self)
         new_separator.setPen(self.pen)
 

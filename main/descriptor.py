@@ -36,13 +36,14 @@ class Descriptor(QGraphicsTextItem):
     non_editable_text_list: list[str]
     editable_text_changed = pyqtSignal(list)
 
-    def __init__(self, max_width: float | int, y_offset: int | float, default_text: str,
+    def __init__(self, max_width: float | int, y_offset: int | float, default_text: str, text_size: float | int,
                  parent: QGraphicsItem, font: QFont = None) -> None:
         """
         Create Descriptor object.
         :param max_width: The maximum width of this element. Is determined by the max text width.
         :param y_offset: Set y offset for all the points calculated.
         :param default_text: The default text that will appear in the descriptor.
+        :param text_size: The size of the text as a point size.
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         :param font: The Descriptor's text font.
         """
@@ -68,6 +69,8 @@ class Descriptor(QGraphicsTextItem):
         self.editable_text_list = [TEXT_SEPARATOR] * (len(self.non_editable_text_list) - 1)
         self.selected_part = 0
         self.highlighted = False
+
+        self.set_text_size(text_size)
 
     def set_default_text(self, default_text: str) -> None:
         """
@@ -267,6 +270,15 @@ class Descriptor(QGraphicsTextItem):
         self.setPos(self.pos().x(), lines[0] + self.y_offset)
         self.prepareGeometryChange()  # Has to be called before bounding rect updating
         self.size[1] = lines[-1] + self.height - lines[0]
+
+    def set_text_size(self, text_size: float | int) -> None:
+        """
+        Set the text size.
+        :param text_size: The text size as a number.
+        """
+        font = self.font()
+        font.setPointSize(int(text_size))
+        self.setFont(font)
 
     def setFont(self, font: QtGui.QFont) -> None:
         """

@@ -36,10 +36,10 @@ class Window(QWidget):
         self.handler = TextHandler(20, 20, 500, 500,
                                    "In this tutorial we'll learn how to use PyQt to create "
                                    "desktop applications with Python. First we'll create a "
-                                   "series of simple windows on your desktop to ensure that"
-                                   " PyQt is working and introduce some of the basic concepts. <br>"
-                                   " Then we'll take a brief look at the event loop and how"
-                                   " it relates to GUI programming in Python.", 13, COLORS)
+                                   "series of simple windows on your desktop to ensure that "
+                                   "PyQt is working and introduce some of the basic concepts.\n"
+                                   "Then we'll take a brief look at the event loop and how "
+                                   "it relates to GUI programming in Python.", 30, COLORS)
 
         self.buttonS = QPushButton("Split")
         self.buttonS.clicked.connect(self.split_action)
@@ -69,10 +69,7 @@ class Window(QWidget):
 
     def text_action(self):
         print(self.handler.get_text_classified())
-        self.handler.set_text("In this tutorial we'll learn how to use PyQt to create "
-                              "desktop applications with Python. First we'll create a "
-                              "series of simple windows on your desktop to ensure that"
-                              " PyQt is working and introduce some of the basic concepts.")
+        self.handler.set_text_size(20)
 
 
 app = QApplication(sys.argv)

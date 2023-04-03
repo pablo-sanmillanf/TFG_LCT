@@ -7,13 +7,35 @@ from text_classifier import TextClassifier
 from custom_text import CustomText
 
 
+def format_text(text: str) -> str:
+    """
+    This function format the text to adapt it to the required format by classes TextClassifier and CustomText.
+    More specifically, replace the "\n" with "<br>" and remove duplicate spaces.
+    :param text: The text to be formatted.
+    :return: The formatted text.
+    """
+    return " ".join(text.replace("\n", " <br> ").split())
+
+
 class TextHandler(QGraphicsView):
     """
-    This class controls all the behaviour of the QGraphicsItems associated with the graphical text
-    classification. That is, the rectangles and its descriptors and the separators between them.
+    This class controls all the behaviour of the QGraphicsItems, the QGraphicsView and the QGraphicsScene.
     """
 
-    def __init__(self, x_padding, y_padding, min_width, min_height, text, text_size, colors):
+    def __init__(self, x_padding: float | int, y_padding: float | int, min_width: float | int, min_height: float | int,
+                 text: str, text_size: float | int, colors: list[str]) -> None:
+        """
+        Create TextHandler object. Only one object form this class should be created.
+        :param x_padding: Pixels of horizontal padding for the text.
+        :param y_padding: Pixels of vertical padding for the text.
+        :param min_width: Minimum width of the item.
+        :param min_height: Minimum height of the item.
+        :param text: The text to analyze. New lines in this text should be represented as '\n' characters.
+        :param text_size: The text size as a number. All the elements in QGraphicsScene will adjust their size to
+                          the text size.
+        :param colors: A list of colors that will be used by the rectangles as a background color depending on the
+                       values of its Descriptors. Should be valid HTML colors.
+        """
         super().__init__()
         self.scene = QGraphicsScene(0, 0, min_width, min_height)
 
@@ -32,7 +54,7 @@ class TextHandler(QGraphicsView):
         self.font.setFamily('Times')
         self.font.setBold(True)
 
-        self.text = CustomText(text, min_width - 2 * x_padding, 300, self.items_parent)
+        self.text = CustomText(format_text(text), min_width - 2 * x_padding, 300, self.items_parent)
 
         self.classifier = TextClassifier(
             min_width - 2 * x_padding, text_size * 2, self.text.get_points(), "SD~;SG~", colors, self.items_parent
@@ -52,7 +74,7 @@ class TextHandler(QGraphicsView):
         self.classifier.set_separator_pen(pen)
         self.classifier.set_multiline_rects_offset(pen.widthF() / 4)
 
-    def split(self, x_value, y_value):
+    def split(self, x_value: float | int, y_value: float | int) -> bool:
         """
         Splits the nearest rectangle to the given coordinates in two, placing a separator where
         the split has been made.
@@ -63,7 +85,7 @@ class TextHandler(QGraphicsView):
         """
         return self.classifier.split(x_value, y_value)
 
-    def join(self, x_value, y_value):
+    def join(self, x_value: float | int, y_value: float | int) -> bool:
         """
         Remove a separator and join the two remaining rectangles.
         :param x_value: The x coordinate
@@ -78,10 +100,15 @@ class TextHandler(QGraphicsView):
         Set the text to be analyzed.
         :param text: The text that will appear.
         """
-        self.text.set_text(text)
+        self.text.set_text(format_text(text))
         self.classifier.reset(self.text.get_points())
 
-    def set_text_size(self, text_size):
+    def set_text_size(self, text_size: float | int) -> None:
+        """
+        Set the text size. Also, the height of the separators and the rects and the text size of the descriptors is
+        changed.
+        :param text_size: The text size as a number.
+        """
         # Save text_list from the original text_size to reposition all the separators
         text_list_previous_size = self.get_text_classified()
 
@@ -95,13 +122,17 @@ class TextHandler(QGraphicsView):
             self.items_parent.pos().y() + self.text.boundingRect().height()
         )
 
-        # Change rects and separators height
+        # Change rects, separators and descriptors height
         self.classifier.set_line_height(text_size * 2)
 
         # Reposition separators to the new text size
         self.set_separators_reposition(text_list_previous_size)
 
-    def get_text_classified(self):
+    def get_text_classified(self) -> list[str]:
+        """
+        Gets the subgroups of words that form the separators within the text.
+        :return: A list with a group of words per element.
+        """
         text_list = [""] * (len(self.classifier.separators) - 1)
         separator_points = self.classifier.get_separator_points()
 
@@ -126,7 +157,12 @@ class TextHandler(QGraphicsView):
                 text_list[i - popped_elements] = text_list[i - popped_elements][:-1]
         return text_list
 
-    def set_separators_reposition(self, text_list):
+    def set_separators_reposition(self, text_list: list[str]) -> None:
+        """
+        Reposition the separators to fit the new text format. The positions that the separators will occupy will be
+        such that the groups of words that form these separators will be the same.
+        :param text_list: A list with the groups of words made by the separators.
+        """
         text_list_index = 0
         separator_points = [QPointF(self.text.point_list[0][1][0][0], self.text.point_list[0][0])]
         aux_text = ""
