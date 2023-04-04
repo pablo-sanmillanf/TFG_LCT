@@ -135,7 +135,7 @@ class GraphPlotter:
         self.highlight_line = self.axis.axvline(0, linestyle='-', color='red')
         self.highlight_line.set_visible(False)
         
-        # Set mouse  action 
+        # Set mouse action
         self.fig.canvas.mpl_connect('motion_notify_event', lambda event: on_hover(event, self.axis, self.highlight_line))
         self.fig.canvas.mpl_connect('button_press_event', lambda event: on_click(event, self.axis))
 
