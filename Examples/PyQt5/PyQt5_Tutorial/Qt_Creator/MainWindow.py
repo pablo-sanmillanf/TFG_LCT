@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
+        MainWindow.setObjectName("GraphWindow")
         MainWindow.resize(698, 461)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -194,7 +194,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", "TextLabel"))
-        self.pushButton.setText(_translate("MainWindow", "PushButton"))
-        self.label_2.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:48pt; color:#7f6e0f;\">LOL</span></p></body></html>"))
+        MainWindow.setWindowTitle(_translate("GraphWindow", "GraphWindow"))
+        self.label.setText(_translate("GraphWindow", "TextLabel"))
+        self.pushButton.setText(_translate("GraphWindow", "PushButton"))
+        self.label_2.setText(_translate("GraphWindow", "<html><head/><body><p><span style=\" font-size:48pt; color:#7f6e0f;\">LOL</span></p></body></html>"))

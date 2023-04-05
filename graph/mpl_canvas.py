@@ -1,4 +1,6 @@
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from matplotlib import ticker
 from scipy.interpolate import interp1d
 import numpy as np
 from matplotlib.backend_bases import MouseButton, MouseEvent
@@ -13,7 +15,17 @@ matplotlib.use('Qt5Agg')
 
 
 class MplLine:
-    def __init__(self, axis, x, y):
+    """
+    This class is used to plot a number of points and a smooth line to join them with the same color as the points.
+    """
+    def __init__(self, axis: matplotlib.axes.Axes, x: np.ndarray, y: np.ndarray) -> None:
+        """
+        Creates MplLine object. Is composed of a number of points passed in the x and y variables and a smooth line
+        that join them.
+        :param axis: The axis were the object will be plotted. Can't be None.
+        :param x: A numpy array with the x-values.
+        :param y: A numpy array with the y-values.
+        """
         self.axis = axis
 
         # plot the x and y using scatter function
@@ -23,28 +35,53 @@ class MplLine:
 
         # Create smooth union points line
         interpolation_model = interp1d(x, y, kind="quadratic")
-        smooth_x = np.linspace(x.min(), x.max(), len(x)*50)
+        smooth_x = np.linspace(np.amin(x), np.amax(x), len(x)*50)
         smooth_y = interpolation_model(smooth_x)
         self.smooth_line = self.axis.plot(smooth_x, smooth_y, color=self.color)[0]
 
-    def set_visible(self, state):
+    def set_visible(self, state: bool) -> None:
+        """
+        Set the smooth line and the points visible or invisible depending on the state.
+        :param state: If True, elements visible. If False, elements invisible.
+        """
         self.data.set_visible(state)
         self.smooth_line.set_visible(state)
 
-    def get_data(self):
+    def get_data(self) -> matplotlib.collections.PathCollection:
+        """
+        Returns the points-data.
+        :return: An object with the data of the points.
+        """
         return self.data
 
-    def get_smooth_line(self):
+    def get_smooth_line(self) -> matplotlib.lines.Line2D:
+        """
+        Returns a Line2D that represents the smooth line that joins the points.
+        :return: The smooth line object.
+        """
         return self.smooth_line
 
-    def get_color(self):
+    def get_color(self) -> list[int]:
         return self.color
 
 
 class MplCanvas(FigureCanvas):
+    """
+    This class represents the Matplotlib canvas in which all the graphs will be plotted. This canvas is Qt compatible.
+    """
     axes: matplotlib.axes.Axes
 
-    def __init__(self, graph_visible_points, init_x=0, parent=None, width=8, height=5, dpi=100):
+    def __init__(self, graph_visible_points: int, init_x: int = 0, parent: QWidget = None,
+                 width: int = 8, height: int = 5, dpi: int = 100) -> None:
+        """
+        Creates MplCanvas object. It will be the canvas where the graphs will be plotted.
+        :param graph_visible_points: The number of visible points in the x-axis in the figure.
+        :param init_x: The start x point.
+        :param parent: The QWidget that contains this object.
+        :param width: The object width in inches.
+        :param height: The object height in inches.
+        :param dpi: The number of dots per inch. Represents the quality of the graph.
+        """
         fig = Figure(figsize=(width, height), dpi=dpi)
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
@@ -52,7 +89,12 @@ class MplCanvas(FigureCanvas):
 
         self.figure.subplots_adjust(right=0.975)
 
+        self.graph_visible_points = graph_visible_points
+
         self.axes.grid()
+
+        # Set Y step
+        self.axes.xaxis.set_major_locator(ticker.MultipleLocator(1))
 
         # Set Y values
         self.axes.set_yticks(np.arange(1, 5))
@@ -62,8 +104,18 @@ class MplCanvas(FigureCanvas):
 
 
 class MplWidget(QWidget):
-    def __init__(self, graph_visible_points=10):
-        super().__init__()
+    """
+    This class is used to create a embedded matplotlib graph in a Qt environment.
+    """
+
+    pos_changed = pyqtSignal(int)
+
+    def __init__(self, parent, graph_visible_points: int = 10) -> None:
+        """
+        Creates a MplWidget object.
+        :param graph_visible_points: The number of visible points in the x-axis in the graph.
+        """
+        super().__init__(parent)
 
         self.canvas = MplCanvas(graph_visible_points, parent=self)
         self.toolbar = NavigationToolbar(self.canvas, None)
@@ -75,6 +127,8 @@ class MplWidget(QWidget):
         self.canvas.mpl_connect("button_press_event", self.on_press)
         self.canvas.mpl_connect("button_release_event", self.on_release)
         self.canvas.mpl_connect("motion_notify_event", self.on_move)
+
+        self.max_len = 0
 
         self.clicked = False
         self.start_panning_point = 0
@@ -95,6 +149,10 @@ class MplWidget(QWidget):
         self.lines.append(MplLine(self.canvas.axes, x, y))
 
         line_color = self.lines[-1].get_color()
+
+        # Resize slider movement to adjust to graph length
+        if len(x) > self.max_len:
+            self.max_len = len(x)
 
         if len(self.lines) == 1:
 
@@ -159,7 +217,22 @@ class MplWidget(QWidget):
             self.canvas.axes.set_xlim(left=self.left_x_lim - gap_moved, right=self.right_x_lim - gap_moved)
             self.canvas.draw()
 
+            # Change slider position according to the panning position
+            slider_val = int((self.left_x_lim - gap_moved) * 99 / (self.max_len - self.canvas.graph_visible_points))
+            if slider_val < 0:
+                slider_val = 0
+            elif slider_val > 99:
+                slider_val = 99
+            self.pos_changed.emit(slider_val)
 
+    def position_changed_slot(self, value: int) -> None:
+        """
+        This slot is used to change graph x-position based on a slider position.
+        :param value: The slider position between 0 and 99
+        """
+        adjusted_val = value * (self.max_len - self.canvas.graph_visible_points) / 99
+        self.canvas.axes.set_xlim(left=adjusted_val, right=adjusted_val + self.canvas.graph_visible_points)
+        self.canvas.draw()
 
 
 """

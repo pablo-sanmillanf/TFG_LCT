@@ -24,7 +24,7 @@ class MainWindow(QtWidgets.QMainWindow):
         sc = MplCanvas(self, width=5, height=4, dpi=100)
         sc.axes.plot([0,1,2,3,4], [10,1,20,3,40])
 
-        # Create toolbar, passing canvas as first parament, parent (self, the MainWindow) as second.
+        # Create toolbar, passing canvas as first parament, parent (self, the GraphWindow) as second.
         toolbar = NavigationToolbar(sc, self)
 
         layout = QtWidgets.QVBoxLayout()
