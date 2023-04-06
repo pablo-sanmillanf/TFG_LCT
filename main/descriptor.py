@@ -306,9 +306,10 @@ class Descriptor(QGraphicsTextItem):
         part of the text.
         :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
         """
-        self.selected_part = 0
-        self.document().setHtml(self.style_editable_text(self.selected_part, HIGHLIGHT_STYLE))
-        self.highlighted = True
+        if event.button() is not Qt.RightButton:
+            self.selected_part = 0
+            self.document().setHtml(self.style_editable_text(self.selected_part, HIGHLIGHT_STYLE))
+            self.highlighted = True
         super().mousePressEvent(event)
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:

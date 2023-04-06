@@ -1,7 +1,7 @@
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtCore import Qt, QPointF, QPoint
 from PyQt5.QtGui import QFont, QPen, QPainter
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QWidget, QMenu, QAction
 
 from text_classifier import TextClassifier
 from custom_text import CustomText
@@ -21,11 +21,27 @@ class TextHandler(QGraphicsView):
     """
     This class controls all the behaviour of the QGraphicsItems, the QGraphicsView and the QGraphicsScene.
     """
+    split_action: QAction
+    join_action: QAction
+    classifier: TextClassifier
 
-    def __init__(self, x_padding: float | int, y_padding: float | int, min_width: float | int, min_height: float | int,
-                 text: str, text_size: float | int, colors: list[str]) -> None:
+    def __init__(self, parent: QWidget) -> None:
         """
         Create TextHandler object. Only one object form this class should be created.
+        :param parent: The QWidget parent object.
+        """
+        super().__init__(parent)
+        self.scene = None
+        self.items_parent = None
+        self.font = None
+        self.text = None
+        self.context_menu_pos = None
+        self.global_pos_y_offset = None
+
+    def setup(self, x_padding: float | int, y_padding: float | int, min_width: float | int, min_height: float | int,
+              text: str, text_size: float | int, colors: list[str]) -> None:
+        """
+        Set up the object.
         :param x_padding: Pixels of horizontal padding for the text.
         :param y_padding: Pixels of vertical padding for the text.
         :param min_width: Minimum width of the item.
@@ -36,7 +52,6 @@ class TextHandler(QGraphicsView):
         :param colors: A list of colors that will be used by the rectangles as a background color depending on the
                        values of its Descriptors. Should be valid HTML colors.
         """
-        super().__init__()
         self.scene = QGraphicsScene(0, 0, min_width, min_height)
 
         self.setScene(self.scene)
@@ -66,6 +81,38 @@ class TextHandler(QGraphicsView):
         custom_pen.setWidth(5)
         self.set_separator_style(custom_pen)
 
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.on_context_menu)
+
+        self.split_action = QAction("Split", self)
+        self.join_action = QAction("Join", self)
+        self.split_action.setStatusTip("Split clause in two")
+        self.join_action.setStatusTip("Join the two clauses in one")
+        self.split_action.triggered.connect(self.split)
+        self.join_action.triggered.connect(self.join)
+
+        # As the rectangles height is 2*text_size this offset moves the point to calculate half height.
+        self.global_pos_y_offset = -text_size
+
+    def on_context_menu(self, pos: QPoint) -> None:
+        """
+        This function set a context menu
+        :param pos: The clicked position as a QPoint.
+        """
+
+        self.context_menu_pos = pos
+        self.join_action.setEnabled(
+            self.classifier.point_is_occupied(
+                pos.x() - self.items_parent.pos().x(),
+                pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset
+            )[0]
+        )
+
+        context = QMenu(self)
+        context.addAction(self.split_action)
+        context.addAction(self.join_action)
+        context.exec(self.mapToGlobal(pos))
+
     def set_separator_style(self, pen: QPen) -> None:
         """
         Set pen for all the separators and adjust multiline rects offset to the pen width
@@ -74,26 +121,20 @@ class TextHandler(QGraphicsView):
         self.classifier.set_separator_pen(pen)
         self.classifier.set_multiline_rects_offset(pen.widthF() / 4)
 
-    def split(self, x_value: float | int, y_value: float | int) -> bool:
+    def split(self) -> None:
         """
-        Splits the nearest rectangle to the given coordinates in two, placing a separator where
+        Splits the nearest rectangle to the self.context_menu_pos in two, placing a separator where
         the split has been made.
-        :param x_value: The x coordinate
-        :param y_value: The y coordinate
-        :return: True if success, False if error. There can be a mistake if the coordinates
-                 are out of bounds or if there is no more space to place a separator
         """
-        return self.classifier.split(x_value, y_value)
+        self.classifier.split(self.context_menu_pos.x() - self.items_parent.pos().x(),
+                              self.context_menu_pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset)
 
-    def join(self, x_value: float | int, y_value: float | int) -> bool:
+    def join(self) -> None:
         """
         Remove a separator and join the two remaining rectangles.
-        :param x_value: The x coordinate
-        :param y_value: The y coordinate
-        :return: True if success, False if error. There can be a mistake if the coordinates
-                 are out of bounds or if in the given coordinates there is no separator
         """
-        return self.classifier.join(x_value, y_value)
+        self.classifier.join(self.context_menu_pos.x() - self.items_parent.pos().x(),
+                             self.context_menu_pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset)
 
     def set_text(self, text: str) -> None:
         """
@@ -109,6 +150,8 @@ class TextHandler(QGraphicsView):
         changed.
         :param text_size: The text size as a number.
         """
+        self.global_pos_y_offset = -text_size
+
         # Save text_list from the original text_size to reposition all the separators
         text_list_previous_size = self.get_text_classified()
 

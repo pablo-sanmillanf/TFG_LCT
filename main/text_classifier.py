@@ -273,7 +273,37 @@ class TextClassifier(QGraphicsLineItem):
         for descript in self.descriptors:
             descript.set_max_width(width)
 
-    def check_point_availability(self, x: float, y: float) -> tuple[float, float]:
+    def point_is_occupied(self, x: float, y: float) -> tuple[bool, int]:
+        """
+        Check if the given point is occupied by existing separator and return the index of separator.
+        :param x: The x coordinate
+        :param y: The y coordinate
+        :return: A tuple. The first element is True if the point is occupied, False if not. The second element is the
+        index of the separator if the position is occupied. If the position is not occupied, this second element will
+        be the index of the separator before. A -1 will show an error.
+        """
+        # Find nearest available point
+        real_y = find_nearest_point(self.get_y_values(), y)
+        real_x = find_nearest_point(self.get_x_values(real_y), x)
+
+        for i in range(len(self.separators)):
+            if self.separators[i].is_on_the_border():
+                if ((self.separators[i].complete_pos(True).x() == real_x and
+                     self.separators[i].complete_pos(True).y() == real_y) or
+                        (self.separators[i].complete_pos(False).x() == real_x and
+                         self.separators[i].complete_pos(False).y() == real_y)):
+                    return True, i
+            else:
+                if self.separators[i].complete_pos(True).x() == real_x and self.separators[i].complete_pos(
+                        True).y() == real_y:
+                    return True, i
+            if self.separators[i].complete_pos(False).y() > real_y or \
+                    (self.separators[i].complete_pos(False).y() == real_y and self.separators[i].complete_pos(
+                        False).x() > real_x):
+                return False, i - 1
+        return True, -1
+
+    def find_free_point(self, x: float, y: float) -> tuple[float, float, int]:
         """
         Check if the given point is occupied by existing separator and if so, find another free point.
         The search goes from left to right and from up to down.
@@ -284,47 +314,32 @@ class TextClassifier(QGraphicsLineItem):
         """
         # This auxiliary variable will reduce the search because all the separators with lower
         # indexes won't affect availability check
-        separator_index = self.find_index_separator(x, y)
-        if separator_index != -1:
+        is_occupied, index = self.point_is_occupied(x, y)
+        if not is_occupied:
+            real_y = find_nearest_point(self.get_y_values(), y)
+            real_x = find_nearest_point(self.get_x_values(real_y), x)
+            return real_x, real_y, index
+        elif index != -1:
+            real_y = find_nearest_point(self.get_y_values(), y)
+            real_x = find_nearest_point(self.get_x_values(real_y), x)
+
             for line in self.fixed_points:
-                if line[0] >= y:
+                if line[0] >= real_y:
                     for i in range(len(line[1])):
-                        if (line[0] == y and line[1][i] >= x) or line[0] > y:
-                            if self.separators[separator_index].is_on_the_border():
+                        if (line[0] == real_y and line[1][i] >= real_x) or line[0] > real_y:
+                            if self.separators[index].is_on_the_border():
                                 if not (i == 0 or i == len(line[1]) - 1):
-                                    return line[1][i], line[0]
+                                    return line[1][i], line[0], index - 1
                                 if i == 0:
                                     # If this position is busy, increment by one the index in separators array
-                                    separator_index += 1
-                            elif self.separators[separator_index].complete_pos(True).x() == line[1][i] and \
-                                    self.separators[separator_index].complete_pos(True).y() == line[0]:
+                                    index += 1
+                            elif self.separators[index].complete_pos(True).x() == line[1][i] and \
+                                    self.separators[index].complete_pos(True).y() == line[0]:
                                 # If this position is busy, increment by one the index in separators array
-                                separator_index += 1
+                                index += 1
                             else:
-                                return line[1][i], line[0]
-        return -1000, -1000
-
-    def find_index_separator(self, x: float, y: float) -> int:
-        """
-        Finds, among the existing separators, the separator before the given coordinates
-        :param x: The x coordinate
-        :param y: The y coordinate
-        :return: The index of the separator before or -1 if error
-        """
-        for i in range(len(self.separators)):
-            # Check if this separator is in subsequent lines
-            if self.separators[i].complete_pos(False).y() > y or \
-                    (self.separators[i].complete_pos(False).y() == y and
-                     self.separators[i].complete_pos(False).x() > x):
-
-                if self.separators[i - 1].is_on_the_border():
-                    if self.separators[i - 1].complete_pos(True).y() < y or \
-                            (self.separators[i - 1].complete_pos(True).y() == y and
-                             self.separators[i - 1].complete_pos(True).x() < x):
-                        return i - 1
-                else:
-                    return i - 1
-        return -1
+                                return line[1][i], line[0], index - 1
+        return -1000, -1000, -1
 
     def split(self, x: float, y: float) -> bool:
         """
@@ -335,17 +350,9 @@ class TextClassifier(QGraphicsLineItem):
         :return: True if success, False if error. There can be a mistake if the coordinates
                  are out of bounds or if there is no more space to place a separator
         """
-        # Find nearest available point
-        real_y = find_nearest_point(self.get_y_values(), y)
-        real_x = find_nearest_point(self.get_x_values(real_y), x)
+        real_x, real_y, index = self.find_free_point(x, y)
 
-        real_x, real_y = self.check_point_availability(real_x, real_y)
-
-        if real_x == -1000 and real_y == -1000:
-            return False
-
-        index = self.find_index_separator(real_x, real_y)
-        if index == -1:
+        if (real_x == -1000 and real_y == -1000) or index == -1:
             return False
 
         # Create needed new elements
@@ -395,16 +402,8 @@ class TextClassifier(QGraphicsLineItem):
         :return: True if success, False if error. There can be a mistake if the coordinates
                  are out of bounds or if in the given coordinates there is no separator
         """
-        # Find nearest available point
-        real_y = find_nearest_point(self.get_y_values(), y)
-        real_x = find_nearest_point(self.get_x_values(real_y), x)
-
-        index = self.find_index_separator(real_x, real_y)
-        if index == -1:
-            return False
-
-        if self.separators[index].complete_pos(True).x() != real_x or \
-                self.separators[index].complete_pos(True).y() != real_y:
+        is_occupied, index = self.point_is_occupied(x, y)
+        if not is_occupied:
             return False
 
         removed_rect = self.rects.pop(index)
