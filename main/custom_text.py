@@ -96,7 +96,7 @@ class CustomText(QGraphicsTextItem):
         half_space, padding = self.set_separator_offsets_width()
 
         # Adjust offsets to the justify line
-        if not last_line:
+        if not last_line and len(text_list) > 1:
             aux_text.setPlainText(text)
 
             # We obtain the remaining pixels that will be distributed among all the spaces to

@@ -104,7 +104,7 @@ class TextHandler(QGraphicsView):
         self.join_action.setEnabled(
             self.classifier.point_is_occupied(
                 pos.x() - self.items_parent.pos().x(),
-                pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset
+                pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset + self.verticalScrollBar().value()
             )[0]
         )
 
@@ -112,6 +112,13 @@ class TextHandler(QGraphicsView):
         context.addAction(self.split_action)
         context.addAction(self.join_action)
         context.exec(self.mapToGlobal(pos))
+
+    def get_text_size(self) -> int | float:
+        """
+        Return the text size.
+        :return: The text size as a number.
+        """
+        return self.text.font().pointSize()
 
     def set_separator_style(self, pen: QPen) -> None:
         """
@@ -126,15 +133,21 @@ class TextHandler(QGraphicsView):
         Splits the nearest rectangle to the self.context_menu_pos in two, placing a separator where
         the split has been made.
         """
-        self.classifier.split(self.context_menu_pos.x() - self.items_parent.pos().x(),
-                              self.context_menu_pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset)
+        self.classifier.split(
+            self.context_menu_pos.x() - self.items_parent.pos().x(),
+            self.context_menu_pos.y() - self.items_parent.pos().y() +
+            self.global_pos_y_offset + self.verticalScrollBar().value()
+        )
 
     def join(self) -> None:
         """
         Remove a separator and join the two remaining rectangles.
         """
-        self.classifier.join(self.context_menu_pos.x() - self.items_parent.pos().x(),
-                             self.context_menu_pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset)
+        self.classifier.join(
+            self.context_menu_pos.x() - self.items_parent.pos().x(),
+            self.context_menu_pos.y() - self.items_parent.pos().y() +
+            self.global_pos_y_offset + self.verticalScrollBar().value()
+        )
 
     def set_text(self, text: str) -> None:
         """
