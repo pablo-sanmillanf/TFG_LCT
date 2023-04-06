@@ -101,9 +101,9 @@ class TextClassifier(QGraphicsLineItem):
         self.separators[0].setPos(fixed_points[0][1][0], fixed_points[0][0])
         self.separators[1].setPos(fixed_points[-1][1][-1], fixed_points[-1][0])
 
-        self.rects[0].update_points(self.separators[0])
+        self.rects[0].update_points()
         self.rects[0].update()
-        self.descriptors[0].update_points(self.separators[0])
+        self.descriptors[0].update_points()
         self.descriptors[0].update()
 
     def set_color_list(self, color_list: list[str]) -> dict[str, list[str]]:
@@ -234,9 +234,9 @@ class TextClassifier(QGraphicsLineItem):
 
         # Update all the rects and the descriptors to adjust to new separator positions
         for i in range(len(self.rects)):
-            self.rects[i].update_points(self.separators[i])
+            self.rects[i].update_points()
             self.rects[i].update()
-            self.descriptors[i].update_points(self.separators[i])
+            self.descriptors[i].update_points()
             self.descriptors[i].update()
 
     def set_line_height(self, line_height: float | int) -> None:
@@ -297,9 +297,9 @@ class TextClassifier(QGraphicsLineItem):
                 if self.separators[i].complete_pos(True).x() == real_x and self.separators[i].complete_pos(
                         True).y() == real_y:
                     return True, i
-            if self.separators[i].complete_pos(False).y() > real_y or \
-                    (self.separators[i].complete_pos(False).y() == real_y and self.separators[i].complete_pos(
-                        False).x() > real_x):
+            if self.separators[i].complete_pos(True).y() > real_y or \
+                    (self.separators[i].complete_pos(True).y() == real_y and self.separators[i].complete_pos(
+                        True).x() > real_x):
                 return False, i - 1
         return True, -1
 
@@ -480,7 +480,7 @@ class TextClassifier(QGraphicsLineItem):
 
     def sceneEventFilter(self, watched: QGraphicsItem, event: QEvent) -> bool:
         """
-        Filters events for the item watched. event is the filtered event.
+        Filters events for the item moved_separator. event is the filtered event.
 
         In this case, this function only watch Separator items, and it is used to update the fixed_points
         of the surrounding separators.

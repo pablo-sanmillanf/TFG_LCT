@@ -32,7 +32,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
-        self.textHandler.setup(100, 100, 500, 500, open("text.txt", "r").read(), 13, COLORS)
+        self.textHandler.setup(10, 10, 500, 500, open("text.txt", "r").read(), 13, COLORS)
 
     """
         self.buttonT = QPushButton("Get Text")

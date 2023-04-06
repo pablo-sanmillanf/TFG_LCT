@@ -3,7 +3,7 @@ from typing import Any
 
 import numpy as np
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import QPointF, Qt, QRectF
+from PyQt5.QtCore import QPointF, Qt, QRectF, pyqtSignal, QObject
 from PyQt5.QtGui import QCursor, QPainterPath
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem, QGraphicsSceneMouseEvent, QWidget, \
     QStyleOptionGraphicsItem
@@ -17,6 +17,10 @@ def find_nearest_point(candidate_points: list[float], point_reference: float) ->
     :return: The nearest float in the list
     """
     return min(candidate_points, key=lambda x: np.abs(x - point_reference))
+
+
+class Emitter(QObject):
+    pos_changed = pyqtSignal(QGraphicsItem, QPointF, QPointF)
 
 
 class Separator(QGraphicsLineItem):
@@ -41,6 +45,8 @@ class Separator(QGraphicsLineItem):
                              be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         """
+        self.emitter = Emitter()
+
         super().__init__(0, 0, 0, height, parent)
         self.setZValue(2)
         self.border_left_pos = False
@@ -287,22 +293,25 @@ class Separator(QGraphicsLineItem):
                       the requested position of the element
         :return: The position to be placed
         """
-        if change == QGraphicsItem.ItemPositionChange and self.scene() is not None:
-            if self.pos_set is False:
-                y_value = find_nearest_point(
-                    self.get_y_values(),
-                    self.parentItem().mapFromScene(self.scene().views()[0].mapFromGlobal(QCursor.pos())).y() +
-                    self.scene().views()[0].verticalScrollBar().value()
-                )
-                x_value = value.x()
-                x_list = self.get_x_values(y_value)
-                if x_value < x_list[0]:
-                    x_value = x_list[0]
-                elif x_value > x_list[-1]:
-                    x_value = x_list[-1]
-                return QPointF(x_value, y_value)
-            else:
-                self.pos_set = False
+        if self.scene() is not None:
+            if change == QGraphicsItem.ItemPositionChange:
+                if self.pos_set is False:
+                    y_value = find_nearest_point(
+                        self.get_y_values(),
+                        self.parentItem().mapFromScene(self.scene().views()[0].mapFromGlobal(QCursor.pos())).y() +
+                        self.scene().views()[0].verticalScrollBar().value()
+                    )
+                    x_value = value.x()
+                    x_list = self.get_x_values(y_value)
+                    if x_value < x_list[0]:
+                        x_value = x_list[0]
+                    elif x_value > x_list[-1]:
+                        x_value = x_list[-1]
+                    return QPointF(x_value, y_value)
+                else:
+                    self.pos_set = False
+            elif change == QGraphicsItem.ItemPositionHasChanged:
+                self.emitter.pos_changed.emit(self, self.complete_pos(False), self.complete_pos(True))
         return super().itemChange(change, value)
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:

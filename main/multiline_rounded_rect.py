@@ -5,10 +5,9 @@ from PyQt5.QtGui import QColor
 
 from separator import Separator
 
-from PyQt5.QtCore import QEvent, QRectF
+from PyQt5.QtCore import QRectF, QPointF
 from PyQt5.QtWidgets import (
     QGraphicsRectItem,
-    QGraphicsSceneMouseEvent,
     QWidget,
     QStyleOptionGraphicsItem,
     QGraphicsItem,
@@ -63,15 +62,15 @@ class MultilineRoundedRect(QGraphicsRectItem):
         if not all(isinstance(x, Separator) for x in separators):
             raise TypeError('All the elements of separators must be of type Separator')
         if self.left_separator is not None:
-            self.left_separator.removeSceneEventFilter(self)
+            self.left_separator.emitter.pos_changed.connect(self.separator_position_changed)
         if self.right_separator is not None:
-            self.right_separator.removeSceneEventFilter(self)
+            self.right_separator.emitter.pos_changed.connect(self.separator_position_changed)
         self.left_separator = separators[0]
         self.right_separator = separators[1]
-        self.left_separator.installSceneEventFilter(self)
-        self.right_separator.installSceneEventFilter(self)
+        self.left_separator.emitter.pos_changed.connect(self.separator_position_changed)
+        self.right_separator.emitter.pos_changed.connect(self.separator_position_changed)
 
-        self.update_points(self.left_separator)
+        self.update_points()
 
     def set_max_width(self, width: float | int) -> None:
         """
@@ -81,35 +80,30 @@ class MultilineRoundedRect(QGraphicsRectItem):
         self.prepareGeometryChange()  # Has to be called before bounding rect updating
         self.size[0] = width
 
-    def get_lines_y_values(self) -> list[float]:
-        """
-        Find the y values of the lines to be filled by this MultilineRoundedRect
-        :return: The list with the y values
-        """
-        lines = []
-        for y_value in sorted(set(self.left_separator.get_y_values() + self.right_separator.get_y_values())):
-            if self.left_separator.complete_pos(True).y() <= y_value <= self.right_separator.complete_pos(False).y():
-                lines.append(y_value)
-        return lines
-
-    def update_points(self, moved_separator: Separator) -> None:
+    def set_points(self, moved_separator: Separator,
+                   left_separator_pos: QPointF, right_separator_pos: QPointF) -> None:
         """
         Fill the list self.points with the values to be used to paint the rectangles. Each position of the
         list is: (X_position, Y_position, Width).
         This function is called every time a Separator has moved.
         :param moved_separator: The separator that has moved. Can be left_separator or right_separator
+        :param left_separator_pos: Position of the left separator.
+        :param right_separator_pos: Position of the right separator.
         """
-        lines = self.get_lines_y_values()
+        lines = []
+        for y_value in sorted(set(self.left_separator.get_y_values() + self.right_separator.get_y_values())):
+            if left_separator_pos.y() <= y_value <= right_separator_pos.y():
+                lines.append(y_value)
+
         if len(lines) >= 1:
             self.set_bounding_rect(lines)
             self.points.clear()
             if len(lines) == 1:
                 self.points.append(
                     (
-                        self.left_separator.complete_pos(True).x(),  # X Value
-                        self.left_separator.complete_pos(True).y(),  # Y Value
-                        self.right_separator.complete_pos(False).x() -
-                        self.left_separator.complete_pos(True).x()  # Width
+                        left_separator_pos.x(),  # X Value
+                        left_separator_pos.y(),  # Y Value
+                        right_separator_pos.x() - left_separator_pos.x()  # Width
                     )
                 )
             elif len(lines) > 1:
@@ -117,9 +111,9 @@ class MultilineRoundedRect(QGraphicsRectItem):
                 first_line_x_values = moved_separator.get_x_values(lines[0])
                 self.points.append(
                     (
-                        self.left_separator.complete_pos(True).x(),  # X Value
+                        left_separator_pos.x(),  # X Value
                         lines[0],  # Y Value
-                        first_line_x_values[-1] - self.left_separator.complete_pos(True).x()  # Width
+                        first_line_x_values[-1] - left_separator_pos.x()  # Width
                     )
                 )
 
@@ -139,10 +133,21 @@ class MultilineRoundedRect(QGraphicsRectItem):
                 self.points.append(
                     (
                         last_line_x_values[0],  # X Value
-                        self.right_separator.complete_pos(False).y(),  # Y Value
-                        self.right_separator.complete_pos(False).x() - last_line_x_values[0]  # Width
+                        right_separator_pos.y(),  # Y Value
+                        right_separator_pos.x() - last_line_x_values[0]  # Width
                     )
                 )
+
+    def update_points(self) -> None:
+        """
+        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
+        resizing the window.
+        """
+        self.set_points(
+            self.left_separator,
+            self.left_separator.complete_pos(True),
+            self.right_separator.complete_pos(False)
+        )
 
     def set_bounding_rect(self, lines):
         """
@@ -174,31 +179,28 @@ class MultilineRoundedRect(QGraphicsRectItem):
             painter.setBrush(self.brush())
             painter.drawRoundedRect(
                 QRectF(
-                    self.offset + point[0],             # X Value with certain offset
-                    point[1] - self.pos().y(),          # Y Value
-                    max(point[2] - 2*self.offset, 0),   # Width minus left and right offset
-                    self.rect().height()                # Height
+                    self.offset + point[0],  # X Value with certain offset
+                    point[1] - self.pos().y(),  # Y Value
+                    max(point[2] - 2 * self.offset, 0),  # Width minus left and right offset
+                    self.rect().height()  # Height
                 ),
                 self.radius, self.radius
             )
 
-    def sceneEventFilter(self, watched: QGraphicsItem, event: QEvent) -> bool:
+    def separator_position_changed(self, moved_separator: QGraphicsItem,
+                                   left_point: QPointF, right_point: QPointF) -> None:
         """
-        Filters events for the item watched. event is the filtered event.
-
-        In this case, this function only watch Separator items, and it is used to update the number of rects
-        and the width of the rects.
-
-        :param watched: Item from which the event has occurred
-        :param event: The object that indicates the type of event triggered
-        :return: False, to allow the event to be treated by other Items
+        Updates the rectangle positions and length according to the new position of moved_separator. If the
+        moved_separator is on the border, left_point and right_point represents the left and right positions. If not,
+        both points are equal. This function should be called every time a Separator has moved.
+        :param moved_separator: The separator that has moved. Can be left_separator or right_separator
+        :param left_point: The left position if the separator is in the border.
+        :param right_point: The right position if the separator is in the border.
         """
-        if isinstance(event, QGraphicsSceneMouseEvent) or \
-                (isinstance(event, QEvent) and event.type() == QEvent.UngrabMouse):
-            if self.right_separator is watched or self.left_separator is watched:
-                self.update_points(watched)
-                self.scene().views()[0].viewport().repaint()
-        return False
+        if moved_separator is self.left_separator:
+            self.set_points(moved_separator, left_point, self.right_separator.complete_pos(False))
+        elif moved_separator is self.right_separator:
+            self.set_points(moved_separator, self.left_separator.complete_pos(True), right_point)
 
     def editable_text_changed_slot(self, editable_text_list: list[str]) -> None:
         """
@@ -211,4 +213,4 @@ class MultilineRoundedRect(QGraphicsRectItem):
         except ValueError:
             pass
         self.setBrush(QColor(list(self.colors.keys())[index]))
-        self.scene().views()[0].viewport().repaint()
+        self.update()

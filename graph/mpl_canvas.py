@@ -105,7 +105,7 @@ class MplCanvas(FigureCanvas):
 
 class MplWidget(QWidget):
     """
-    This class is used to create a embedded matplotlib graph in a Qt environment.
+    This class is used to create an embedded matplotlib graph in a Qt environment.
     """
 
     pos_changed = pyqtSignal(int)

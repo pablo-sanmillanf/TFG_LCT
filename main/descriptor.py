@@ -2,7 +2,7 @@ import typing
 
 import numpy as np
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QRectF, QPointF, QEvent, pyqtSignal
+from PyQt5.QtCore import Qt, QRectF, QPointF, pyqtSignal
 from PyQt5.QtGui import QPainterPath, QFont
 from PyQt5.QtWidgets import QGraphicsTextItem, QWidget, QStyleOptionGraphicsItem, QGraphicsItem, \
     QGraphicsSceneMouseEvent
@@ -140,15 +140,15 @@ class Descriptor(QGraphicsTextItem):
         if not all(isinstance(x, Separator) for x in separators):
             raise TypeError('All the elements of separators must be of type Separator')
         if self.left_separator is not None:
-            self.left_separator.removeSceneEventFilter(self)
+            self.left_separator.emitter.pos_changed.connect(self.separator_position_changed)
         if self.right_separator is not None:
-            self.right_separator.removeSceneEventFilter(self)
+            self.right_separator.emitter.pos_changed.connect(self.separator_position_changed)
         self.left_separator = separators[0]
         self.right_separator = separators[1]
-        self.left_separator.installSceneEventFilter(self)
-        self.right_separator.installSceneEventFilter(self)
+        self.left_separator.emitter.pos_changed.connect(self.separator_position_changed)
+        self.right_separator.emitter.pos_changed.connect(self.separator_position_changed)
 
-        self.update_points(self.left_separator)
+        self.update_points()
 
     def set_max_width(self, width: float | int) -> None:
         """
@@ -169,22 +169,29 @@ class Descriptor(QGraphicsTextItem):
                 lines.append(y_value)
         return lines
 
-    def update_points(self, moved_separator: Separator) -> None:
+    def set_points(self, moved_separator: Separator,
+                   left_separator_pos: QPointF, right_separator_pos: QPointF) -> None:
         """
-        Fill the list self.points with the values to be used to locate the text.
+        Fill the list self.points with the values to be used to locate the text. Each position of the
+        list is a QPointF.
         This function is called every time a Separator has moved.
         :param moved_separator: The separator that has moved. Can be left_separator or right_separator
+        :param left_separator_pos: Position of the left separator.
+        :param right_separator_pos: Position of the right separator.
         """
-        lines = self.get_lines_y_values()
+        lines = []
+        for y_value in sorted(set(self.left_separator.get_y_values() + self.right_separator.get_y_values())):
+            if left_separator_pos.y() <= y_value <= right_separator_pos.y():
+                lines.append(y_value)
+
         if len(lines) >= 1:
             self.points.clear()
             self.set_bounding_rect(lines)
             if len(lines) == 1:
                 self.points.append(
                     QPointF(
-                        (self.right_separator.complete_pos(False).x() +
-                         self.left_separator.complete_pos(True).x() - self.width) / 2,  # X Value
-                        self.left_separator.complete_pos(True).y(),  # Y Value
+                        (right_separator_pos.x() + left_separator_pos.x() - self.width) / 2,  # X Value
+                        left_separator_pos.y(),  # Y Value
                     )
                 )
             elif len(lines) > 1:
@@ -197,8 +204,7 @@ class Descriptor(QGraphicsTextItem):
                 if first_line_x_values is not None:
                     self.points.append(
                         QPointF(
-                            (self.left_separator.complete_pos(True).x() + first_line_x_values[-1]
-                             - self.width) / 2,  # X Value
+                            (left_separator_pos.x() + first_line_x_values[-1] - self.width) / 2,  # X Value
                             lines[0],  # Y Value
                         )
                     )
@@ -221,11 +227,21 @@ class Descriptor(QGraphicsTextItem):
                 if last_line_x_values is not None:
                     self.points.append(
                         QPointF(
-                            (last_line_x_values[0] + self.right_separator.complete_pos(False).x()
-                             - self.width) / 2,  # X Value
-                            self.right_separator.complete_pos(False).y(),  # Y Value
+                            (last_line_x_values[0] + right_separator_pos.x() - self.width) / 2,  # X Value
+                            right_separator_pos.y(),  # Y Value
                         )
                     )
+
+    def update_points(self) -> None:
+        """
+        Updates the points to place the text when both separators have been moved at the same time, e.g. when
+        resizing the window.
+        """
+        self.set_points(
+            self.left_separator,
+            self.left_separator.complete_pos(True),
+            self.right_separator.complete_pos(False)
+        )
 
     def update_text(self, style: str) -> None:
         """
@@ -236,7 +252,7 @@ class Descriptor(QGraphicsTextItem):
         self.document().setHtml(self.style_editable_text(self.selected_part, style))
         self.editable_text_changed.emit(self.editable_text_list)
         self.width = self.get_text_width(self.document().toPlainText())
-        self.update_points(self.left_separator)
+        self.update_points()
 
     def style_editable_text(self, index: int, style: str) -> str:
         """
@@ -387,19 +403,17 @@ class Descriptor(QGraphicsTextItem):
             self.document().drawContents(painter)
             previous_point = self.points[i]
 
-    def sceneEventFilter(self, watched: QGraphicsItem, event: QEvent) -> bool:
+    def separator_position_changed(self, moved_separator: QGraphicsItem,
+                                   left_point: QPointF, right_point: QPointF) -> None:
         """
-        Filters events for the item watched. event is the filtered event.
-
-        In this case, this function only watch Separator items, and it is used to update the number of
-        text-boxes displayed and its positions.
-
-        :param watched: Item from which the event has occurred
-        :param event: The object that indicates the type of event triggered
-        :return: False, to allow the event to be treated by other Items
+        Updates the text position according to the new position of moved_separator. If the moved_separator is on the
+        border, left_point and right_point represents the left and right positions. If not, both points are equal.
+        This function should be called every time a Separator has moved.
+        :param moved_separator: The separator that has moved. Can be left_separator or right_separator
+        :param left_point: The left position if the separator is in the border.
+        :param right_point: The right position if the separator is in the border.
         """
-        if isinstance(event, QGraphicsSceneMouseEvent) or \
-                (isinstance(event, QEvent) and event.type() == QEvent.UngrabMouse):
-            if self.right_separator is watched or self.left_separator is watched:
-                self.update_points(watched)
-        return False
+        if moved_separator is self.left_separator:
+            self.set_points(moved_separator, left_point, self.right_separator.complete_pos(False))
+        elif moved_separator is self.right_separator:
+            self.set_points(moved_separator, self.left_separator.complete_pos(True), right_point)
