@@ -39,7 +39,7 @@ class TextHandler(QGraphicsView):
         self.global_pos_y_offset = None
 
     def setup(self, x_padding: float | int, y_padding: float | int, min_width: float | int, min_height: float | int,
-              text: str, text_size: float | int, colors: list[str]) -> None:
+              text: str, text_size: float | int, default_descriptor: str, colors: list[str]) -> None:
         """
         Set up the object.
         :param x_padding: Pixels of horizontal padding for the text.
@@ -49,6 +49,8 @@ class TextHandler(QGraphicsView):
         :param text: The text to analyze. New lines in this text should be represented as '\n' characters.
         :param text_size: The text size as a number. All the elements in QGraphicsScene will adjust their size to
                           the text size.
+        :param default_descriptor: The text that will appear in the descriptor as default. Depending on the number of
+                                   "~" characters, the length of the colors' parameter will change.
         :param colors: A list of colors that will be used by the rectangles as a background color depending on the
                        values of its Descriptors. Should be valid HTML colors.
         """
@@ -72,7 +74,7 @@ class TextHandler(QGraphicsView):
         self.text = CustomText(format_text(text), min_width - 2 * x_padding, 300, self.items_parent)
 
         self.classifier = TextClassifier(
-            min_width - 2 * x_padding, text_size * 2, self.text.get_points(), "SD~;SG~", colors, self.items_parent
+            min_width - 2 * x_padding, text_size * 2, self.text.get_points(), default_descriptor, colors, self.items_parent
         )
 
         self.set_text_size(text_size)
