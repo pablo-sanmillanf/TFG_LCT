@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ColorsDialog(object):
     def setupUi(self, ColorsDialog):
         ColorsDialog.setObjectName("ColorsDialog")
-        ColorsDialog.resize(480, 480)
+        ColorsDialog.resize(480, 340)
         self.verticalLayout = QtWidgets.QVBoxLayout(ColorsDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tabWidget = QtWidgets.QTabWidget(ColorsDialog)
@@ -190,14 +190,12 @@ class Ui_ColorsDialog(object):
         self.together_d_minusminus_g_plusplus_button.setObjectName("together_d_minusminus_g_plusplus_button")
         self.gridLayout.addWidget(self.together_d_minusminus_g_plusplus_button, 7, 3, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 2)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.gridLayout_2.addItem(spacerItem, 2, 0, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout_2)
         self.tabWidget.addTab(self.togetherTab, "")
         self.verticalLayout.addWidget(self.tabWidget)
 
         self.retranslateUi(ColorsDialog)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(ColorsDialog)
         ColorsDialog.setTabOrder(self.tabWidget, self.alone_default_button)
         ColorsDialog.setTabOrder(self.alone_default_button, self.alone_d_plusplus_button)

@@ -41,7 +41,7 @@ class TextClassifier(QGraphicsLineItem):
         self.radius = line_height / 4
         self.offset = 0
         self.pen = None
-        self.colors = self.set_color_list(colors)
+        self.colors = self.create_colors_dict(colors)
 
         # Set separators
         self.separators = []
@@ -106,7 +106,7 @@ class TextClassifier(QGraphicsLineItem):
         self.descriptors[0].update_points()
         self.descriptors[0].update()
 
-    def set_color_list(self, color_list: list[str]) -> dict[str, list[str]]:
+    def create_colors_dict(self, color_list: list[str]) -> dict[str, str]:
         """
         Create a dictionary from a list of colors. This dictionary will have as a key of each element the color
         itself and as a value, a list containing the values of the different editable parts of the descriptor text.
@@ -120,16 +120,18 @@ class TextClassifier(QGraphicsLineItem):
             raise RuntimeError("There should be " + str(np.power(allo_str_len, editable_texts_number) + 1) +
                                " colors for text_classifier module but got " + str(len(color_list)) + " instead.")
 
-        colors = {color_list[0]: []}
+        colors = {"": color_list[0]}
 
-        for i in range(1, len(color_list) - 1):
-            value = []
-            for e in reversed(range(editable_texts_number)):
-                if e == 0:
-                    value.append(descriptor.ALLOWED_STRINGS[i % allo_str_len])
+        for i in range(1, len(color_list)):
+            value = ""
+            for e in range(editable_texts_number):
+                if e == editable_texts_number - 1:
+                    value += (str(e) + descriptor.ALLOWED_STRINGS[(i - 1) % allo_str_len])
                 else:
-                    value.append(descriptor.ALLOWED_STRINGS[np.floor_divide(i, allo_str_len * e) % allo_str_len])
-            colors[color_list[i]] = value
+                    value += (str(e) + descriptor.ALLOWED_STRINGS[
+                        np.floor_divide(i - 1, allo_str_len * (editable_texts_number - 1 - e)) % allo_str_len
+                    ])
+            colors[value] = color_list[i]
         return colors
 
     def set_default_descriptor(self, default_descriptor: str, colors: list[str]) -> None:
@@ -143,12 +145,23 @@ class TextClassifier(QGraphicsLineItem):
         :param colors: List of all available colors
         """
         self.default_text = default_descriptor
-        self.colors = self.set_color_list(colors)
+        self.colors = self.create_colors_dict(colors)
         for rect in self.rects:
-            rect.colors = self.colors
+            rect.set_colors(self.colors)
 
         for desc in self.descriptors:
             desc.set_default_text(default_descriptor)
+
+    def set_colors(self, colors: list[str]) -> None:
+        """
+        Set the colors that will be used by the rounded rects depending on the value of the descriptor. The length
+        of this list should be the same as the possible combinations of the descriptor text plus one (the default one).
+        Also, the colors list should be of any HTML valid color.
+        :param colors: List of all available colors
+        """
+        self.colors = self.create_colors_dict(colors)
+        for rect in self.rects:
+            rect.set_colors(self.colors)
 
     def set_separator_pen(self, pen: QPen) -> None:
         """

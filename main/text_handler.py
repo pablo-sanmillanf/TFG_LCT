@@ -256,6 +256,15 @@ class TextHandler(QGraphicsView):
         """
         self.classifier.set_default_descriptor(default_descriptor, colors)
 
+    def set_colors(self, colors: list[str]) -> None:
+        """
+        Set the colors that will be used by the rounded rects depending on the value of the descriptor. The length
+        of this list should be the same as the possible combinations of the descriptor text plus one (the default one).
+        Also, the colors list should be of any HTML valid color.
+        :param colors: List of all available colors
+        """
+        self.classifier.set_colors(colors)
+
     def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         """
         This function allows to resize the QGraphicsView item and the scene in it.

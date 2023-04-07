@@ -2,10 +2,11 @@ import json
 import sys
 import re
 
+from PyQt5 import QtGui
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
     QApplication,
-    QMainWindow, QInputDialog, QDialog, QPushButton, QColorDialog
+    QMainWindow, QInputDialog, QDialog, QPushButton, QColorDialog, QMessageBox
 
 )
 
@@ -29,8 +30,13 @@ class ColorsDialog(QDialog, Ui_ColorsDialog):
         super().__init__(parent)
         self.setupUi(self)
 
-        self.set_button_styles(colors)
+        self.colors = colors
+        self.has_changed = False
 
+        self.set_button_styles()
+        self.set_button_actions()
+
+    def set_button_actions(self) -> None:
         # Set alone-tab button actions
         self.alone_default_button.clicked.connect(
             lambda checked: self.button_clicked_dialog(self.alone_default_button)
@@ -101,33 +107,67 @@ class ColorsDialog(QDialog, Ui_ColorsDialog):
             lambda checked: self.button_clicked_dialog(self.together_d_minusminus_g_plusplus_button)
         )
 
-    def set_button_styles(self, colors) -> None:
+    def set_button_styles(self) -> None:
 
         # Set alone-tab button styles
-        self.alone_default_button.setStyleSheet(get_btn_style_str(colors["alone"]["Default"]))
-        self.alone_d_plusplus_button.setStyleSheet(get_btn_style_str(colors["alone"]["SD++"]))
-        self.alone_d_plus_button.setStyleSheet(get_btn_style_str(colors["alone"]["SD+"]))
-        self.alone_d_minus_button.setStyleSheet(get_btn_style_str(colors["alone"]["SD-"]))
-        self.alone_d_minusminus_button.setStyleSheet(get_btn_style_str(colors["alone"]["SD--"]))
+        self.alone_default_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["Default"]))
+        self.alone_d_plusplus_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["SD++"]))
+        self.alone_d_plus_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["SD+"]))
+        self.alone_d_minus_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["SD-"]))
+        self.alone_d_minusminus_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["SD--"]))
 
         # Set together-tab button styles
-        self.together_default_button.setStyleSheet(get_btn_style_str(colors["together"]["Default"]))
-        self.together_d_plusplus_g_minusminus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD++;SG--"]))
-        self.together_d_plusplus_g_minus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD++;SG-"]))
-        self.together_d_plusplus_g_plus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD++;SG+"]))
-        self.together_d_plusplus_g_plusplus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD++;SG++"]))
-        self.together_d_plus_g_minusminus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD+;SG--"]))
-        self.together_d_plus_g_minus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD+;SG-"]))
-        self.together_d_plus_g_plus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD+;SG+"]))
-        self.together_d_plus_g_plusplus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD+;SG++"]))
-        self.together_d_minus_g_minusminus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD-;SG--"]))
-        self.together_d_minus_g_minus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD-;SG-"]))
-        self.together_d_minus_g_plus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD-;SG+"]))
-        self.together_d_minus_g_plusplus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD-;SG++"]))
-        self.together_d_minusminus_g_minusminus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD--;SG--"]))
-        self.together_d_minusminus_g_minus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD--;SG-"]))
-        self.together_d_minusminus_g_plus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD--;SG+"]))
-        self.together_d_minusminus_g_plusplus_button.setStyleSheet(get_btn_style_str(colors["together"]["SD--;SG++"]))
+        self.together_default_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["Default"])
+        )
+        self.together_d_plusplus_g_minusminus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD++;SG--"])
+        )
+        self.together_d_plusplus_g_minus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD++;SG-"])
+        )
+        self.together_d_plusplus_g_plus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD++;SG+"])
+        )
+        self.together_d_plusplus_g_plusplus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD++;SG++"])
+        )
+        self.together_d_plus_g_minusminus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD+;SG--"])
+        )
+        self.together_d_plus_g_minus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD+;SG-"])
+        )
+        self.together_d_plus_g_plus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD+;SG+"])
+        )
+        self.together_d_plus_g_plusplus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD+;SG++"])
+        )
+        self.together_d_minus_g_minusminus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD-;SG--"])
+        )
+        self.together_d_minus_g_minus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD-;SG-"])
+        )
+        self.together_d_minus_g_plus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD-;SG+"])
+        )
+        self.together_d_minus_g_plusplus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD-;SG++"])
+        )
+        self.together_d_minusminus_g_minusminus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD--;SG--"])
+        )
+        self.together_d_minusminus_g_minus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD--;SG-"])
+        )
+        self.together_d_minusminus_g_plus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD--;SG+"])
+        )
+        self.together_d_minusminus_g_plusplus_button.setStyleSheet(
+            get_btn_style_str(self.colors["together"]["SD--;SG++"])
+        )
 
     def button_clicked_dialog(self, button: QPushButton) -> None:
         new_color = QColorDialog().getColor(
@@ -138,13 +178,66 @@ class ColorsDialog(QDialog, Ui_ColorsDialog):
 
         if new_color.isValid():
             button.setStyleSheet(get_btn_style_str(new_color.name()))
+            self.has_changed = True
+            match button:
+                case self.alone_default_button:
+                    self.colors["alone"]["Default"] = new_color.name()
+                case self.alone_d_plusplus_button:
+                    self.colors["alone"]["SD++"] = new_color.name()
+                case self.alone_d_plus_button:
+                    self.colors["alone"]["SD+"] = new_color.name()
+                case self.alone_d_minus_button:
+                    self.colors["alone"]["SD-"] = new_color.name()
+                case self.alone_d_minusminus_button:
+                    self.colors["alone"]["SD--"] = new_color.name()
+                case self.together_default_button:
+                    self.colors["together"]["Default"] = new_color.name()
+                case self.together_d_plusplus_g_minusminus_button:
+                    self.colors["together"]["SD++;SG--"] = new_color.name()
+                case self.together_d_plusplus_g_minus_button:
+                    self.colors["together"]["SD++;SG-"] = new_color.name()
+                case self.together_d_plusplus_g_plus_button:
+                    self.colors["together"]["SD++;SG+"] = new_color.name()
+                case self.together_d_plusplus_g_plusplus_button:
+                    self.colors["together"]["SD++;SG++"] = new_color.name()
+                case self.together_d_plus_g_minusminus_button:
+                    self.colors["together"]["SD+;SG--"] = new_color.name()
+                case self.together_d_plus_g_minus_button:
+                    self.colors["together"]["SD+;SG-"] = new_color.name()
+                case self.together_d_plus_g_plus_button:
+                    self.colors["together"]["SD+;SG+"] = new_color.name()
+                case self.together_d_plus_g_plusplus_button:
+                    self.colors["together"]["SD+;SG++"] = new_color.name()
+                case self.together_d_minus_g_minusminus_button:
+                    self.colors["together"]["SD-;SG--"] = new_color.name()
+                case self.together_d_minus_g_minus_button:
+                    self.colors["together"]["SD-;SG-"] = new_color.name()
+                case self.together_d_minus_g_plus_button:
+                    self.colors["together"]["SD-;SG+"] = new_color.name()
+                case self.together_d_minus_g_plusplus_button:
+                    self.colors["together"]["SD-;SG++"] = new_color.name()
+                case self.together_d_minusminus_g_minusminus_button:
+                    self.colors["together"]["SD--;SG--"] = new_color.name()
+                case self.together_d_minusminus_g_minus_button:
+                    self.colors["together"]["SD--;SG-"] = new_color.name()
+                case self.together_d_minusminus_g_plus_button:
+                    self.colors["together"]["SD--;SG+"] = new_color.name()
+                case self.together_d_minusminus_g_plusplus_button:
+                    self.colors["together"]["SD--;SG++"] = new_color.name()
+                case _:
+                    print("ERROR")
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
-        self.default_conf = json.loads(open("defaultconf.json", "r").read())
+
+        f = open("defaultconf.json", "r")
+        self.conf = json.loads(f.read())
+        f.close()
+
+        self.conf_has_changed = False
 
         self.textHandler.setup(
             10,
@@ -152,9 +245,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             500,
             500,
             open("text.txt", "r").read(),
-            13,
+            self.conf["text_size"],
             "SD~;SG~",
-            list(self.default_conf["colors"]["together"].values())
+            list(self.conf["colors"]["together"].values())
         )
 
         self.actionText_size.triggered.connect(self.text_size_dialog)
@@ -173,10 +266,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if ok:
             self.textHandler.set_text_size(value)
+            self.conf["text_size"] = value
+            self.conf_has_changed = True
 
     def rects_colors_dialog(self, s: bool) -> None:
-        dlg = ColorsDialog(self.default_conf["colors"], self)
+        dlg = ColorsDialog(self.conf["colors"], self)
         dlg.exec()
+
+        if dlg.has_changed:
+            self.conf["colors"] = dlg.colors
+            self.textHandler.set_colors(list(self.conf["colors"]["together"].values()))
+            self.conf_has_changed = True
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        if self.conf_has_changed:
+            button = QMessageBox.question(self, "Save settings", "Save current settings as default?")
+            if button == QMessageBox.Yes:
+                f = open("defaultconf.json", "w")
+                f.write(json.dumps(self.conf))
+                f.close()
+        super().closeEvent(a0)
 
 
 app = QApplication(sys.argv)

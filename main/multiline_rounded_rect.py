@@ -28,10 +28,10 @@ class MultilineRoundedRect(QGraphicsRectItem):
     right_separator: Separator = None
     left_separator: Separator = None
     points: list[tuple[float, float, float]]
-    colors: dict[str, list[str]]
+    colors: dict[str, str]
 
     def __init__(self, max_width: float | int, height: float | int, radius: float | int, offset: float | int,
-                 colors: dict[str, list[str]], parent: QGraphicsItem) -> None:
+                 colors: dict[str, str], parent: QGraphicsItem) -> None:
         """
         Create MultilineRoundedRect object.
         :param max_width: The maximum width of this element. Is determined by the max text width.
@@ -41,6 +41,7 @@ class MultilineRoundedRect(QGraphicsRectItem):
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         """
         super().__init__(0, 0, 1, height, parent)
+        self.color_index = 0
         self.radius = radius
         self.offset = offset
         self.points = []
@@ -149,6 +150,17 @@ class MultilineRoundedRect(QGraphicsRectItem):
             self.right_separator.complete_pos(False)
         )
 
+    def set_colors(self, colors: dict[str, str]) -> None:
+        """
+        Set the colors that will be used by the rounded rect depending on the value of the associated descriptor. The
+        length of this dict should be the same as the possible combinations of the descriptor text plus one (the default
+        one). Also, the colors list should be of any HTML valid color.
+        :param colors: Dict of all available colors and the possibilities for the descriptor
+        """
+        self.colors = colors
+        self.setBrush(QColor(list(self.colors.values())[self.color_index]))
+        self.update()
+
     def set_bounding_rect(self, lines):
         """
         Set the bounding rect line_height and position according to the y vales given.
@@ -208,9 +220,13 @@ class MultilineRoundedRect(QGraphicsRectItem):
         :param editable_text_list: A list with the editable descriptor text parts.
         """
         index = 0
+        editable_text_string = ""
+        for i in range(len(editable_text_list)):
+            editable_text_string += (str(i) + editable_text_list[i])
         try:
-            index = list(self.colors.values()).index(editable_text_list)
+            index = list(self.colors.keys()).index(editable_text_string)
         except ValueError:
             pass
-        self.setBrush(QColor(list(self.colors.keys())[index]))
+        self.color_index = index
+        self.setBrush(QColor(list(self.colors.values())[index]))
         self.update()
