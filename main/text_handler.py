@@ -74,7 +74,12 @@ class TextHandler(QGraphicsView):
         self.text = CustomText(format_text(text), min_width - 2 * x_padding, 300, self.items_parent)
 
         self.classifier = TextClassifier(
-            min_width - 2 * x_padding, text_size * 2, self.text.get_points(), default_descriptor, colors, self.items_parent
+            min_width - 2 * x_padding,
+            text_size * 2,
+            self.text.get_points(),
+            default_descriptor,
+            colors,
+            self.items_parent
         )
 
         self.set_text_size(text_size)

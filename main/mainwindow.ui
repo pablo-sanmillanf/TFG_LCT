@@ -42,15 +42,8 @@
     <property name="title">
      <string>Edit</string>
     </property>
-    <widget class="QMenu" name="menuFont">
-     <property name="title">
-      <string>Change Font</string>
-     </property>
-     <addaction name="actionText_size"/>
-     <addaction name="actionRects_colors"/>
-    </widget>
-    <addaction name="menuFont"/>
-    <addaction name="actionSubmenu2"/>
+    <addaction name="actionText_size"/>
+    <addaction name="actionRects_colors"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">

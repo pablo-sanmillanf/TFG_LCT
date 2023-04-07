@@ -6,7 +6,7 @@ from PyQt5 import QtGui
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
     QApplication,
-    QMainWindow, QInputDialog, QDialog, QPushButton, QColorDialog, QMessageBox
+    QMainWindow, QInputDialog, QDialog, QPushButton, QColorDialog, QMessageBox, QFileDialog
 
 )
 
@@ -23,6 +23,20 @@ def get_btn_style_str(color: str) -> str:
             "    margin-top: 5px;"
             "}"
     )
+
+
+def manage_file(file: str, operation: str, data: str = None) -> str:
+    result = None
+    f = None
+    try:
+        f = open(file, operation)
+        if operation == "r":
+            result = f.read()
+        elif operation == "w":
+            f.write(data)
+    finally:
+        f.close()
+    return result
 
 
 class ColorsDialog(QDialog, Ui_ColorsDialog):
@@ -233,9 +247,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
-        f = open("defaultconf.json", "r")
-        self.conf = json.loads(f.read())
-        f.close()
+        self.conf = json.loads(manage_file("defaultconf.json", "r"))
 
         self.conf_has_changed = False
 
@@ -244,14 +256,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             10,
             500,
             500,
-            open("text.txt", "r").read(),
+            "This is an example text. If you want to start editing a file select \"File\"->\"Open...\" and browse to "
+            "desired file. To set a division in the text, right-click and select \"Split\". To undo a division in the "
+            "text, right-click and select \"Join\" near the splitter",
             self.conf["text_size"],
             "SD~;SG~",
             list(self.conf["colors"]["together"].values())
         )
 
+        self.actionOpen.triggered.connect(self.open_file_dialog)
         self.actionText_size.triggered.connect(self.text_size_dialog)
         self.actionRects_colors.triggered.connect(self.rects_colors_dialog)
+
+    def open_file_dialog(self, s: bool) -> None:
+        file, file_type = QFileDialog().getOpenFileName(
+            self,
+            "Open file to analyze",
+            "./",
+            "Text files (*.txt)"
+        )
+        if file != "":
+            self.textHandler.set_text(manage_file(file, "r"))
 
     def text_size_dialog(self, s: bool) -> None:
         value, ok = QInputDialog().getInt(
@@ -282,9 +307,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.conf_has_changed:
             button = QMessageBox.question(self, "Save settings", "Save current settings as default?")
             if button == QMessageBox.Yes:
-                f = open("defaultconf.json", "w")
-                f.write(json.dumps(self.conf))
-                f.close()
+                manage_file("defaultconf.json", "w", json.dumps(self.conf))
         super().closeEvent(a0)
 
 
