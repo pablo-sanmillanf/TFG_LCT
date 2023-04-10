@@ -97,7 +97,7 @@ class CustomText(QGraphicsTextItem):
 
         # Adjust offsets to the justify line
         if not last_line and len(text_list) > 1:
-            aux_text.setPlainText(text)
+            aux_text.setHtml(text)
 
             # We obtain the remaining pixels that will be distributed among all the spaces to
             # justify text, and we divide it by the number of spaces to know how much is left for
@@ -109,7 +109,7 @@ class CustomText(QGraphicsTextItem):
         # Set
         points[0] = (padding / 2 + self.pos().x(), text_list[0])
         for i in range(len(text_list) - 1):
-            aux_text.setPlainText(" ".join(text_list[:i + 1]))
+            aux_text.setHtml(" ".join(text_list[:i + 1]))
 
             # Subtract right padding, add half a space and the space adjusts
             points[i + 1] = (
@@ -122,7 +122,7 @@ class CustomText(QGraphicsTextItem):
         if not last_line:
             points[-1] = (self.textWidth() - padding / 2 + self.pos().x(), "")
         else:
-            aux_text.setPlainText(text)
+            aux_text.setHtml(text)
             points[-1] = (
                 aux_text.boundingRect().width() - padding +
                 half_space + space_adjust / 2 + space_adjust * (len(text_list) - 1) + self.pos().x(), ""
@@ -148,7 +148,7 @@ class CustomText(QGraphicsTextItem):
                 result.append((" ".join(text_list[init:i]) + "\n", True))
                 init = i + 1
             else:
-                aux_text.setPlainText(" ".join(text_list[init:i + 1]))
+                aux_text.setHtml(" ".join(text_list[init:i + 1]))
                 if aux_text.boundingRect().width() > self.textWidth():
                     result.append((" ".join(text_list[init:i]), False))
                     init = i

@@ -3,8 +3,9 @@ from PyQt5.QtCore import Qt, QPointF, QPoint
 from PyQt5.QtGui import QFont, QPen, QPainter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QWidget, QMenu, QAction
 
-from text_classifier import TextClassifier
-from custom_text import CustomText
+from main_window_aux_items.text_classifier import TextClassifier
+from main_window_aux_items.custom_text import CustomText
+import datetime
 
 
 def format_text(text: str) -> str:
@@ -14,6 +15,10 @@ def format_text(text: str) -> str:
     :param text: The text to be formatted.
     :return: The formatted text.
     """
+    text = text.replace("&", "&amp;")
+    text = text.replace("\"", "&quot;")
+    text = text.replace(">", "&gt;")
+    text = text.replace("<", "&lt;")
     return " ".join(text.replace("\n", " <br> ").split())
 
 
@@ -161,8 +166,19 @@ class TextHandler(QGraphicsView):
         Set the text to be analyzed.
         :param text: The text that will appear.
         """
+        print(datetime.datetime.now())
         self.text.set_text(format_text(text))
+        print(datetime.datetime.now())
         self.classifier.reset(self.text.get_points())
+        print(datetime.datetime.now())
+
+        # Set text size
+        self.scene.setSceneRect(
+            0,
+            0,
+            self.size().width(),
+            self.items_parent.pos().y() + self.text.boundingRect().height()
+        )
 
     def set_text_size(self, text_size: float | int) -> None:
         """
@@ -190,6 +206,19 @@ class TextHandler(QGraphicsView):
 
         # Reposition separators to the new text size
         self.set_separators_reposition(text_list_previous_size)
+
+    def get_text_analyzed(self) -> list[tuple[str, str]]:
+        """
+        Gets the subgroups of words that form the separators within the text and its descriptor tag.
+        :return: A list of tuples with the text classified and analyzed. The first tuple element is the text and the
+                 second is the descriptor value.
+        """
+        analyzed_text = []
+        text_list = self.get_text_classified()
+
+        for i in range(len(self.classifier.descriptors)):
+            analyzed_text.append((text_list[i], self.classifier.descriptors[i].toPlainText()))
+        return analyzed_text
 
     def get_text_classified(self) -> list[str]:
         """

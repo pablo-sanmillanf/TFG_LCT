@@ -29,7 +29,7 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="monkey">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
@@ -45,10 +45,11 @@
     <addaction name="actionText_size"/>
     <addaction name="actionRects_colors"/>
    </widget>
-   <widget class="QMenu" name="menuView">
+   <widget class="QMenu" name="menuRun">
     <property name="title">
-     <string>View</string>
+     <string>Run</string>
     </property>
+    <addaction name="actionRun_Plotter"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -60,9 +61,9 @@
      <string>Help</string>
     </property>
    </widget>
-   <addaction name="monkey"/>
+   <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
-   <addaction name="menuView"/>
+   <addaction name="menuRun"/>
    <addaction name="menuWindow"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -104,6 +105,11 @@
   <action name="actionRects_colors">
    <property name="text">
     <string>Rects colors</string>
+   </property>
+  </action>
+  <action name="actionRun_Plotter">
+   <property name="text">
+    <string>Run Plotter</string>
    </property>
   </action>
  </widget>

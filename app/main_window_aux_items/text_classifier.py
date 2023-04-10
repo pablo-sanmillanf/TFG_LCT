@@ -3,10 +3,9 @@ from PyQt5.QtCore import QEvent, Qt, QPointF
 from PyQt5.QtGui import QPen, QFont
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
 
-import descriptor
-from descriptor import Descriptor
-from separator import Separator, find_nearest_point
-from multiline_rounded_rect import MultilineRoundedRect
+from .descriptor import Descriptor, ALLOWED_STRINGS, TEXT_SEPARATOR
+from .separator import Separator, find_nearest_point
+from .multiline_rounded_rect import MultilineRoundedRect
 
 
 class TextClassifier(QGraphicsLineItem):
@@ -113,8 +112,8 @@ class TextClassifier(QGraphicsLineItem):
         :param color_list: The list with the colors.
         :return: The dictionary.
         """
-        editable_texts_number = len(self.default_text.split(descriptor.TEXT_SEPARATOR)) - 1
-        allo_str_len = len(descriptor.ALLOWED_STRINGS)
+        editable_texts_number = len(self.default_text.split(TEXT_SEPARATOR)) - 1
+        allo_str_len = len(ALLOWED_STRINGS)
 
         if len(color_list) != np.power(allo_str_len, editable_texts_number) + 1:
             raise RuntimeError("There should be " + str(np.power(allo_str_len, editable_texts_number) + 1) +
@@ -126,9 +125,9 @@ class TextClassifier(QGraphicsLineItem):
             value = ""
             for e in range(editable_texts_number):
                 if e == editable_texts_number - 1:
-                    value += (str(e) + descriptor.ALLOWED_STRINGS[(i - 1) % allo_str_len])
+                    value += (str(e) + ALLOWED_STRINGS[(i - 1) % allo_str_len])
                 else:
-                    value += (str(e) + descriptor.ALLOWED_STRINGS[
+                    value += (str(e) + ALLOWED_STRINGS[
                         np.floor_divide(i - 1, allo_str_len * (editable_texts_number - 1 - e)) % allo_str_len
                     ])
             colors[value] = color_list[i]

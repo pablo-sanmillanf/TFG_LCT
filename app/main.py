@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
 
 )
 
+from graph.graph import GraphWindow
 from colorsDialog import Ui_ColorsDialog
 from mainWindow import Ui_MainWindow
 
@@ -29,7 +30,7 @@ def manage_file(file: str, operation: str, data: str = None) -> str:
     result = None
     f = None
     try:
-        f = open(file, operation)
+        f = open(file, operation, encoding="utf8")
         if operation == "r":
             result = f.read()
         elif operation == "w":
@@ -247,6 +248,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
+        self.graph_window = None
+
         self.conf = json.loads(manage_file("defaultconf.json", "r"))
 
         self.conf_has_changed = False
@@ -258,7 +261,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             500,
             "This is an example text. If you want to start editing a file select \"File\"->\"Open...\" and browse to "
             "desired file. To set a division in the text, right-click and select \"Split\". To undo a division in the "
-            "text, right-click and select \"Join\" near the splitter",
+            "text, right-click and select \"Join\" near the splitter.",
             self.conf["text_size"],
             "SD~;SG~",
             list(self.conf["colors"]["together"].values())
@@ -267,6 +270,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionOpen.triggered.connect(self.open_file_dialog)
         self.actionText_size.triggered.connect(self.text_size_dialog)
         self.actionRects_colors.triggered.connect(self.rects_colors_dialog)
+        self.actionRun_Plotter.triggered.connect(self.run_graph_window)
 
     def open_file_dialog(self, s: bool) -> None:
         file, file_type = QFileDialog().getOpenFileName(
@@ -276,7 +280,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "Text files (*.txt)"
         )
         if file != "":
-            self.textHandler.set_text(manage_file(file, "r"))
+            text = manage_file(file, "r")
+            if text is None or text == "":
+                QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
+                self.open_file_dialog(True)
+            else:
+                self.textHandler.set_text(text)
 
     def text_size_dialog(self, s: bool) -> None:
         value, ok = QInputDialog().getInt(
@@ -303,6 +312,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.textHandler.set_colors(list(self.conf["colors"]["together"].values()))
             self.conf_has_changed = True
 
+    def run_graph_window(self, s: bool) -> None:
+        if self.graph_window is None:
+            self.graph_window = GraphWindow("graph/")
+        self.graph_window.show()
+
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         if self.conf_has_changed:
             button = QMessageBox.question(self, "Save settings", "Save current settings as default?")
@@ -311,9 +325,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().closeEvent(a0)
 
 
-app = QApplication(sys.argv)
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
 
-w = MainWindow()
-w.show()
+    w = MainWindow()
+    w.show()
 
-app.exec()
+    app.exec()

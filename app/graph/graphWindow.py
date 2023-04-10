@@ -80,7 +80,7 @@ class Ui_GraphWindow(object):
 
     def retranslateUi(self, GraphWindow):
         _translate = QtCore.QCoreApplication.translate
-        GraphWindow.setWindowTitle(_translate("GraphWindow", "GraphWindow"))
+        GraphWindow.setWindowTitle(_translate("GraphWindow", "MainWindow"))
         self.text.setText(_translate("GraphWindow", "TextLabel"))
         self.monkey.setTitle(_translate("GraphWindow", "File"))
         self.menupenguin.setTitle(_translate("GraphWindow", "Edit"))
@@ -89,4 +89,4 @@ class Ui_GraphWindow(object):
         self.menuHelp.setTitle(_translate("GraphWindow", "Help"))
         self.actionSubmenu1.setText(_translate("GraphWindow", "Submenu1"))
         self.actionSubmenu2.setText(_translate("GraphWindow", "Submenu2"))
-from mpl_canvas import MplWidget
+from .mpl_canvas import MplWidget

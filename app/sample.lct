@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lct version="1.0">
+    <dimension>Semantics</dimension>
+    <analysis target="SD/SG">
+        <superClause value="34">
+            <clause value="21">This is a text</clause>
+            <clause value="42">This is another text</clause>
+        </superClause>
+        <superClause value="32">
+            <clause value="44">This is a text</clause>
+            <clause value="11">This is another text</clause>
+        </superClause>
+    </analysis>
+</lct>

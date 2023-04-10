@@ -1,0 +1,1225 @@
+<?xml version='1.0' encoding='utf-8'?>
+<document>
+ <header>
+  <textfile>Texts/Mariano.txt</textfile>
+  <lang>english</lang>
+ </header>
+ <body>Okay. <segment id='891' features='semantic-density;sd+'>So, we are we are going to start talking about the Raspberry Pi,</segment> 
+<segment id='879' features='semantic-density;sd-'>what is the general sense of this of this platform,</segment> 
+<segment id='878' features='semantic-density;sd+'>and some additional topics about what is an embedded system</segment>, 
+<segment id='880' features='semantic-density;sd--'>different strategies to develop things.</segment> 
+Okay. <segment id='881' features='semantic-density;sd--'>Okay, broadly you know that this project was starting in 2006 Okay.</segment>  
+<segment id='882' features='semantic-density;sd--'>In UK, okay because one of the motivation of this project was the idea of 
+that young people in general don't have enough technological skills related to the use of computers okay.</segment> 
+<segment id='883' features='semantic-density;sd--'>So, the idea of the British government was to launch something like a very cheap platform 
+to help young people even in the in the lower levels of the schools to develop programming application okay 
+to develop their stem the typical abilities and skills in Mathematics, Physics and these kinds of things.</segment> 
+<segment id='884' features='semantic-density;sd--'>So, they just started going on this platform with the idea of in principle to use this only in the British schools, 
+but, quickly the platform started to develop a very of course, it's very cheap solution.</segment> 
+<segment id='885' features='semantic-density;sd--'>And there are a lot of people interested in in general</segment> <segment id='886' features='semantic-density;sd++'>in the development of embedded application electronic software solution using the Raspberry Pi, okay.</segment> 
+<segment id='887' features='semantic-density;sd--'>If you have a look to the to the slide, 
+you will see how at the beginning of the project, 
+they immediately started to to sell a lot of products, 
+and when there goes approximately the number of units that the red Raspberry Pi, 
+the foundation of the Raspberry Pi has produced it sold is around 40 million.</segment> 
+<segment id='888' features='semantic-density;sd--'>So, what is of course is an impressive number, okay.</segment> 
+<segment id='889' features='semantic-density;sd--'>It's quite important also to know that finally, I think two years or three years ago, they decided to move to move the production of Raspberry Pi to Wales okay, 
+and this is something that is generating an interesting technological area in this part of the of the British, of the British country.</segment> 
+Okay. <segment id='892' features='semantic-density;sd-'>So, if we have a look to the different models, 
+we can discover that this product has a continuous evolution during the different period of times, okay, 
+we started at the beginning with a Raspberry Pi version one model B. 
+And nowadays we are using models like Raspberry Pi model four, sorry Raspberry Pi four model</segment> <segment id='893' features='semantic-density;sd++'>B 
+or even more electronic and embedded systems solutions oriented like the Raspberry Pi computer module or the Raspberry Pi Zero, okay.</segment> 
+<segment id='894' features='semantic-density;sd-'>In this course, we are going to use a Raspberry Pi, version three model B plus, okay.</segment> 
+<segment id='895' features='semantic-density;sd-'>This is the version that we have here 
+and is more or less all the hardware is more or less quite similar in terms of performance in terms of peripherals, in terms of possibilities, okay.</segment> 
+<segment id='896' features='semantic-density;sd-'>The only difference is is the final performance of the processor,</segment> <segment id='897' features='semantic-density;sd+'>the amount of DDR memory that you have available</segment> <segment id='898' features='semantic-density;sd--'>and these kind of things, 
+but the idea of the platform is more or less the same for all the different versions, okay.</segment> 
+<segment id='899' features='semantic-density;sd--'>Which are the main elements that we have in this platform?</segment> 
+<segment id='900' features='semantic-density;sd--'>The first important point is to mention that we have something that</segment> <segment id='901' features='semantic-density;sd+'>the manufacturer called system on chip</segment>, 
+<segment id='902' features='semantic-density;sd--'>is the manufacturer is Broadcom.</segment> 
+<segment id='903' features='semantic-density;sd++'>And they are integrated in in the same chip, a GPU, this is a graphical processor unit and a quad core ARM processor.</segment> 
+<segment id='904' features='semantic-density;sd--'>Okay, so it's a very powerful solution.</segment> 
+<segment id='905' features='semantic-density;sd--'>It's not mentioned in this in this figure,</segment> 
+<segment id='906' features='semantic-density;sd++'>but they also have in the chip, a DSP a digital signal processor</segment>, 
+<segment id='907' features='semantic-density;sd--'>but there's something that Broadcom is not giving information to the developers of how to use this data centre processors 
+unless that you contact with them and sign an agreement to develop solutions.</segment> 
+
+[5:00]
+
+<segment id='908' features='semantic-density;sd--'>So for us, the important is that we have in a very cheap solution something that is very affordable,</segment> 
+<segment id='909' features='semantic-density;sd++'>we have a quad core solution to develop embedded platform application</segment> <segment id='910' features='semantic-density;sd--'>that we will see later what is the idea.</segment> 
+<segment id='911' features='semantic-density;sd-'>Okay connected to today's chip,</segment> 
+<segment id='912' features='semantic-density;sd++'>Broadcom provide also a DDR memory one gigabyte or even two gigabytes of DDR memory 
+to store the typical data and code</segment> <segment id='913' features='semantic-density;sd+'>for for your applications in the operating system solution or departmental solution.</segment> 
+<segment id='914' features='semantic-density;sd++'>We have a specific chip providing the USB ports and the FMF connection.</segment> 
+<segment id='915' features='semantic-density;sd++'>This is a different chip that is connected in the PCB of this electronic system.</segment> 
+<segment id='916' features='semantic-density;sd++'>In the Raspberry Pi version three, we have a Wi Fi element in the reading all the hardwired that you need to deploy and use the Wi Fi.</segment> 
+<segment id='917' features='semantic-density;sd-'>And of course, we have here different other peripherals that are very useful to develop applications.</segment> 
+<segment id='919' features='semantic-density;sd+'>Of course, we have this connection to connect your graphical output, 
+we have the option to connect a camera, 
+we have an audio output,</segment><segment id='918' features='semantic-density;sd++'> 
+we have a micro SD connector to insert the SD card that we will use to boot our operating system solution.</segment> 
+<segment id='920' features='semantic-density;sd++'>And finally, we have here a connector, a 40 pins connector in a deal format to connect different GPIO elements I squared C chips, SPI element serial line devices.</segment> 
+<segment id='921' features='semantic-density;sd-'>We will use that in our lab okay to connect peripherals and connect sensors to implement application, okay.</segment> 
+<segment id='922' features='semantic-density;sd-'>All these elements are available in this platform that I showed you before okay, this platform the Raspberry Pi three model b plus, okay.</segment> 
+<segment id='923' features='semantic-density;sd--'>Okay, please if you have questions, no problem, raise your hand and ask.</segment> I proceed. Okay. 
+<segment id='924' features='semantic-density;sd--'>So, what we have here?</segment> <segment id='925' features='semantic-density;sd--'>More information.</segment> <segment id='926' features='semantic-density;sd+'>This system on chip, okay.</segment> 
+<segment id='927' features='semantic-density;sd++'>So, with CPU, DSP and GPU and we have different models from Raspberry Pi one Raspberry Pi,</segment> 
+<segment id='928' features='semantic-density;sd--'>four different models from Broadcom, this American manufacturer USA manufacturer.</segment> 
+<segment id='1' features='semantic-density;sd+'>You have here the versions of the of the processor that we have in the different versions of the Raspberry Pi</segment>, 
+<segment id='2' features='semantic-density;sd++'>for our specific Raspberry Pi three, we have a quad core ARM solution, okay, 
+running on 1.2 gigahertz, okay with an ARM version eight cores, okay.</segment> 
+<segment id='3' features='semantic-density;sd+'>And additionally, we have this GPU is a graphical processing unit 
+that is able to run different libraries or binaries that are provided also by Broadcom to accelerate typical video applications.</segment> Okay. 
+<segment id='4' features='semantic-density;sd--'>And this is something that is provided by Broadcom.</segment> 
+<segment id='5' features='semantic-density;sd--'>This is not open source, okay?</segment> 
+<segment id='6' features='semantic-density;sd--'>But it's something that you can use in your application.</segment> 
+<segment id='7' features='semantic-density;sd+'>And as I told you before, the system on chip also includes a DSP that is undocumented unless that you contact with Broadcom.</segment> 
+<segment id='8' features='semantic-density;sd--'>In that case, if you pay before of course, you get the information to develop.</segment> 
+<segment id='9' features='semantic-density;sd++'>One important thing is that the memory the ROM memory, the DDR memory is physically installed in top of the of the chip, okay, on top of the processor 
+and for the Raspberry Pi three we have one gigabyte of RAM memory, okay one gigabyte of RAM memory, okay.</segment> 
+<segment id='10' features='semantic-density;sd++'>The DSI interfaces typically are working at 10 or 100 megabit per second okay is not able to work out one gigasample per second.</segment> 
+<segment id='11' features='semantic-density;sd+'>And the chip that is provided in the this Ethernet connectivity is also giving you the USB connectivity, okay.</segment> 
+<segment id='12' features='semantic-density;sd+'>So we have plenty of USB ports to connect keyboards, to connect the mouse or to connect other USB printers.</segment> 
+<segment id='13' features='semantic-density;sd+'>We need a simple power supply of five volts to boot the Raspberry Pi Okay.</segment>
+
+<segment id='14' features='semantic-density;sd-'>Be careful with this, because if you connect any specific USB or five volts and you are not providing enough current,</segment> 
+<segment id='15' features='semantic-density;sd-'>you will see in the bot a lot of messages messages, giving you feedback about the power supply is not stable, 
+you need to give, you need to provide a good power supplier of five volts or with at least two ampers or something like that, something similar, 
+to get a Raspberry Pi running at the maximum performance.</segment> 
+<segment id='16' features='semantic-density;sd-'>And additionally, we have different interfaces to connect a display, high resolution displays, 
+or to connect your typical monitor screens to display your high high resolution graphics, okay.</segment> 
+<segment id='17' features='semantic-density;sd--'>So it's a computer in a very simple and a smaller form factor, very cheap for the development of application.</segment> 
+<segment id='18' features='semantic-density;sd--'>More things that we have available, we have the option to use a very old interface to connect a video output.</segment> 
+<segment id='19' features='semantic-density;sd--'>Of course, we have here an audio connection,</segment> <segment id='20' features='semantic-density;sd-'>the use of an SD card that's crucial for us</segment> 
+<segment id='22' features='semantic-density;sd+'>because here we are going to provide the operating system and the programs to to develop our solutions</segment><segment id='21' features='semantic-density;sd++'> 
+and this connector this 40 pin connectors in a double row of 20 pins, 
+each one with serialized I squared C interface SBI interface.</segment> 
+<segment id='23' features='semantic-density;sd-'>So, here basically we are going to use these interfaces,</segment> <segment id='24' features='semantic-density;sd+'>the serial line and the I two C interface.</segment> 
+<segment id='25' features='semantic-density;sd+'>We are going to connect here the accelerometer and the color sensor 
+and we are going to connect here interface and USB to to the serial line interface</segment> <segment id='26' features='semantic-density;sd-'>to connect these to a computer 
+to see how the system is configured and to run programs and applications, 
+and other things that are available to connect order peripherals.</segment> 
+<segment id='27' features='semantic-density;sd+'>So, this is the Raspberry Pi with an identification of the different elements.</segment> 
+<segment id='28' features='semantic-density;sd+'>And this is the connection that we have in this connector in this 40 pin connector, okay.</segment> 
+<segment id='29' features='semantic-density;sd-'>And this is something that will be very familiar for you 
+because you will be connecting the different cables to interface the accelerometer and color sensor, okay.</segment> 
+<segment id='30' features='semantic-density;sd-'>So this is the hardware.</segment> 
+<segment id='31' features='semantic-density;sd+'>So here's my computer or if you want a very powerful microcontroller, if we want to call this microcontroller.</segment> 
+<segment id='32' features='semantic-density;sd+'>I don't like to call this microcontroller because we have four cores with a very complex solution.</segment> 
+<segment id='33' features='semantic-density;sd+'>But from the point of view of that we have there the peripherals we have the CPU, 
+in principle is a very powerful microcontroller, okay.</segment> 
+<segment id='34' features='semantic-density;sd--'>So, the point is, which are the steps that I need to follow to develop application here are 
+probably the first step is to decide which kind of developments we will we want to do.</segment> 
+<segment id='35' features='semantic-density;sd--'>Let me explain.</segment> 
+<segment id='37' features='semantic-density;sd+'>Typically 99% of applications are going to use an operating system,</segment> <segment id='36' features='semantic-density;sd++'>this operating system typically is Linux and embedded Linux solution, okay?</segment> 
+<segment id='38' features='semantic-density;sd+'>We have the option of use the Linus provided by the Raspberry Pi foundation,</segment> <segment id='39' features='semantic-density;sd-'>they call Raspbian is very well documented how to install this, okay.</segment> 
+<segment id='41' features='semantic-density;sd+'>You don't need a hard disc, you only need an SD card to install the operating system.</segment> 
+<segment id='42' features='semantic-density;sd+'>Typically eight gigabytes is enough.</segment> 
+<segment id='43' features='semantic-density;sd-'>I recommend you that you use a high speed SD card, okay, 
+because the performance of the system depends on the performance SD card.</segment> Okay. 
+<segment id='44' features='semantic-density;sd--'>And you have here all the tools that you need to develop applications.</segment>
+
+[10:00]
+
+ <segment id='45' features='semantic-density;sd--'>Okay, be careful with this.</segment> 
+<segment id='46' features='semantic-density;sd++'>Because this means that we can combine, link and debug programs in the Raspberry Pi.</segment> Okay. 
+<segment id='47' features='semantic-density;sd--'>This is not a standard way that we that we typically follow</segment> <segment id='48' features='semantic-density;sd+'>when we are doing application with microcontrollers 
+because we use a computer.</segment> 
+<segment id='49' features='semantic-density;sd+'>In one computer we have the compiler, we have the linker, we have the libraries.</segment> 
+<segment id='50' features='semantic-density;sd++'>We have the debug tools, 
+and what we typically do is to download the code 
+and more or less try to implement a remote debugging of that, okay?</segment>
+
+[15:00]
+
+<segment id='51' features='semantic-density;sd++'>But if we use the Raspberry Pi with the operating system with Raspbian 
+the Raspbian provide all the compilers, linkers, debuggers, the typical utilities okay.</segment> 
+<segment id='52' features='semantic-density;sd-'>So, you can develop your applications there and you can run the application there, okay.</segment> 
+<segment id='53' features='semantic-density;sd--'>And this is the thing that we are going to cover in the first block of the course in the unit one, okay?</segment> 
+<segment id='54' features='semantic-density;sd++'>We will develop a C application that is compiled in the Raspberry Pi and is debug in the Raspberry Pi okay.</segment> 
+<segment id='55' features='semantic-density;sd--'>This is not a professional approach, this is a more or less a getting started approach, okay, not the professional one, okay.</segment> 
+<segment id='56' features='semantic-density;sd++'>For example, trying to provide solutions for for IoT application, 
+Ubuntu is providing a specific version of Linux or Raspberry Pi for the development of IoT applications.</segment> 
+<segment id='57' features='semantic-density;sd+'>Okay, so, you having one SD card, all the tools to deploy IoT applications without the need of use of external computers, okay?</segment>  
+<segment id='58' features='semantic-density;sd--'>I repeat this will not be our approach because we will use another different approach that is more professional.</segment> 
+<segment id='59' features='semantic-density;sd--'>The other option, probably 100% of obligation is used bare metal.</segment> 
+<segment id='60' features='semantic-density;sd+'>So this means I forgot to use operating system</segment> <segment id='61' features='semantic-density;sd--'>I don't want to use a commercial solution or, or open source solution, 
+I prefer to develop my own my own, and no problem, I can program directly with information</segment> <segment id='62' features='semantic-density;sd+'>using a C compiler and that's all.</segment> 
+<segment id='63' features='semantic-density;sd--'>And you can imagine that this is not simple.</segment> 
+<segment id='65' features='semantic-density;sd--'>And I I think it's preferable to avoid this way of doing the things</segment> 
+<segment id='64' features='semantic-density;sd-'>because you are not reusing code and is quite difficult okay.</segment> 
+<segment id='66' features='semantic-density;sd--'>But if you have a look at different solutions using the internet, Google and these things, 
+you will see that is something that some people is trying to do.</segment> 
+<segment id='67' features='semantic-density;sd--'>Some more tools.</segment> 
+<segment id='68' features='semantic-density;sd++'>Independently if we are developing bare metal solutions or solutions using Linux, 
+we are going to use compilers, linkers on debuggers for ARM processors, okay.</segment> 
+<segment id='69' features='semantic-density;sd++'>And we are going mainly programming C and C++, you will see that there are a lot of people programming for the Raspberry Pi using Python.</segment> 
+<segment id='70' features='semantic-density;sd--'>But this is for more or less for academic solutions.</segment> 
+<segment id='71' features='semantic-density;sd--'>Or for very, very more or less simple solution not for professional applications.</segment> Okay. 
+<segment id='72' features='semantic-density;sd-'>So, this is a first approach of different options to program</segment> <segment id='73' features='semantic-density;sd+'>and to develop application using the Raspberry Pi.</segment> 
+<segment id='74' features='semantic-density;sd--'>Do you have questions?</segment> <segment id='75' features='semantic-density;sd--'>Are you understanding me?</segment> <segment id='77' features='semantic-density;sd--'>Yeah, sure.</segment> Okay. <segment id='76' features='semantic-density;sd--'>Think about this, okay.</segment> 
+<segment id='78' features='semantic-density;sd--'>Because I think that we will have time to discuss about this point later.</segment> 
+<segment id='79' features='semantic-density;sd--'>Okay, so the main of the course, the name of the course is</segment> <segment id='80' features='semantic-density;sd++'>development of embedded applications, embedded solutions using Raspberry Pi.</segment> 
+<segment id='81' features='semantic-density;sd+'>So now we know what what is a Raspberry Pi.</segment> 
+<segment id='82' features='semantic-density;sd+'>The other concept is, what is an embedded system?</segment> 
+<segment id='83' features='semantic-density;sd+'>Is anybody ready to explain me in one minute, what is an embedded system?</segment> 
+<segment id='84' features='semantic-density;sd+'>Or what's your opinion of what an embedded system is?</segment> 
+<segment id='85' features='semantic-density;sd--'>Or you have an idea of what's this?</segment> <segment id='86' features='semantic-density;sd--'>Try to speak loader, please.</segment> 
+
+<segment id='87' features='semantic-density;sd++'>STUDENT- So basically, the embedded systems are pieces of code, that are implemented in electronic stuff like, I don't know, TVs or refrigerators</segment>
+<segment id='88' features='semantic-density;sd+'>MARIANO- but only pieces of code?</segment>
+<segment id='89' features='semantic-density;sd-'>STUDENT- Not only, hardware</segment> <segment id='90' features='semantic-density;sd-'>XX
+MARIANO-  that's the point
+STUDENT- the scaling of the XX is smaller rather than the software that we use in our,
+MARIANO- Okay, good.</segment> <segment id='91' features='semantic-density;sd-'>And the other message is that it's a specific application.</segment> 
+<segment id='92' features='semantic-density;sd+'>So we are building a specific hardware solution, 
+with a specific software application solving on a specific problem, this is an embedded platform.</segment> 
+<segment id='93' features='semantic-density;sd--'>And this is something that typically we are not updating, we are not changing everyday.</segment> 
+<segment id='94' features='semantic-density;sd+'>An embedded solution typically is not going to reinstall the software remotely or these kinds of things.</segment> 
+
+[20:00]
+
+<segment id='95' features='semantic-density;sd--'>Okay, something that is doing a specific job that the designer has decided
+and of course, you can upgrade application and you can change the XX of course,</segment> 
+<segment id='96' features='semantic-density;sd-'>but this is something is not on mobile phones in the sense that we are changing everyday application 
+and changing everyday the different software solution that we have.</segment> 
+<segment id='97' features='semantic-density;sd+'>So, considering this an embedded system is something that is specialized in doing something special okay.</segment> 
+<segment id='98' features='semantic-density;sd+'>So, generally is a computing system, okay, with a specific software application 
+and</segment> <segment id='99' features='semantic-density;sd-'>these hardware is connected with an environment 
+because we are measuring different physical variables, temperature, humidity, 
+how our motor is doing things or how different sensors are giving me for measures.</segment> 
+<segment id='100' features='semantic-density;sd+'>An idea is that we are going to develop a software application that is running in this hardware.</segment> 
+<segment id='101' features='semantic-density;sd+'>Typically, this embedded system is part of of another more complex electronic system okay.</segment> 
+<segment id='102' features='semantic-density;sd--'>And typically, we are providing solutions that are given an answer in real time.</segment> 
+<segment id='103' features='semantic-density;sd--'>So, I need to generate an answer or a response to a specific event in a specific time.</segment> Okay. <segment id='104' features='semantic-density;sd--'>So, an specific time.</segment>  Okay. 
+<segment id='105' features='semantic-density;sd--'>And as I told you before, this is something that generally speaking is part of another complex system, okay.</segment> 
+<segment id='106' features='semantic-density;sd+'>So, for the point of view of example of applications, 
+a smartphone is an example of an embedded  system with this assumption that in our mobile phone, we are updating the software every day, okay, 
+and this is something that is not very normal in an embedded platform.</segment> 
+<segment id='107' features='semantic-density;sd+'>It's more of watches, printers, gaming consoles, wireless routers,
+ and in general, all the applications that we see we see today for IoT are in general embedded system oriented applications, okay.</segment> 
+<segment id='108' features='semantic-density;sd--'>So, at the end of the course, we are going to develop</segment> <segment id='109' features='semantic-density;sd++'>an embedded system using the Raspberry Pi 
+with my specific Linux distribution connecting different one accelerometer and one colour sensor sensor.</segment> 
+<segment id='110' features='semantic-density;sd-'>And we are going to transmit the information to another computer to make decisions.</segment> 
+<segment id='111' features='semantic-density;sd+'>So, okay, so, if we have a look to the hardware that we have in an embedded system,</segment> 
+<segment id='112' features='semantic-density;sd--'>this is something that probably is quite familiar for you, 
+because you have some experienc</segment>e <segment id='113' features='semantic-density;sd+'>using microprocessors, microcontrollers or even more powerful systems.</segment> 
+<segment id='114' features='semantic-density;sd+'>So we have a microprocessor, an element that is able to execute a bit of a piece of code writing in a specific language that is specified by the manufacturer.</segment> 
+<segment id='115' features='semantic-density;sd+'>We have a program memory and a data memory.</segment> 
+<segment id='116' features='semantic-density;sd-'>So this means that we we have two different memories to store the code and data.</segment> 
+<segment id='117' features='semantic-density;sd++'>And we have here different peripherals and interfaces to exchange information with other external devices 
+using digital input output using analogue input output, 
+using timers or using all the peripherals like SPI, I squared, C, etcetera.</segment> 
+<segment id='118' features='semantic-density;sd+'>Okay, generally, when you are developing things with microprocessors, the microprocessor is a single core processor.</segment> 
+<segment id='119' features='semantic-density;sd++'>Okay, the trend nowadays is that some microcontrollers, some manufacturers like STM is moving to dual core processors.</segment> 
+<segment id='120' features='semantic-density;sd-'>But in general, we work with a single processor.</segment> 
+<segment id='121' features='semantic-density;sd+'>We have different memory blocks, different peripherals.</segment> 
+<segment id='122' features='semantic-density;sd+'>And we use all of these things for the implementation of general purpose application, 
+measure analogue signals, interfaces, these digital elements, etcetera.</segment> 
+<segment id='123' features='semantic-density;sd+'>Typically we implement these using microcontrollers.</segment> <segment id='124' features='semantic-density;sd--'>That's a typical solution.</segment> 
+<segment id='125' features='semantic-density;sd+'>In our case, we are going to change this by a Raspberry Pi.</segment> Okay. 
+<segment id='126' features='semantic-density;sd+'>So in the Raspberry Pi, we will have an embedded solution to this one.</segment> Okay. 
+<segment id='128' features='semantic-density;sd--'>From the technical point of view, which are the options that we have nowadays</segment> <segment id='127' features='semantic-density'>to develop embedded solution okay?</segment>
+
+[25:00]
+
+<segment id='129' features='semantic-density;sd--'>So, please pay attention to this column first.</segment> Okay. 
+<segment id='130' features='semantic-density;sd--'>And here we have here different technologies to do things,</segment> <segment id='131' features='semantic-density;sd+'>to implement embedded systems 
+and we have here different variables to be considered: 
+cost of design, cost of productions, how to upgrade the hardware, the size, the weight, the power and the performance in general the performance of the system.</segment> 
+<segment id='132' features='semantic-density;sd--'>And we have different technologies.</segment> 
+<segment id='133' features='semantic-density;sd-'>This catalogic so, I developed a specific application using the old method method to develop things, using specific chips.</segment> Okay. 
+<segment id='134' features='semantic-density;sd--'>Of course, this is only interesting when we have a high budget and we are selling a lot of number of elements.</segment> 
+<segment id='135' features='semantic-density;sd++'>One of the typical solution in the market is the use of Field Programmable Gateaways and XX devices.</segment> 
+<segment id='136' features='semantic-density;sd+'>Mcroprocessor plus memory plus peripherals.</segment> 
+<segment id='137' features='semantic-density;sd--'>This probably the experience that you have.</segment>  
+<segment id='138' features='semantic-density;sd--'>The people that have studying in this school has experience with these solutions okay</segment> <segment id='139' features='semantic-density;sd++'>the use of FPGAs or PLDs of high density</segment> <segment id='140' features='semantic-density;sd++'>PLDs, okay
+microprocessor and memory plus peripherals, 
+okay installing a specific microcontroller 
+and finally, an embedded PC okay.</segment> 
+<segment id='141' features='semantic-density;sd+'>So, more or less the Raspberry Pi is moving in this segment, okay.</segment> 
+<segment id='142' features='semantic-density;sd--'>Okay, they are easy to upgrade, 
+because typically the theme that we are changing is the software of the application okay.</segment> 
+<segment id='143' features='semantic-density;sd--'>So, have a look at the content of of this slide later, 
+because again, this is a summary of the different technologies that we have.</segment> 
+<segment id='144' features='semantic-density;sd+'>Which are the benefit of develop an embedded systems solution?</segment> 
+<segment id='145' features='semantic-density;sd--'>The first one is that we have a good performance, a good efficiency.</segment> 
+<segment id='146' features='semantic-density;sd+'>This means that for instance in the case of Raspberry Pi, 
+if we use a specific embedded Linux solution</segment> 
+<segment id='147' features='semantic-density;sd+'>we will reduce the size of application 
+and we will improve the execution time of the operating system for instance okay.</segment> 
+<segment id='148' features='semantic-density;sd--'>So, in that in that sense is more powerful, 
+the performance is better that if we use more or less a classical solution</segment> 
+<segment id='149' features='semantic-density;sd+'>using a standard our operating system with a classical configuration, okay?</segment> 
+<segment id='150' features='semantic-density;sd--'>Another benefit?</segment> <segment id='151' features='semantic-density;sd--'>A lower cost.</segment> 
+<segment id='152' features='semantic-density;sd-'>We are using a more computer with a very specific and simple software solution 
+and in that sense, this is something that is reducing the manufacturing cost okay.</segment> 
+<segment id='153' features='semantic-density;sd--'>If we compare these with other more difficult solutions.</segment> 
+<segment id='154' features='semantic-density;sd-'>The option of have more more features in terms of adding more things to the system 
+is something that depends on the solution could be not possible okay.</segment> 
+<segment id='155' features='semantic-density;sd-'>But depends on the specific implementation that we have in the system.</segment> 
+<segment id='156' features='semantic-density;sd+'>In general, the Raspberry Pi does something that is easy to up 
+because we have different standard interfaces.</segment> 
+<segment id='160' features='semantic-density;sd-'>So, adding more functionalities to the system</segment> <segment id='161' features='semantic-density;sd--'>is something that is simple simple to do.</segment> 
+<segment id='159' features='semantic-density;sd-'>And better dependability.</segment> 
+<segment id='162' features='semantic-density;sd--'>So what means this?</segment> <segment id='163' features='semantic-density;sd--'>What means this sorry?</segment> 
+<segment id='164' features='semantic-density;sd-'>If we think in terms in terms of failure, 
+in the integrity of the system, 
+in an embedded system, 
+this is something that is very very wrong 
+in terms that we have generally hardware that is very well known 
+and the software in general is very simple, okay.</segment> 
+<segment id='165' features='semantic-density;sd++'>If you compare that for instance with a solution that is using a higher power system 
+or a computer system with a very complicated operating system 
+and a very complicated software applications, 
+then the debugging of the system to obtain a system that is stable and is free of failures is more difficult.</segment> 
+<segment id='166' features='semantic-density;sd+'>So in an embedded system is something that is you can repeat, 
+you can control and in general we can say that is something that is free, in general of failure,</segment> <segment id='167' features='semantic-density;sd-'>okay, 
+considering that the hardware and the software is correctly are correctly designed, okay.</segment> 
+<segment id='168' features='semantic-density;sd+'>Typical functions of an embedded systems that you can develop, for example, with a Raspberry Pi.</segment>
+
+[30:00]
+
+<segment id='169' features='semantic-density;sd+'>control systems, because it's quite easy to measure different physical variables 
+and depending on the values that you get, you can activate different actuator.</segment> 
+<segment id='171' features='semantic-density;sd--'>So, in that sense is quite easy</segment> <segment id='170' features='semantic-density;sd++'>to develop closed loop control systems.</segment> 
+<segment id='172' features='semantic-density;sd-'>Quite simple to develop applications that are generated under specific sequence of operation 
+because as we are programming, we can decide the condition of our system 
+depending on the different phases of our specific solution.</segment> 
+<segment id='173' features='semantic-density;sd++'>Signal processing, you can acquire your signals from your analogue element, 
+you can use these POWER processors that you have there to run a specific software algorithms, 
+even artificial intelligence algorithms, 
+so you can implement powerful signal processing applications.</segment> 
+<segment id='174' features='semantic-density;sd++'>And finally, communication and networking as soon as we have FML and wireless,</segment> 
+<segment id='175' features='semantic-density;sd+'>it's quite easy to get data from external sensors and send information to the to the cloud 
+or to other microcontrollers 
+or to other computers using the Wi Fi or Ethernet 
+or serial lines that we have available in the platform.</segment> 
+<segment id='176' features='semantic-density;sd-'>So, in that sense is an interesting approach for the development of applications.</segment> 
+<segment id='177' features='semantic-density;sd--'>Some constraints, of course, the cost.</segment> 
+<segment id='178' features='semantic-density;sd--'>This is approved generally is very competitive, of course, 
+in the case that we use more or less commercial platforms</segment>, l<segment id='179' features='semantic-density;sd+'>ike the Raspberry Pi,</segment> <segment id='180' features='semantic-density;sd--'>quite quite cheap to develop things.</segment> 
+<segment id='181' features='semantic-density;sd--'>So, the size and weight of course is very well controlled, 
+because we are talking about small problems.</segment> 
+<segment id='182' features='semantic-density;sd-'>So the weight is not is not a problem in general 
+depending on the application the power could be a problem, 
+but in general</segment>, <segment id='183' features='semantic-density;sd++'>this is a low power consumption hardware 
+this is not a desktop computer, this is not a laptop, this is on a small embedded system.</segment> 
+<segment id='184' features='semantic-density;sd-'>And if we play with with the use of sleep mode and reduction of the energy 
+we can extend the battery capacity a lot of time 
+and in principle,</segment> <segment id='185' features='semantic-density;sd-'>there is no problem with adapting our hardware to a normal environment</segment><segment id='186' features='semantic-density;sd--'>, 
+the typical environment of the industry working with the typical temperatures, okay.</segment>  
+<segment id='187' features='semantic-density;sd-'>Of course, depending on these constraints on your specific application</segment><segment id='188' features='semantic-density;sd--'>, 
+you have to balance what is the best solution that you have to follow.</segment> 
+<segment id='190' features='semantic-density;sd+'>You have microcontrollers,</segment> <segment id='191' features='semantic-density;sd--'>you know very well probably that solution.</segment> 
+<segment id='192' features='semantic-density;sd+'>You have programming this that those microcontrollers using C or C++, okay.</segment> 
+<segment id='193' features='semantic-density;sd+'>In general we use C and C++ because the compiler is providing us a very good solution.</segment> 
+<segment id='194' features='semantic-density;sd+'>In the past it was quite common to develop things in Java for a specific solution,</segment> 
+<segment id='195' features='semantic-density;sd++'>but the market now is in C C++ 
+around 90 99 95% of applications are developing C or C++ in C++ in the embedded market.</segment> 
+<segment id='196' features='semantic-density;sd-'>If you have performance issues, you can move to assembly 
+but this is something that is very very strange is not typical.</segment> 
+<segment id='197' features='semantic-density;sd++'>So, in the case of the solution body metal embedded system, 
+typically the parameter application is used for very low low power consumption solutions.</segment>  
+<segment id='198' features='semantic-density;sd--'>And it's the typical solution when you when you need to do something that is quite quite simple.</segment>
+<segment id='199' features='semantic-density;sd--'>As soon as you increase the complexity of the system,</segment> 
+<segment id='200' features='semantic-density;sd+'>you move to a use of the operating system and the market now has two different approaches: 
+the use of embedded system solutions</segment> <segment id='201' features='semantic-density;sd--'>is the approach that we are going to use here</segment> 
+<segment id='202' features='semantic-density;sd++'>or the use of a specific real time operating system 
+uses for instance for for the case of ARM, 
+the use of CNCS head-toes solutions using FDX 
+or using free or RDOS okay.</segment> 
+<segment id='203' features='semantic-density;sd+'>But we are going to work with this option: a customize link, an embedded link.</segment> 
+<segment id='204' features='semantic-density;sd+'>So, embedded software?</segment> <segment id='205' features='semantic-density;sd+'>What is embedded software?</segment> 
+<segment id='206' features='semantic-density;sd+'>It's a software that is running in an embedded platform a hardware platform.</segment> 
+<segment id='207' features='semantic-density;sd-'>In principle is a software that is oriented to 
+development to the development of a specific application to control a machine or device.</segment> 
+
+[35:00]
+
+<segment id='208' features='semantic-density;sd-'>Something that is not general purpose, 
+something very specialized with some limit memory requirements.</segment> 
+<segment id='209' features='semantic-density;sd-'>So, we are not consuming a big amount of memory,</segment> 
+<segment id='210' features='semantic-density;sd+'>sometimes this doesn't require an operating system 
+or sometimes depends on the application,</segment> <segment id='211' features='semantic-density;sd--'>subject to timing constraints 
+because we probably will need to meet some real time limits 
+or some or some real time goals, okay.</segment> 
+<segment id='212' features='semantic-density;sd--'>And in general something that is not requiring the use of a person in front of the system to make a decision 
+because the decisions are are made by the following XX with the help of this XX</segment> , okay. 
+<segment id='214' features='semantic-density;sd+'>What is the typical approach to develop these embedded software solutions?</segment> 
+<segment id='216' features='semantic-density;sd-'>We can start playing with the idea of developing a specific solution for my specific hardware okay, 
+but in that case, you need to have a very good knowledge of the hardware.</segment> 
+<segment id='217' features='semantic-density;sd-'>So, that's difficult and typically what we try to do is to apply any kind of any kind of abstraction 
+sorry to simplify the software development okay.</segment> 
+<segment id='218' features='semantic-density;sd+'>So, in general, we are going to use the hardware trying to avoid the low level details,</segment> <segment id='219' features='semantic-density;sd--'>okay, 
+you will see this very, very, in a very straightforward way</segment> 
+<segment id='220' features='semantic-density;sd++'>when we start using the I2C interface in Linux</segment>, 
+<segment id='221' features='semantic-density;sd--'>because you will see that this is a very good way</segment> <segment id='222' features='semantic-density;sd+'>to use the interface with the hardware</segment> 
+<segment id='223' features='semantic-density;sd--'>with a very good level of abstraction Okay, avoiding the use of problems.</segment> 
+<segment id='224' features='semantic-density;sd-'>The responsiveness of the system, okay something that we can control 
+because we don't have very huge number of software layers.</segment> 
+<segment id='225' features='semantic-density;sd+'>So, as soon as we are moving our application very close to the hardware, 
+the triggers can be detected immediately 
+and we can respond in a very agile way reducing the latency of the system.</segment> 
+<segment id='226' features='semantic-density;sd+'>We can manage the concurrency that this is something that is difficult to implement in a microcontroller 
+unless that you have an operating system.</segment> 
+<segment id='227' features='semantic-density;sd+'>So, in Linux,</segment> <segment id='228' features='semantic-density;sd--'>this is something that is very simple, very simple,</segment> 
+<segment id='229' features='semantic-density;sd+'>because as we have the operating system, we can launch different threads in parallel.</segment> 
+<segment id='230' features='semantic-density;sd-'>And we can manage different different physical events that are more or less simultaneous</segment> 
+<segment id='231' features='semantic-density;sd+'>using this ability of the operating system.</segment> 
+<segment id='232' features='semantic-density;sd+'>The reliability that's a problem because if we have issues with the gold or with the hardware, 
+we can generate catastrophic problems to the installation.</segment> 
+<segment id='233' features='semantic-density;sd+'>So, the reliability is a problem.</segment> 
+<segment id='234' features='semantic-density;sd+'>But again as we are reducing the software layers 
+and we are using a very well known hardware</segment>, 
+<segment id='236' features='semantic-density;sd-'>we are simplifying their estimation of these values 
+and we are reducing the probability of failure 
+and with that, we are improving the reliability of the system.</segment> 
+<segment id='235' features='semantic-density;sd-'>And the efficiency.</segment> 
+<segment id='237' features='semantic-density;sd-'>Of course, if we are using an SD card instead of a hard disc,</segment> 
+<segment id='238' features='semantic-density;sd++'>if we are using this powerful processor that we have in the RBI 
+where we are managing the different power modes,</segment> 
+<segment id='239' features='semantic-density;sd-'>we are reducing the consumption of energy 
+and of course we are improving the efficiency of the system okay, difficult to see now.</segment> 
+<segment id='240' features='semantic-density;sd--'>This is something that you typically you have to discuss</segment> 
+<segment id='241' features='semantic-density;sd-'>when you are developing a specific application.</segment>
+Okay. <segment id='242' features='semantic-density;sd-'>So we have the hardware, we have the software we have tools to develop applications.</segment> 
+<segment id='243' features='semantic-density;sd++'>Typically a C compiler, linker and a debugger.</segment> 
+<segment id='244' features='semantic-density;sd+'>The debugger must be connected to the hardware, okay, a
+nd the question here in this course is: 
+okay, how we are going to debug applications here with a Raspberry Pi?</segment> 
+<segment id='245' features='semantic-density;sd+'>The interfaces that typically we have in our embedded platform with a microcontroller 
+are specific hardware interfaces provided by the manufacturer.</segment> 
+<segment id='246' features='semantic-density;sd+'>For instance, some of you have experience using the SD microcontrollers 
+and the recently specific interface to interface the debug solution okay.</segment> 
+<segment id='248' features='semantic-density;sd++'>But in the case of the Raspberry Pi, we are going to use the Ethernet interface 
+and the serial line interface to provide the debugging, okay.</segment> 
+
+[40:00]
+
+<segment id='249' features='semantic-density;sd-'>So, the strategy to develop and develop solutions 
+will be a little bit different</segment> <segment id='250' features='semantic-density;sd+'>of the solution use in microcontrollers.</segment>
+<segment id='251' features='semantic-density;sd--'>Okay, we will talk about this in the future, okay.</segment> 
+<segment id='252' features='semantic-density;sd--'>So, if you mix all this information and you shake your brain, okay.</segment> 
+<segment id='253' features='semantic-density;sd--'>Now, what I want to do is an exercise of make some decisions 
+about what are the tools that we are going to use here, okay.</segment> 
+<segment id='254' features='semantic-density;sd++'>So, now, we have a Raspberry Pi with an ARM multi core platform integrated in the Broadcom chip, 
+we have an I2C interface that we will use to connect two sensors, 
+we are going to develop an NVIDIA Linux operating systems bared solutions to run our applications.</segment> 
+<segment id='255' features='semantic-density;sd+'>So, with that, we are going to build more or less than a standard embedded platform 
+with a standard embedded software solution that is the embedded Linux.</segment> 
+<segment id='256' features='semantic-density;sd++'>Okay, a customized Linux for my application and in top of that, 
+we will develop application in C or C++ okay using the GNU tools, compiler, linker and the GDB debugger 
+we will use Ethernet as an integral line to develop the applications okay.</segment> 
+<segment id='257' features='semantic-density;sd++'>And finally, we will be doing developments using Eclipse 
+to compile our applications leave the application and debug remotely in the Raspberry Pi 
+that will be our approach, okay.</segment> 
+<segment id='258' features='semantic-density;sd--'>Completely different of the things that you are studying</segment> <segment id='259' features='semantic-density;sd+'>micro processors or micro processor system base</segment> 
+<segment id='260' features='semantic-density;sd+'>that you are using a very specific hardware with a very specific tool provided by the manufacturer 
+that is allowing you to debug a very simple solution.</segment> 
+<segment id='261' features='semantic-density;sd++'>Here the advantage is that we have the Linux kernel 
+and with that I have TCP IP communications using cable or wireless interfaces, 
+I have access to SPI, I2C and other serial lines and typical protocols okay.</segment> 
+<segment id='262' features='semantic-density;sd-'>So, for me is quite straightforward to develop applications</segment> <segment id='263' features='semantic-density;sd--'>in this point 
+and this is something that the manufacturers are doing in the market okay</segment>, 
+<segment id='264' features='semantic-density;sd+'>use the Linux installed in a specific hardware platform to develop application.</segment> 
+<segment id='265' features='semantic-density;sd--'>Are you understanding  me please?</segment>
+<segment id='266' features='semantic-density;sd--'>STUDENT-  yes 
+MARIANO- yes?</segment> <segment id='267' features='semantic-density;sd--'>Questions?</segment> <segment id='268' features='semantic-density;sd--'>And this is one approach okay.</segment> 
+<segment id='269' features='semantic-density;sd--'>Probably if we discuss in one week, you can do it, you will find different approaches to do it okay.</segment> 
+<segment id='270' features='semantic-density;sd--'>But this is one approach that by the way is very common in the industry.</segment> <segment id='271' features='semantic-density;sd--'>Okay?</segment> 
+<segment id='272' features='semantic-density;sd--'>No questions? No?</segment> <segment id='273' features='semantic-density;sd--'>No questions? Okay.</segment> 
+<segment id='274' features='semantic-density;sd--'>So market trends.</segment> <segment id='275' features='semantic-density;sd--'>So, what means these?</segment> 
+<segment id='276' features='semantic-density;sd--'>So, what is the themes now the manufacturers are doing now, okay.</segment> 
+<segment id='277' features='semantic-density;sd--'>I want to show you this monster okay.</segment> <segment id='278' features='semantic-density;sd--'>This is a monster of the technology.</segment> 
+<segment id='279' features='semantic-density;sd++'>It this is what ceilings called called calls the AC AP pick up solutions.</segment> 
+<segment id='280' features='semantic-density;sd--' comment='About terminology used'>And this monster if you allow me the use of this terminology,</segment> <segment id='281' features='semantic-density;sd++'>this complex platform has: 
+here you can see that a dual cord Cortex A processor, okay.</segment> 
+<segment id='282' features='semantic-density;sd-'>Or something similar to the processor that you have in a in a mobile phone.</segment> 
+<segment id='283' features='semantic-density;sd++'>Okay, a Cortex air is a specific real time processor is not a Cortex M, 
+you have follow the microprocessor course here at UPM you know and a Cortex M platform, 
+this is a Cortex air solution oriented to real time application.</segment> 
+<segment id='284' features='semantic-density;sd++'>Here we have a very complex logic, XX logic, equivalent to a very powerful API.</segment> Okay. 
+<segment id='285' features='semantic-density;sd+'>Here we have a specific hardware to run silence codes, the artificial intelligence engines okay.</segment> 
+<segment id='286' features='semantic-density;sd++'>Subfield devoted to implement algorithms to run neural network.</segment> 
+<segment id='287' features='semantic-density;sd--'>Okay, that is quite common today.</segment> <segment id='292' features='semantic-density;sd++'>And this is typically they are integrating 60, 64</segment> 
+
+[45:00]
+
+<segment id='289' features='semantic-density;sd--'>Depends on the on the model of the chip that you that you buy.</segment> 
+<segment id='290' features='semantic-density;sd--'>And this kind of this kind of engine.</segment> 
+<segment id='291' features='semantic-density;sd+'>And additionally, a specific DSP engines 
+that are more oriented to signal processing to audio application and video application.</segment> 
+<segment id='293' features='semantic-density;sd+'>Okay, so, artificial intelligence cores, audio and video processing engines, programmable hardware 
+to deploy your specific applications.</segment> 
+<segment id='294' features='semantic-density;sd+'>The typical application to run an embedded Linux platform on an Android solution, 
+but typically an embedded platform here.</segment> 
+<segment id='295' features='semantic-density;sd++'>A Cortex solution running and CNCs.</segment> 
+<segment id='296' features='semantic-density;sd+'>So another kind of embedded system solution more oriented to real time real real time applications.</segment>
+<segment id='297' features='semantic-density;sd--'>And all these elements are connected to something</segment> <segment id='298' features='semantic-density;sd+'>that they call network on chip.</segment> 
+<segment id='299' features='semantic-density;sd+'>Okay, so the network is on, in this case, in the chip inside the chip.</segment> 
+<segment id='300' features='semantic-density;sd-'>Okay, so when you programme all these elements, 
+and you move the information from one site to another site, 
+and you implement very complex solutions.</segment> Okay. 
+<segment id='301' features='semantic-density;sd-'>And here, in the bottom part of this video, 
+you have the different interfaces and the different memory elements.</segment> 
+<segment id='302' features='semantic-density;sd++'>And you can see here that the technology is moving to 40 gigabyte Ethernet connections, 
+100 gigabyte Ethernet connection, 
+400 gigabyte Ethernet connections,</segment> 
+<segment id='303' features='semantic-density;sd--'>this is quite expensive, by the way.</segment> 
+<segment id='304' features='semantic-density;sd--'>Okay, we're talking about 1000 euros per component.</segment> 
+<segment id='305' features='semantic-density;sd--'>So if you want you can buy one of these, okay?</segment> 
+<segment id='307' features='semantic-density;sd--'>Quite expensive, but these are top of the technology, 
+but I want to call your attention that this is very complex,</segment><segment id='306' features='semantic-density;sd+'> 
+by by the solution provided by the manufacturer is running here, in the embedded Linux.</segment> 
+<segment id='308' features='semantic-density;sd+'>Okay, because the embedded Linux is the element that is controlling all the application.</segment> 
+<segment id='309' features='semantic-density;sd--'>Okay, more or less, the heart of the system.</segment> Okay. 
+<segment id='310' features='semantic-density;sd--'>So it's a very, very interesting platform for the future, 
+because this is something that is available in the market.</segment> 
+<segment id='311' features='semantic-density;sd--'>I think that since the middle of 2020.</segment> 
+<segment id='312' features='semantic-density;sd-'>Okay, so it's a very new, very new platform.</segment> 
+<segment id='313' features='semantic-density;sd--'>Something something equivalent from the other manufacturer of these kinds of technologies Intel is providing 
+it's not as complex as the other solution</segment>, 
+<segment id='315' features='semantic-density;sd++'>because they are only integrating the BGA part, 
+and the processor part and some high speed technologies interfaces.</segment> 
+<segment id='316' features='semantic-density;sd--'>But in the end is the same idea.</segment> 
+<segment id='317' features='semantic-density;sd++'>We have a multi core ARM processor, running an embedded solution.</segment> 
+<segment id='318' features='semantic-density;sd-'>And if you want to play with this hardware to develop application,</segment> 
+<segment id='319' features='semantic-density;sd+'>the first thing that you need to know is how to develop an embedded Linux platform.</segment> 
+<segment id='320' features='semantic-density;sd--'>You'll see the instruction there and you'll see what's this?</segment> 
+<segment id='314' features='semantic-density;sd--'>And you see that.</segment> 
+<segment id='321' features='semantic-density;sd--'>And what's the way to program the application here?</segment> 
+<segment id='322' features='semantic-density;sd++'>To use C and C++ using Eclipse, 
+and you develop your applications 
+and you download your applications to that 
+to these embedded Linux solution that is right there, okay.</segment> 
+<segment id='323' features='semantic-density;sd--'>And this is something that in the market is quite interesting, it's a very hot topic.</segment> 
+<segment id='324' features='semantic-density;sd--'>And if you have a look to the company that are trying to hire people, you will see that 
+this is something that is a topic that the companies are very, very interested in 
+new engineers managing this technology.</segment> 
+Okay. <segment id='325' features='semantic-density;sd--'>Okay, So, with this in mind, and after this brainstorming of ideas, 
+I would like that you think in the following questions, okay.</segment> 
+<segment id='326' features='semantic-density;sd--'>And try to search for an answer of these questions that I would like to discuss with you next week.</segment> 
+<segment id='327' features='semantic-density;sd--'>Okay, so, the idea is a have a look, search for the information 
+using the internet using Google or other tools that you consider interesting, 
+and have a look to find details additional details 
+and discuss about what means this, okay.</segment> 
+<segment id='328' features='semantic-density;sd+'>So, the Raspberry Pi three, what is the architecture that we have there?</segment> 
+
+[50:00]
+
+<segment id='329' features='semantic-density;sd++'>Okay, there's an ARM processor 
+but have a look to that, 
+if this is a 32 bit or 64 bit core, what means bar meta programming?</segment> 
+<segment id='330' features='semantic-density;sd+'>And in this sense, what software tools are required to implement this bare metal programming?</segment> 
+<segment id='331' features='semantic-density;sd--'>Have a look to this and you will and you will find, you will see very, very freaky solutions.</segment> 
+<segment id='332' features='semantic-density;sd--'>What are the advantages 
+and this is the important point 
+what are the advantages and disadvantages</segment> <segment id='333' features='semantic-density;sd+'>of using bare metal programming versus operating system programming?</segment> 
+<segment id='334' features='semantic-density;sd--'>This is something that I I that we want that you think about it 
+because is the origin of this course, okay.</segment> 
+<segment id='336' features='semantic-density;sd+'>So, we are not using the embedded Linux solution by itself,</segment> <segment id='337' features='semantic-density;sd--'>we are using this 
+because we consider that this is something very flexible 
+</segment><segment id='338' features='semantic-density;sd+'>to develop solutions in the not only in the electronic market, 
+but also in general embedded platform solutions, okay.</segment> 
+<segment id='339' features='semantic-density;sd--'>So, think about it and give us your opinion about this.</segment>  
+<segment id='342' features='semantic-density;sd++'>More questions, what are typical what are the typical compiler and leaker that you using a Linux operating system?</segment> 
+<segment id='341' features='semantic-density;sd+'>What are the tools used to compile and link a program?</segment> 
+<segment id='343' features='semantic-density;sd+'>Options, but you have to do this: 
+review the concept of compiler and link</segment> 
+<segment id='344' features='semantic-density;sd--'>because probably if I asked you about this I will find some misunderstandings about this, okay?</segment> 
+<segment id='345' features='semantic-density;sd--'>And it's something that you are going to use a lot during this course.</segment> 
+<segment id='346' features='semantic-density;sd+' comment='Meaning of word'>What means compile?</segment> 
+<segment id='347' features='semantic-density;sd+' comment='Meaning of word'>What means link?</segment> 
+<segment id='348' features='semantic-density;sd+'>And this different compiler and this differently link.</segment> 
+<segment id='349' features='semantic-density;sd-' comment='Meaning of word'>What is a library?</segment> 
+<segment id='350' features='semantic-density;sd+'>Have you ever used before a library to programme something?</segment> Yes? No? 
+<segment id='351' features='semantic-density;sd+'>In that case in that case which are the extensions that these domes libraries have?</segment> Okay? 
+<segment id='352' features='semantic-density;sd+'>What is the purpose of the Linus make command?</segment> 
+<segment id='353' features='semantic-density;sd--'>This will be something magic that we are we are going to use along the course, okay?</segment> 
+<segment id='354' features='semantic-density;sd+'>How to use to use the main tools to compile to link and to deploy applications?</segment> 
+<segment id='355' features='semantic-density;sd+'>And in that sense, a make is using a make file, what is a make file?</segment> 
+<segment id='356' features='semantic-density;sd--'>And what is the purpose of that?</segment> 
+<segment id='357' features='semantic-density;sd+'>You know all of these concepts are very familiar for you 
+because you have been developing applications for microcontrollers.</segment> 
+<segment id='358' features='semantic-density;sd-'>So, the idea is to more or less to put the information in parallel 
+and we are working with a different solution okay.</segment> 
+<segment id='359' features='semantic-density;sd++'>What means user space and kernel space in Linux?</segment> 
+<segment id='360' features='semantic-density;sd--'>Of course, this is new for you.</segment> 
+<segment id='361' features='semantic-density;sd+'>Because kernels means develop things inside the operating system 
+and user space means to develop application in a user level.</segment> 
+<segment id='362' features='semantic-density;sd--'>Okay, have a look to that.</segment> 
+<segment id='371' features='semantic-density;sd+'>What is a GPU?</segment> 
+<segment id='364' features='semantic-density;sd+'>I mentioned before the graphic processor unit.</segment> 
+<segment id='365' features='semantic-density;sd--'>You know that this is very common today 
+because I don't know if anybody of you</segment> <segment id='366' features='semantic-density;sd+'>is developing mining applications to earn money with bitcoins probably yes.</segment> 
+<segment id='367' features='semantic-density;sd--'>But this is something that is very common.</segment> 
+<segment id='368' features='semantic-density;sd++'>So is this a training technology that you find system on chip with GPUs 
+implementing neural network solutions for graphic algorithms 
+and in general is a compute unit okay.</segment> 
+<segment id='369' features='semantic-density;sd+'>In that sense, what are the main advantages of using GPU?</segment> 
+<segment id='372' features='semantic-density;sd--'>Advantages and of course disadvantages.</segment> 
+<segment id='373' features='semantic-density;sd+'>What is the typical programming method to develop application with GPUs?</segment> 
+<segment id='374' features='semantic-density;sd--'>Okay, so think about this because you will have to submit the questions to Moodle.</segment> 
+<segment id='375' features='semantic-density;sd--'>Okay, and we'll open up a chat with a very simple opinion from you about this.</segment> 
+Okay. <segment id='376' features='semantic-density;sd--'>And work that you need to follow after this.</segment> 
+<segment id='377' features='semantic-density;sd-'>In Moodle, you have a document that is called Getting started with a Raspberry Pi document.</segment> 
+<segment id='378' features='semantic-density;sd-'>It's a wonderful , it's a PDF document, sorry.</segment> 
+<segment id='379' features='semantic-density;sd--'>Read and study the content.</segment> 
+<segment id='380' features='semantic-density;sd+'>Download and install Raspbian on your Raspberry Pi,</segment> 
+<segment id='381' features='semantic-density;sd--'>later we are going to give you the material, okay?</segment> 
+<segment id='382' features='semantic-density;sd+'>The only material additional material that you need is an SD card.</segment> 
+<segment id='383' features='semantic-density;sd+'>So you need to download the Raspbian operating system from the internet.</segment> 
+<segment id='384' features='semantic-density;sd+'>Okay, put the image on the SD card and boot the Raspberry Pi.</segment> 
+
+[55:00]
+
+<segment id='385' features='semantic-density;sd--'>Okay, please check the information that will be available on the Moodle site 
+about the work that we are going to complete during the next week.</segment> 
+<segment id='386' features='semantic-density;sd--'>It's a very simple program, 
+but I need that more or less you understand all the steps that we are going to follow.</segment>
+<segment id='387' features='semantic-density;sd--'>Do you have questions?</segment> No? <segment id='388' features='semantic-density;sd--'>Sure, no questions?</segment> <segment id='389' features='semantic-density;sd--'>Everything is clear?</segment> Yes? 
+<segment id='390' features='semantic-density;sd--'>You are not telling the truth [LAUGHS].</segment> <segment id='391' features='semantic-density;sd--'>For sure.</segment> <segment id='392' features='semantic-density;sd--'>No questions?</segment> 
+<segment id='393' features='semantic-density;sd-'>Remember, you need to buy an SD card.</segment> 
+<segment id='394' features='semantic-density;sd+'>Okay, and my recommendation is that at least buy a couple of SD cards 
+because we are going to use one for the Raspbian and the other one for the Raspberry Pi.</segment> 
+<segment id='395' features='semantic-density;sd++'>Sorry for the embedded Linus for the Raspberry Pi.</segment> 
+<segment id='398' features='semantic-density;sd--'>And sometime probably you will need to check that your hardware is working well,</segment><segment id='397' features='semantic-density;sd++'> 
+and one of the option is to use the Raspbian to boot and verify that your Raspberry Pi's working one.</segment> Okay. 
+<segment id='399' features='semantic-density;sd--'>This is a recommendation, if you don't want, no problem, okay?</segment> 
+<segment id='400' features='semantic-density;sd+'>For the embedded Linus solution, if you have an old SD card is enough.</segment> 
+<segment id='401' features='semantic-density;sd+'>So if you recycle one of the old SD cards of 52 megabytes or 64 megabytes that nowadays are useless for a mobile phone.</segment> 
+<segment id='402' features='semantic-density;sd+'>That's a great solution for the embedded platform.</segment> 
+<segment id='403' features='semantic-density;sd+'>But for the Raspbian, no, I prefer that you use, of course it's much bigger SD card 
+and you need at least eight gigabytes.</segment> 
+<segment id='404' features='semantic-density;sd+'>And if you use our high speed SD card is fantastic 
+because you will see that the Raspberry Pi is running very very well.</segment> 
+<segment id='405' features='semantic-density;sd--'>Okay and the performance is very, very good.</segment> 
+<segment id='406' features='semantic-density;sd-'>Okay, so we have 10 minutes of break and we will do the last presentation today about today</segment> <segment id='411' features='semantic-density;sd+'>about the use of githubs,</segment> <segment id='412' features='semantic-density;sd--'>okay, 
+and later we will give you the material okay.</segment> <segment id='407' features='semantic-density;sd--'>So thank you!</segment>
+
+[58:00]
+
+<segment id='408' features='semantic-density;sd--'>2nd Session
+Okay, so must fortunately last presentation today, okay, 
+and sorry for this amount of information, 
+but is the first day we have to start talking about different topics 
+and it's the first day, 
+so we have to come to use all the time available.</segment> Okay. 
+<segment id='409' features='semantic-density;sd--'>So the idea is that during the course, okay</segment>, <segment id='410' features='semantic-density;sd+'>I encourage you to use the git, okay?</segment> 
+<segment id='413' features='semantic-density;sd--'>The reason is simple.</segment> 
+<segment id='414' features='semantic-density;sd-'>Traditionally, you most part of our students typically develop applications, 
+doing different kinds of programming techniques.</segment> 
+<segment id='415' features='semantic-density;sd-'>And people just do a copy on a copy and a copy and a compressed file compressed file 
+and it's is impossible to track the evolution of the code, okay, 
+and it's impossible to solve problems, 
+as soon as you are developing a complex application, okay?</segment> 
+<segment id='416' features='semantic-density;sd-'>So the idea is, is that you try to use an external tool to</segment>, 
+<segment id='417' features='semantic-density;sd+'>to have your code control it, in this case, git, okay.</segment> 
+<segment id='418' features='semantic-density;sd--'>And this will be very useful for two reasons.</segment> 
+<segment id='419' features='semantic-density;sd-'>First for you, because as soon as you are doing changes, 
+if you if these changes are, say are safe in your system, you can check the evolution of your code.</segment> 
+<segment id='40' features='semantic-density;sd--'>But it's very useful for me to verify the different steps that you are doing.</segment> 
+<segment id='189' features='semantic-density;sd--'>And if you report a problem, 
+I can find a solution in a more simple way</segment> <segment id='157' features='semantic-density;sd-'>that you deliver me a folder with a lot of code, okay?</segment> 
+<segment id='213' features='semantic-density;sd--'>Probably some of you don't have experience using this.</segment> 
+<segment id='215' features='semantic-density;sd--'>So the idea to today is to do a short presentation of this 
+with the aim of use this during the course, the step by step 
+and I hope that at the end of the course,</segment> 
+<segment id='247' features='semantic-density;sd-'>you we will be able to do a simple management of this only for control your code.</segment> Okay. 
+
+[60:00]
+
+<segment id='288' features='semantic-density;sd-'>How many of you have experience using git? two?</segment> Okay. <segment id='335' features='semantic-density;sd--'>So, 20% more or less.</segment> Perfect. Okay. 
+<segment id='340' features='semantic-density;sd-'>So, what's, what's a git?</segment> 
+<segment id='363' features='semantic-density;sd+'>This is a version control system.</segment> 
+<segment id='370' features='semantic-density;sd-'>So, the idea basically is to control source code 
+and to control the evolution, the changes that we have in the code, 
+okay, this is one of the objectives.</segment> 
+<segment id='396' features='semantic-density;sd-'>The other objective is that this allows to work in parallel in the implementation of XX.</segment> 
+<segment id='420' features='semantic-density;sd--'>So, this means that if we are working in a couple and we are developing a project together,</segment> 
+<segment id='421' features='semantic-density;sd-'>we can modify the source code of our applications 
+and we can integrate the application in a very simple way.</segment> 
+<segment id='422' features='semantic-density;sd-'>That's the idea, avoiding conflicts and avoiding problems, and easy, 
+this is why these collaborative tools are very frequent today 
+in the programming or in general in software, developing techniques.</segment> Okay. 
+<segment id='423' features='semantic-density;sd-'>Typically, typically is a scale that is required by companies independently 
+if you are working in software project or in hardware projects, okay?</segment> 
+<segment id='424' features='semantic-density;sd--'>So, it is something that is today's mandatory, okay.</segment> 
+<segment id='425' features='semantic-density;sd--'>So, what is the idea?</segment> 
+<segment id='426' features='semantic-density;sd-'>The idea is that we can register the evolution of of the source code in general generally, 
+we are working with code that is written in text files, 
+so, we can verify the syntax and the evolution of the code, okay.</segment> 
+<segment id='427' features='semantic-density;sd-'>We can work with different evolutions or different version of this code.</segment> Okay. 
+<segment id='428' features='semantic-density;sd-'>The idea is that we can develop my basic application 
+and as soon as I'm progressing in the development of application, 
+I can generate different releases of my software for my clients or for my other users, etc.</segment> Okay. 
+<segment id='429' features='semantic-density;sd--'>We will see that in detail in the next lecture, in the next week.</segment> 
+<segment id='430' features='semantic-density;sd--'>Tools available.</segment> 
+<segment id='431' features='semantic-density;sd--'>Forget this one because it's very old,</segment> 
+<segment id='432' features='semantic-density;sd+'>typically in the industry people is working now with SVM</segment>.
+<segment id='433' features='semantic-density;sd-'>It's a very old tool but is currently in use in some labs and some companies 
+but most of people is working with git.</segment> Okay. 
+<segment id='434' features='semantic-density;sd++'>For instance, when we start using build route, 
+we will see that Build Route basically is connecting to different GitHub Git labs 
+or in general git repositories</segment> 
+<segment id='435' features='semantic-density;sd-'>And it's downloading copies of that code to a local repository.</segment> Okay? 
+<segment id='436' features='semantic-density;sd-'>It's essentially the same that that you do 
+when you go to a website and you download code locally, okay.</segment> 
+<segment id='437' features='semantic-density;sd--'>This is the tool, that we have to send as a reference for the course.</segment> 
+<segment id='438' features='semantic-density;sd--'>Who are who was the developer of these tools?</segment> 
+<segment id='439' features='semantic-density;sd--'>This crazy guy Torvalds Linus, I probably you know him, okay.</segment> 
+<segment id='440' features='semantic-density;sd--'>Very famous, it's a poor guy, okay, with no money with no resources, 
+but he's the head of the development of all the work related with the Linux XX, okay?</segment> 
+<segment id='441' features='semantic-density;sd-'>Of course, git is open source, and it's available for a lot of platform Windows, Linux, etc Okay.</segment> 
+<segment id='442' features='semantic-density;sd-'>So, in your computer in the Windows the station that you have here you have in this lab, 
+you have the Git client is installed on that Windows okay?</segment> 
+<segment id='443' features='semantic-density;sd+'>I mean the Linux virtual machine, Ubuntu Linux virtual machine 
+that you will be using in the following weeks, 
+the Git will be installed there, okay, you have to install it, okay.</segment> 
+<segment id='444' features='semantic-density;sd-'>So, you can develop application in different languages.</segment> 
+<segment id='445' features='semantic-density;sd+'>So, we are we are going to work with C or C++ for our development</segment> 
+<segment id='446' features='semantic-density;sd--'>and you can have multiple people working in the project developing specific parts of the project 
+and you can in any moment, check a version of the status of the project, 
+compiling the complete project and verify if the project is working or not.</segment> Okay. 
+<segment id='447' features='semantic-density;sd--'>We will see later.</segment> 
+<segment id='448' features='semantic-density;sd-'>Where the repositories will be located?</segment> 
+
+[65:00]
+
+<segment id='449' features='semantic-density;sd+'>We will use typically we have three options, Bitbucket, GitLab, GitHub, and others.</segment> 
+<segment id='450' features='semantic-density;sd+'>Probably some of you are using GitHub or GitLab or even GitHub, BitBucket.</segment> 
+<segment id='451' features='semantic-density;sd+'>I propose you the use of Bitbucket, okay, the free version of Bitbucket is an option,</segment> 
+<segment id='452' features='semantic-density;sd--'>don't worry if you use another one, 
+but the idea is that you create a repository here 
+and you share the repository with my colleague Miguel Ángel and myself, okay.</segment> 
+<segment id='453' features='semantic-density;sd--'>And in that way we can check the evolution of your project.</segment>
+<segment id='454' features='semantic-density;sd-'>Again select what tool you prefer to implement the solution.</segment> Okay. 
+<segment id='455' features='semantic-density;sd--'>Okay, concepts.</segment> 
+<segment id='456' features='semantic-density;sd-' comment='&quot;That we call&quot;'>We sometimes we have something that we call repository, okay.</segment> 
+<segment id='457' features='semantic-density;sd-'>But this is something that is located somewhere, okay, typically, in the cloud, 
+containing the different files of your project.</segment> 
+<segment id='458' features='semantic-density;sd+'>And typically, what we are going to store there are is generally the source code, not the binary, okay, 
+but source code and all the additional files that you need to build your application.</segment> 
+<segment id='459' features='semantic-density;sd+'>Okay, and the instructions to install, to compile, to link and to deploy your application.</segment> 
+<segment id='461' features='semantic-density;sd--'>That's the idea. Okay.</segment> 
+<segment id='460' features='semantic-density;sd-'>We will have the options to check or to verify the different versions that we have a one file, okay, 
+and you will see how to track the evolution of your code.</segment> Okay. 
+<segment id='462' features='semantic-density;sd-'>And typically, depending on the complexity of the project, 
+you can have multiple repositories for your project.</segment> 
+<segment id='463' features='semantic-density;sd+'>Important, we will have something that we call their remote repository.</segment> 
+<segment id='464' features='semantic-density;sd+'>That is something that will be allocated in GitHub, GitLab, Bitbucket or whatever you want.</segment> 
+<segment id='465' features='semantic-density;sd+'>Again, I propose Bitbucket connect to Bitbucket, 
+register an account and create your first repository there.</segment> 
+<segment id='466' features='semantic-density;sd+'>Additionally, apart from this remote repository, you will have a local repository 
+that will be a local copy or something that is typically in the cloud.</segment> 
+<segment id='467' features='semantic-density;sd+'>You will you will download a copy of the remote repository something that we call clone.</segment> 
+<segment id='468' features='semantic-density;sd-' comment='language'>Clone is copy.</segment> <segment id='469' features='semantic-density;sd--'>Make a copy of something.</segment> 
+<segment id='470' features='semantic-density;sd-'>You we'll be working with this local repository making changes to the code.</segment>
+<segment id='471' features='semantic-density;sd-'>Changes by changing the code, 
+I compile the code in the code I verify that things are working correctly.</segment> 
+<segment id='472' features='semantic-density;sd--'>And once I'm happy with the result of something</segment>, 
+<segment id='473' features='semantic-density;sd-'>I can create something that we call commit.</segment> 
+<segment id='474' features='semantic-density;sd++'>For instance, I'm communicating with accelerometer sensor 
+and I've been able to communicate with the sensor and identify the sensor.</segment> 
+<segment id='475' features='semantic-density;sd-'>And I built a very simple program with four functions.</segment> 
+<segment id='476' features='semantic-density;sd++'>I can make a commit a commit to my local repository saying something that</segment>: 
+<segment id='477' features='semantic-density;sd-'>this is my first example communicating with the sensor, for instance, okay?</segment> 
+<segment id='479' features='semantic-density;sd-'>Okay, once I'm happy with something that I've completed, locally, in my computer, 
+I have the options to push or to publish that to the global repository or to the remote repository, okay, 
+and make these available in the remote repository.</segment> 
+<segment id='480' features='semantic-density;sd+'>That is something that we call push, okay.</segment> 
+<segment id='481' features='semantic-density;sd+'>Imagine that two of you are working in the same project, 
+you can have your own local repository 
+and you are implementing the communication with the accelerometer.</segment> 
+<segment id='482' features='semantic-density;sd+'>And your colleague is developing the communication with a color sensor.</segment> 
+<segment id='484' features='semantic-density;sd+'>If you do the things correctly, you will do a clone to have a local copy, 
+you will implement the color sensor, one of you, 
+the other one, the accelerometer, 
+when some of you make the commit will be saving the changes of the part.</segment> 
+<segment id='486' features='semantic-density;sd+'>And when the other is developing the color sensor will save the changes of that other part.</segment> Okay. 
+
+[70:00]
+
+<segment id='487' features='semantic-density;sd-'>And finally, both developers can have the same code of the application working and tested.</segment> 
+<segment id='488' features='semantic-density;sd--'>Both of them know very well the evolution of the project.</segment> 
+<segment id='489' features='semantic-density;sd++'>Okay, so here we have clone and commit, clone to download the project locally, 
+commit to put the changes locally, 
+push to publish the change in the repository.</segment> Okay. 
+<segment id='490' features='semantic-density;sd--'>And here automatically arise one question.</segment> 
+<segment id='491' features='semantic-density;sd+'>Okay, what happened if I try to upload my color sensor version of the code 
+and my colleague has previously uploaded their changes about the accelerometer.</segment> 
+<segment id='492' features='semantic-density;sd--'>Don't worry, because the tool is going to complain about</segment> 
+<segment id='497' features='semantic-density;sd+'>you're trying to push a copy of something</segment> <segment id='498' features='semantic-density;sd--'>that you don't have the latest version, okay?</segment> 
+<segment id='493' features='semantic-density;sd--'>Both of you are trying to do the same thing okay.</segment> 
+<segment id='494' features='semantic-density;sd--'>Of course, you cannot do both things simultaneously.</segment> 
+<segment id='495' features='semantic-density;sd--'>So, the first one gaining the repository will do a push 
+and automatically the other colleague</segment> <segment id='499' features='semantic-density;sd+' comment='push / pul SD+'>when he tries to do the push</segment> <segment id='500' features='semantic-density;sd--'>your will see a mail message, 
+that be careful you don't have the latest copy.</segment> 
+<segment id='501' features='semantic-density;sd+'>So please pull to obtain the last version.</segment> 
+<segment id='502' features='semantic-density;sd-'>This last version will be more or less merge together 
+and after that you will upload the version 
+with your specific changes about the color section for example, okay?</segment> 
+<segment id='503' features='semantic-density;sd--'>So, more or less this is the basic idea.</segment> 
+<segment id='504' features='semantic-density;sd--'>I'm explaining this like a very simple thing okay 
+but this is something that we will see how to how to do it okay in the future okay.</segment> 
+<segment id='505' features='semantic-density;sd-'>So, the first use that you are going to to have of this git tool is a personal use okay.</segment> 
+<segment id='506' features='semantic-density;sd--'>So, in principle you are not going to have conflict or problem 
+but as soon as we progress in the course, you, a couple will in will be working in parallel in the same problem okay.</segment> 
+<segment id='507' features='semantic-density;sd--'>So you will need to be very careful with that step 
+and we will see how to solve solve the typical situation.</segment> 
+<segment id='508' features='semantic-density;sd--'>Are you understanding me?</segment> <segment id='509' features='semantic-density;sd--'>Yep. Okay.</segment> 
+<segment id='510' features='semantic-density;sd--'>This is I think this is a good slide to represent the different steps that we have here.</segment> Okay. 
+<segment id='511' features='semantic-density;sd-'>So we are working with something that this is located in the remote, okay, place.</segment> Okay. 
+<segment id='512' features='semantic-density;sd--'>And typically, we are doing something that is okay.</segment> 
+<segment id='513' features='semantic-density;sd+'>I want to get a local copy doing doing the clone,
+and after that we can add local themes.</segment> 
+<segment id='514' features='semantic-density;sd++'>Okay, as soon as we implement the hit commit, or we execute the git commit, 
+this information is stored stored in our local repository, 
+making the push, we we will, we are doing that available in the remote repository.</segment> 
+<segment id='515' features='semantic-density;sd+'>Okay, if you want to have the latest version of the report, 
+you need to implement the git pull.</segment> 
+<segment id='516' features='semantic-density;sd+'>And as soon as the system detects any kind of issue or problem, 
+because you are modifying the same file, 
+or there are any kind of conflict, 
+we will work with something that we will discuss next week 
+about the concept of Git merge 
+and the checkout more additional functionalities that are available in this in the store.</segment> 
+<segment id='517' features='semantic-density;sd--'>Okay, so today is something related only to conference.</segment> 
+<segment id='518' features='semantic-density;sd+'>My proposal, please use GitHub, sorry, Bitbucket create there a repository, 
+create first create an account to log into the account, 
+create your first repository</segment>, 
+<segment id='519' features='semantic-density;sd--'>and please add Miguel Ángel and myself, if you want, of course, 
+to share these with with us to see what is your evolution or their progress with the things.</segment> 
+<segment id='520' features='semantic-density;sd++'>Okay, so what is the first step to install so in the in the Windows computer, 
+you have already installed the git client for for the ubuntu operating system, 
+you need to execute this, 
+so you have the virtual machine available for you.</segment> 
+<segment id='521' features='semantic-density;sd+'>And the virtual machine in this moment does doesn't have the, the the git installed.</segment> 
+
+[75:00]
+
+<segment id='522' features='semantic-density;sd+'>So if you want to install the git, you only, you only need to execute that command.</segment> 
+<segment id='523' features='semantic-density;sd++'>This is something that means you have super user rights APD installed git tools.</segment> 
+<segment id='524' features='semantic-density;sd+'>Okay, with that you install the commander, 
+there are some graphical versions of the tools.</segment> 
+<segment id='525' features='semantic-density;sd-'>But in our first stage, I don't recommend the use of the graphical tools 
+until you have a basic knowledge of the things that you are doing.</segment> 
+<segment id='527' features='semantic-density;sd-'>Okay, so forgot to use these graphical versions, I prefer that you use the code, okay.</segment> 
+<segment id='528' features='semantic-density;sd++'>And for example, if you want to clone a repository is something simple, 
+because you open a terminal and you execute git clone.</segment> 
+<segment id='529' features='semantic-density;sd+'>And then address of the repository, typically, 
+you'll need a log in and a password unless the repository is public.</segment>
+ <segment id='530' features='semantic-density;sd+'>And you can download the local copy to your computer.</segment> Okay. 
+<segment id='531' features='semantic-density;sd-'>So with that, the steps are very simple, we create an empty folder.</segment> 
+<segment id='532' features='semantic-density;sd+'>We implement or we execute the git clone, the repository already exists.</segment> 
+<segment id='533' features='semantic-density;sd+'>And using the command git add, I'm adding files to the local file to this to the repository.</segment> 
+<segment id='534' features='semantic-density;sd++'>With git commit, I boot, I boot the data changes in the local repository.</segment> 
+<segment id='535' features='semantic-density;sd++'>And finally, executing git push we are publishing or making available, the changes to the remote repository.</segment> <segment id='536' features='semantic-density;sd--'>Great. 
+So more or less, four, five commands, to do the basic or to implement the basic steps.</segment> 
+<segment id='537' features='semantic-density;sd--'>Okay, so my proposal very simple proposal to start playing with this, 
+my recommendation is start playing with it.</segment> 
+<segment id='538' features='semantic-density;sd-'>Create Your Account when when you prefer the the place that you you want, 
+create your first repository, 
+put some environment variables that are mandatory, 
+invite Miguel Ángel and myself to use these.</segment> 
+<segment id='539' features='semantic-density;sd-'>Start playing with these basic commands,</segment> 
+<segment id='540' features='semantic-density;sd--'>with stupid files only with simple test to see the evolution of the things that you are doing.</segment> 
+<segment id='541' features='semantic-density;sd+'>And play with Git add, git commit, git push, git pull and all these command to start understanding the idea.</segment> Okay. 
+<segment id='542' features='semantic-density;sd--'>And have a look to this.</segment> 
+<segment id='543' features='semantic-density;sd--'>Only as something that is very introductory and something to start playing with.</segment> Okay? 
+<segment id='544' features='semantic-density;sd--'>Don't worry about that.</segment> 
+<segment id='545' features='semantic-density;sd--'>Play with this and next week we can discuss about the concepts again.</segment> 
+<segment id='546' features='semantic-density;sd--'>Okay, because this is new, 
+and probably the first time that you play with this 
+is a little bit confusing or difficult to understand.</segment> Okay. 
+<segment id='547' features='semantic-density;sd--'>So I think we are on time.</segment> <segment id='548' features='semantic-density;sd--'>So, we have, we have finished the presentations.</segment> 
+<segment id='549' features='semantic-density;sd--'>Do you have any big question, big problem or theme to discuss?</segment> No? <segment id='550' features='semantic-density;sd--'>Everything is clear?</segment> 
+
+[79:00]
+
+<segment id='551' features='semantic-density;sd--'>Okay, so
+Session 3
+One second.</segment> <segment id='552' features='semantic-density;sd--'>So what's the purpose of this?</segment> 
+<segment id='553' features='semantic-density;sd-'>Okay this is a USB Wi Fi that will be used 
+when you are working working here in the lab or at home</segment> 
+<segment id='554' features='semantic-density;sd+'>and you have a virtual machine running Ubuntu, okay.</segment> 
+<segment id='555' features='semantic-density;sd-'>The idea is to connect to a Wi Fi using this.</segment> 
+<segment id='556' features='semantic-density;sd-'>Okay, so here in the lab we will have a specific Wi Fi access point with no connection to internet, 
+because the only that we are going to do is here 
+</segment><segment id='557' features='semantic-density;sd+'>we are going to install here like a network sensor.</segment> 
+<segment id='558' features='semantic-density;sd+'>Okay, sensor network, no more than that, but no connection to the Internet.</segment> 
+<segment id='560' features='semantic-density;sd++'>The idea is that with this Wi Fi connection, 
+you can there you have the option to connect to the Raspberry Pi, okay, 
+of course, using the Wi Fi network provided by this Wi Fi router.</segment> 
+<segment id='561' features='semantic-density;sd-'>But again, with no access to internet.</segment> 
+<segment id='562' features='semantic-density;sd++'>In the Windows computer, the same computer that is running the Ubuntu virtual machine 
+you have there the Ethernet connection 
+and this Ethernet connection, of course, has access to the external world, okay?</segment> 
+<segment id='563' features='semantic-density;sd--'>And you can download things and follow all the things that you want to do okay.</segment> 
+
+[80:00]
+
+<segment id='564' features='semantic-density;sd-'>So, take a picture of these, and take these into account 
+and in a Moodle site you have different pictures 
+with the suggested configurations that should be used at home okay.</segment> 
+<segment id='565' features='semantic-density;sd++'>But be careful with this 
+because as soon as you connect to this Wi Fi that has no access to internet 
+you cannot download software to the virtual machine, 
+you cannot connect to any external place okay, 
+you can only communicate with a Raspberry Pi.</segment> Okay. 
+<segment id='566' features='semantic-density;sd--'>So, what is the purpose of this cable?</segment> 
+<segment id='567' features='semantic-density;sd++'>This is a USB to serial line interface.</segment> <segment id='568' features='semantic-density;sd--'>So, it's this.</segment> 
+<segment id='569' features='semantic-density;sd--'>And what's the purpose?</segment> 
+<segment id='570' features='semantic-density;sd+'>The first time that you connect the Raspberry Pi to the Wi Fi probably, you'll fail.</segment> Why? 
+<segment id='571' features='semantic-density;sd++'>Because you have an incorrect identification SSID</segment> 
+<segment id='572' features='semantic-density;sd-'>or the password is wrong or whatever problem you have.</segment> Okay? 
+<segment id='573' features='semantic-density;sd++'>So, using this interface using a serial line, 
+you can connect to the Raspberry Pi using a terminal 
+typically you put the program and you can verify that this Linux is working properly.</segment> 
+<segment id='574' features='semantic-density;sd-'>I made the phrases correctly configured.</segment> 
+<segment id='575' features='semantic-density;sd+'>Okay, so that's the purpose of this cable, okay: 
+to connect the USB in my personal computer or in the lab computer to the Raspberry Pi okay?</segment> 
+<segment id='576' features='semantic-density;sd-'>This is the power supply.</segment> 
+<segment id='577' features='semantic-density;sd-'>Please use always this power supply.</segment> 
+<segment id='578' features='semantic-density;sd++'>I don't want to see the Raspberry Pi connected to your power adapter used to charge your mobile phone 
+or connect the Raspberry Pi to the USB block available in the computer 
+because you will have problems with the hardware okay 
+and you can damage the hardware 
+so please use always this power supply.</segment> Okay? Okay. 
+<segment id='579' features='semantic-density;sd+'>You have here the accelerometer in two weeks you will have the color sensor.</segment> 
+<segment id='580' features='semantic-density;sd+'>Okay, and you have the Raspberry Pi with a XX.</segment> Okay. <segment id='581' features='semantic-density;sd--'>That's all. Questions?</segment> 
+<segment id='582' features='semantic-density;sd-'>Next week: homeworks install the Raspbian, 
+ask about the questions that I raised before about this collection of questions with answers.</segment> 
+<segment id='583' features='semantic-density;sd-'>Okay, I will open a task in Moodle you will have to submit before next class, okay?</segment> 
+<segment id='584' features='semantic-density;sd+'>And please, I encourage you to have a look at the ideas of how to manage git, okay, 
+to interact with the use of Github or BitBucket 
+or the tool that you prefer to develop our first XX</segment> 
+one additional thing: will always use the same place you are now sit on okay? Why? Why?
+<segment id='585' features='semantic-density;sd-'>We have the virtual machines 
+and we don't want that you turn on the virtual machines in all the computers 
+because in that case we will be running out of space, okay, 
+and I don't want to have problems with that.</segment> Okay? 
+<segment id='586' features='semantic-density;sd+'>In Moodle you have the virtual machine available to be downloaded, 
+so if you connect to the Moodle site, 
+you can download the virtual machine 
+and you can play at home with a virtual machine.</segment> 
+<segment id='587' features='semantic-density;sd-'>Okay, this is actually the same file that you have locally, okay, 
+but please use always the same position, okay?</segment> 
+<segment id='588' features='semantic-density;sd--'>And one option is that as you have to generate couples to work together probably, 
+you can follow this organization 
+but if you want to organize the themes think about it at the beginning of the next class 
+we can reorganize the couple okay?</segment> 
+<segment id='589' features='semantic-density;sd--'>Everything is clear?</segment> Okay. <segment id='590' features='semantic-density;sd--'>Okay thank you very much!</segment> 
+
+[83:00]
+
+<segment id='591' features='semantic-density;sd-'>See you
+Session 4
+This is a tool to help us to develop</segment>
+<segment id='592' features='semantic-density;sd+'>Or control the development of our software application</segment>
+<segment id='593' features='semantic-density;sd--'>OK it's a very interesting tool</segment>
+<segment id='594' features='semantic-density;sd-'>To track the evolution of the code 
+and the other day we were doing we were explaining 
+different simple things about the basic commands 
+about the basic functionalities that we have to manage</segment> 
+<segment id='595' features='semantic-density;sd--'>The basic functions of git OK
+So the idea today is to start giving
+Additional information thinking on a collaborative use of this
+OK what's the goal of this
+In principle you are going to work in couples</segment>
+<segment id='596' features='semantic-density;sd--'>And the idea is that you are going to develop a project</segment>
+<segment id='597' features='semantic-density;sd--'>In couples</segment> <segment id='598' features='semantic-density;sd--'>OK
+So the idea is that in principle you're going to work together</segment>
+<segment id='599' features='semantic-density;sd+'>On the same project
+and you are going to add remove
+And make different changes in the code
+Using git okay?</segment>
+<segment id='600' features='semantic-density;sd-'>So that's the idea of this
+I think it's very interesting to Start learning this now
+Because probably at least the students of this school have not experienced using this 
+and it's very complicated if not impossible to control the evolution of the code 
+with folders and versions of the same file 
+it's impossible to maintain and impossible to control 
+it's impossible to fix errors and to give you some feedback</segment> <segment id='601' features='semantic-density;sd+'>OK 
+so the proposal is all of your projects should be managed using git OK 
+for me it's not an issue if you if you want to use instead of Bitbucket GitHub 
+or whatever git in the cloud that you want to use no problem with that 
+the only point is that if you want to share with Miguel Angel and myself the project 
+in order to track the evolution of your code OK?</segment> 
+
+[85:00]
+
+<segment id='602' features='semantic-density;sd--'>OK so what are the things that we know until now?</segment> 
+<segment id='603' features='semantic-density;sd-'>In principle the other day we were talking about how to initialize our repository</segment> <segment id='604' features='semantic-density;sd+'>OK 
+how to download a copy of that repository
+thing that we didn't define as the clone operation 
+how to do local changes in my files 
+and once that I consider that that code is ready for something</segment> 
+<segment id='605' features='semantic-density;sd++'>I'm doing local saves or local copies of that code 
+and I perform commit to my local repository 
+and after that I send my local copy of the repository out to the GitHub GitLab or Bitbucket 
+or the application that you want to use using push OK?</segment> 
+<segment id='606' features='semantic-density;sd++'>So basically we create a new report 
+or are we copy a report that is available somewhere 
+and do a copy of that 
+I change the source code locally 
+and as soon as I want to save that change locally 
+I use the git commit command 
+once that I've already completed that command 
+I publish the changes in the cloud version or the remote repository using push OK?</segment> 
+<segment id='607' features='semantic-density;sd++'>and if we want to have the last version of the code
+that's available in the remote repository we used the pull command okay?</segment>
+<segment id='608' features='semantic-density;sd--'>So let me show you this in a very simple way okay?</segment>
+<segment id='609' features='semantic-density;sd++'>OK I'm going to log in on Bitbucket
+So I have here this report this report I created this morning 
+it's a very simple report for doing the test OK and it's available in Bitbucket 
+the first operation that I'm going to perform is to execute a clone of the report</segment>
+<segment id='610' features='semantic-density;sd++'>Si I go here, and in clone I get a command that is I
+Let me one second to create here a folder RPi
+I'm going to open here a console 
+and I'm going to execute the command git clone okay</segment>
+<segment id='611' features='semantic-density;sd+'>With that I am accessing my report 
+and I am performing a local copy of the remote repository okay?</segment>
+<segment id='612' features='semantic-density;sd-'>So now I have here a folder with the code with different files okay?</segment> 
+<segment id='613' features='semantic-density;sd-'>In principle with one file sorry I use an editor OK 
+I can see the content of the file</segment> <segment id='615' features='semantic-density;sd-'>OK 
+it's a very very simple file</segment> <segment id='616' features='semantic-density;sd--'>OK 
+So what happens if I perform here some modification?</segment> 
+<segment id='617' features='semantic-density;sd-'>we are going to do a very very simple modification 
+for instance creating a new file 
+and we are going to assign a value 
+I'm going to save the changes</segment> <segment id='618' features='semantic-density;sd++'>OK 
+and if I execute git status sorry git status 
+you can see here that there is a file that is already modified OK 
+so we are going to do execute the at command 
+that means that aren't changes to the local repository 
+the file is added if I check again the status the file is already saved in the local stage
+or or the local stash copy of the repository okay?</segment> 
+
+[90:00]
+
+<segment id='619' features='semantic-density;sd++'>Once I decide that this file is ready to be shared with my colleague 
+is ready to do something with it 
+I'm going to execute a commit command 
+and in a message try to put always a meaningful (tag) 
+we are going to add that file to my local repository 
+and once we have that what we are going to do 
+is to execute a push of that file in the remote repository okay?</segment> 
+<segment id='620' features='semantic-density;sd+'>So now if I navigate directly to the report and I update the report</segment> 
+<segment id='621' features='semantic-density;sd+'>I will see here in the left part the commit 
+and I have here the last changes that we have done in our file okay?</segment> 
+<segment id='622' features='semantic-density;sd+'>And additionally you can track the changes that have been doing this morning 
+which I did the initial commit and modification and some things that I've been doing okay?</segment>
+<segment id='623' features='semantic-density;sd-'>So if you use this the advantage you will have is that you can track the evolution of your code</segment> <segment id='624' features='semantic-density;sd+'>OK 
+So, the basics
+From the report create local changes add local changes
+Perform a commit of these changes to the local repository with a message push 
+to publish that content in the remote repository okay?</segment>
+<segment id='625' features='semantic-density;sd-'>So what happens if my colleague is working with a report 
+and wants to have a copy of the last version of the report?</segment>
+<segment id='626' features='semantic-density;sd+'>In that case we have the command pull</segment> <segment id='627' features='semantic-density;sd+'>OK 
+to bring to my computer a remote copy to the local repository okay?</segment>
+<segment id='628' features='semantic-density;sd-'>So this means that if you are working together on the same project 
+you need to be in phase to avoid problems 
+as we will see later how to solve OK 
+this is the basic things that we are going to use 
+so my expectation our expectation in the first part of the course 
+or at least you manage these commands 
+and then to keep a copy of your project and to follow to track the project okay?</segment>
+<segment id='629' features='semantic-density;sd-'>And with this we can avoid the typical things that 
+he was working yesterday today he's not working 
+I don't know why I have the things in this other folder 
+this kind of things should be avoided using this strategy of using git OK?</segment> 
+<segment id='630' features='semantic-density;sd+'>And this is the basic view but of course this is yeah this is the getting started of git 
+but git has more has additional functionalities that are very very interesting 
+and the first one is the concept of a branch 
+what means that that means that when we are developing software in one specific point 
+I can say to my colleague please implement this specific functionality 
+read this register from the accelerometer</segment> <segment id='631' features='semantic-density;sd+'>OK 
+my colleague instead of working with the main or the principal or the master branch of the code 
+is going to create another branch 
+a branch is really like a copy that is a pointer to the last version of the code 
+and we are going to assign a specific name to that branch 
+for instance typically devel feature 
+and a name whatever you can imagine 
+but something with some something that is important for you 
+don't put a useless name 
+because it's quite difficult to track the thing okay?</segment> 
+<segment id='632' features='semantic-density;sd+'>So this means that if you create a branch  
+you switch to that branch 
+and you perform the modifications in that branch 
+once that you check that that part of the code is working 
+your colleague can bring that changes to their branch OK?</segment> 
+
+[95:00]
+
+<segment id='633' features='semantic-density;sd-' comment='merge'>And this is something that we typically call merge 
+merge is like we are mixing the things okay?</segment> 
+<segment id='634' features='semantic-density;sd-'>In principle if you are developing one thing and your colleague is developing another thing 
+when you perform the merge typically there are no problems or issues 
+and the point here is that two developers are doing the same thing 
+in that case we have the typical thing that we call conflicts</segment> <segment id='635' features='semantic-density;sd--'>OK 
+this is the thing that you should avoid 
+so the idea is that at the end of the course 
+when you are developing the main project of the course.</segment>
+<segment id='636' features='semantic-density;sd+'>You use this idea of branches to more or less organise the development of the code
+Are you understanding me yeah?</segment> 
+<segment id='637' features='semantic-density;sd--'>OK can you hear me there at the end yeah?</segment>
+<segment id='639' features='semantic-density;sd-' comment='metaphor'>What is a branch?</segment> 
+<segment id='640' features='semantic-density;sd+'>So a branch is a line of development 
+it's quite easy to create a branch 
+if we move to the Bitbucket we can go to this place branch 
+and we can create here a branch 
+you see for instance taking as input the main branch 
+I can create a branch that we call devel</segment> <segment id='641' features='semantic-density;sd+'>OK 
+and at this point we have two branches of the code 
+as soon as we move to the local repo 
+and we execute the command git fetch 
+which means something to search for changes in the remote repo 
+this is going to discover that there is a new branch that is called devel okay?</segment> 
+<segment id='642' features='semantic-density;sd+'>And we can change to that branch you see in the command 
+you check out and the name of the branch OK 
+and if I execute this here always git status 
+we can see always here in this part the name of the branch where we are okay?</segment> 
+<segment id='643' features='semantic-density;sd-'>So now if we perform here modifications in the file okay 
+and my colleague is adding a new function okay?</segment> 
+<segment id='644' features='semantic-density;sd+'>I can save that to the local stash 
+I can create a commit with a new function OK 
+and I can push this to the remote repository to the branch devel okay?</segment> 
+<segment id='645' features='semantic-density;sd+'>So now if we move to here to my remote repo 
+here we are in the main sorry
+if we have a look at the content of the file</segment> 
+<segment id='646' features='semantic-density;sd+'>I don't have here the changes 
+because the changes are in the branch that we have called colleague devel, okay?</segment> 
+<segment id='647' features='semantic-density;sd-'>and it's quite simple to manage okay
+if you do the things in an intelligent way okay 
+that is a branch OK 
+what are the typical names of the branches?</segment> 
+<segment id='648' features='semantic-density;sd-' comment='use of language'>Typically &quot;main&quot; so master was the old definition 
+but with these new times 
+that we are avoiding words that can be or can offend to other guys or other people 
+master is never used any more and we are using main OK?</segment>
+<segment id='649' features='semantic-density;sd+'>devel typically is where we are developing things
+and main is always like the release version of the code 
+the final product that we are going to have OK 
+so with this organization you can create an intelligent evolution of the code 
+ways to create branches and to change from one branch to another 
+using the command git check out 
+with that you change the branch that you are using</segment> 
+
+[100:00]
+
+<segment id='650' features='semantic-density;sd+'>OK 
+and with git status git status you can verify in which branch you are 
+for instance here executing git status 
+we can see that we are in the master branch OK 
+that's the old definition now it's the main branch 
+that means that here we have a new file 
+and the file that we have deleted okay?</segment> 
+<segment id='651' features='semantic-density;sd+'>and files that are in traffic?</segment>
+<segment id='652' features='semantic-density;sd+'>these are files that are not controlled by Github.</segment> 
+<segment id='653' features='semantic-density;sd+'>what is the mechanism to use git branches?</segment> 
+<segment id='654' features='semantic-density;sd+'>So the procedure is we change from a specific branch with the command check out OK 
+we put the last changes of that branch with pull 
+we are doing a copy of the remote repo so a local repo OK 
+with that we are discovering the last changes</segment> <segment id='655' features='semantic-density;sd-'>OK 
+and we are doing that changes locally okay?</segment> 
+<segment id='656' features='semantic-density;sd+'>And finally if we want to move some specific content of one branch to another 
+so this means we want to move the changes that we have in the devel branch 
+to the master branch or to the main branch 
+what we execute is this command git merge okay?</segment> 
+<segment id='657' features='semantic-density;sd+'>And when you are merging the problem could be that you have conflicts</segment> <segment id='659' features='semantic-density;sd-'>OK 
+because two developers are modifying the same function 
+or even two developers are changing the same line of code 
+that is something that you should avoid okay?</segment> 
+<segment id='660' features='semantic-density;sd--'>In the next slide we have you have a description of the problem</segment> <segment id='661' features='semantic-density;sd+'>OK 
+please have a look to that and basically what happens is the following 
+when you execute the merge if everything is correct 
+because there is no conflict 
+you will see something like this you are mixing the code no problem 
+what happens if there is an error?</segment> 
+<segment id='663' features='semantic-density;sd-'>If it's impossible to merge?</segment> 
+<segment id='664' features='semantic-density;sd-'>In that case you see a message saying you that there are conflicts 
+and you need to solve that conflict OK 
+so that means that you have to compare files 
+and select which is the appropriate code which you want finally maintain</segment> <segment id='665' features='semantic-density;sd+'>OK 
+imagine that he defines the variable A and you define the variable B 
+you put that in the same line of code 
+and the problem is you have to decide if you want variable A or variable B 
+it's as simple as that 
+typical tools to resolve conflicts 
+I recommend that when you are working in Linux you use Mel 
+Mel is a very interesting tool to compare source files</segment> <segment id='666' features='semantic-density;sd+'>OK 
+you can see on the screen the source files 
+and you can compare line by line the content of the file 
+and you can move things from one file to another</segment> 
+<segment id='667' features='semantic-density;sd--'>On the contrary</segment> <segment id='668' features='semantic-density;sd+'>OK it's quite useful and in GitHub 
+if you have the mel installed you can invoke mel using this merge tool 
+when you do that typically you see something like this a graphical tool</segment> <segment id='669' features='semantic-density;sd-'>with the different files 
+in order to select what is the final code that you want to have 
+and you can move things from one file to another okay?</segment> 
+<segment id='670' features='semantic-density;sd+'>This is the file in a specific branch that is going to be merged 
+this is the resulting file 
+this is the current content that we have in the local repository 
+and moving things we can select finally in this file what is the final content</segment> <segment id='672' features='semantic-density;sd-'>OK 
+the real thing for you is that when you are doing this 
+unless that you are doing the same modifications 
+we never have conflicts again unless that you are changing the same things okay?</segment> 
+<segment id='674' features='semantic-density;sd-'>Please have a look to the slides to understand this correctly 
+I recommend you this address OK 
+to download these graphical representations of the meaning of the different commands</segment> 
+<segment id='675' features='semantic-density;sd+'>that we are using in GitHub sorry in git to manage the use of the repos</segment> 
+
+[105:00]
+
+<segment id='676' features='semantic-density;sd--'>OK 
+it is interesting to understand graphically the things that you are doing.</segment> 
+<segment id='677' features='semantic-density;sd+'>How to discover remote changes is something 
+that I have already executed on my computer with git merge 
+how to merge</segment> <segment id='678' features='semantic-density;sd-'>have a look to that OK 
+and the first time that you have an issue tell me 
+and I will help you to understand how to solve the conflicts 
+and these kind of things, okay?</segment>
+<segment id='680' features='semantic-density;sd-'>Useful things please use commit with meaningful messages</segment> 
+<segment id='679' features='semantic-density;sd--'>don't put version one version two version three that has no sense 
+this is a version that is reading the registers and is working or is not working 
+and it is not working because there is this problem 
+something that is meaningful for the reviewer or your classmate or for you OK 
+so try to organize your development in different characteristics or features</segment> <segment id='681' features='semantic-density;sd++'>OK 
+for instance if we have if we have to develop the accelerometer 
+and we want to do something with the Y axis acceleration 
+you can perform one push and for that this can be a branch 
+you can create another branch to develop something to read the speed of variation of a specific axis 
+so whatever you can imagine please organize that in different branches 
+to see how you are evoluting the code 
+try to push in the branches in the devel branch code 
+that is already compiling linked and typically working</segment> <segment id='682' features='semantic-density;sd+'>OK 
+and with that you will avoid problems in the future 
+and push to master only a stable version</segment> 
+<segment id='683' features='semantic-density;sd-'>this will be what Miguel Ángel and myself will be evaluating 
+and doing the assessment in the different parts of the code, okay?</segment> 
+<segment id='684' features='semantic-density;sd+'>So more or less different branches to develop things 
+when you are sure that that specific thing is working move to devel 
+and once you consider that all your software is ready 
+move to the master or the main branch, okay?</segment> 
+<segment id='685' features='semantic-density;sd+'>This is a quite quick guide with the commands 
+clone checkout merge pull push 
+you need to be familiar with this in the first part of the course</segment> <segment id='686' features='semantic-density;sd-'>OK 
+basic development 
+and if you are doing things typically you are using these commands 
+and the only problem can be here when you are trying to solve conflicts</segment> <segment id='687' features='semantic-density;sd-'>OK 
+so in that case if it's your first time solving conflicts 
+call us and we will try to help you to understand the issue 
+I'm to solve the things</segment> <segment id='688' features='semantic-density;sd--'>OK because 
+probably if you don't have previous experience using this or the first time 
+it's a little bit difficult to master questions 
+are you understanding me yes sure sure 
+we will see later</segment> <segment id='689' features='semantic-density;sd--'>OK 
+no questions 
+try to use it OK because it is a typical skill that is very requested by companies</segment> OK
+
+ </body>
+</document>

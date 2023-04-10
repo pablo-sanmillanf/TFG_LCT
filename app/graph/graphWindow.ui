@@ -120,9 +120,10 @@
   <customwidget>
    <class>MplWidget</class>
    <extends>QWidget</extends>
-   <header>mpl_canvas</header>
+   <header location="global">.mpl_canvas</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <resources/>
  <connections/>
 </ui>

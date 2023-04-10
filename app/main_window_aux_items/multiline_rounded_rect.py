@@ -3,7 +3,7 @@ import typing
 import numpy as np
 from PyQt5.QtGui import QColor
 
-from separator import Separator
+from .separator import Separator
 
 from PyQt5.QtCore import QRectF, QPointF
 from PyQt5.QtWidgets import (

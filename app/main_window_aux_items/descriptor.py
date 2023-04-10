@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPainterPath, QFont
 from PyQt5.QtWidgets import QGraphicsTextItem, QWidget, QStyleOptionGraphicsItem, QGraphicsItem, \
     QGraphicsSceneMouseEvent
 
-from separator import Separator
+from .separator import Separator
 
 
 TEXT_SEPARATOR = "~"

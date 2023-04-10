@@ -4,7 +4,7 @@ from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton
 
 
-# Subclass QMainWindow to customize your application's main window
+# Subclass QMainWindow to customize your application's app window
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
