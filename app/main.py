@@ -6,7 +6,7 @@ from PyQt5 import QtGui
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
     QApplication,
-    QMainWindow, QInputDialog, QDialog, QPushButton, QColorDialog, QMessageBox, QFileDialog
+    QMainWindow, QInputDialog, QDialog, QPushButton, QColorDialog, QMessageBox, QFileDialog, QAction
 
 )
 
@@ -270,6 +270,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionOpen.triggered.connect(self.open_file_dialog)
         self.actionText_size.triggered.connect(self.text_size_dialog)
         self.actionRects_colors.triggered.connect(self.rects_colors_dialog)
+        self.actionSD.triggered.connect(lambda checked: self.target_action("SD~"))
+        self.actionSG.triggered.connect(lambda checked: self.target_action("SG~"))
+        self.actionSD_SG.triggered.connect(lambda checked: self.target_action("SD~;SG~"))
+        self.actiongroupTarget.setExclusive(True)
         self.actionRun_Plotter.triggered.connect(self.run_graph_window)
 
     def open_file_dialog(self, s: bool) -> None:
@@ -309,8 +313,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if dlg.has_changed:
             self.conf["colors"] = dlg.colors
-            self.textHandler.set_colors(list(self.conf["colors"]["together"].values()))
+            if self.textHandler.get_default_descriptor() == "SD~;SG~":
+                self.textHandler.set_colors(list(self.conf["colors"]["together"].values()))
+            else:
+                self.textHandler.set_colors(list(self.conf["colors"]["alone"].values()))
             self.conf_has_changed = True
+
+    def target_action(self, text: str) -> None:
+        if text != self.textHandler.get_default_descriptor():
+            if text == "SD~;SG~":
+                self.textHandler.set_default_descriptor(text, list(self.conf["colors"]["together"].values()))
+            else:
+                self.textHandler.set_default_descriptor(text, list(self.conf["colors"]["alone"].values()))
 
     def run_graph_window(self, s: bool) -> None:
         if self.graph_window is None:

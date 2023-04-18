@@ -4,13 +4,13 @@ from PyQt5.QtGui import QFont, QPen, QPainter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QWidget, QMenu, QAction
 
 from main_window_aux_items.text_classifier import TextClassifier
-from main_window_aux_items.custom_text import CustomText
+from main_window_aux_items.main_text import MainText
 import datetime
 
 
 def format_text(text: str) -> str:
     """
-    This function format the text to adapt it to the required format by classes TextClassifier and CustomText.
+    This function format the text to adapt it to the required format by classes TextClassifier and MainText.
     More specifically, replace the "\n" with "<br>" and remove duplicate spaces.
     :param text: The text to be formatted.
     :return: The formatted text.
@@ -26,6 +26,7 @@ class TextHandler(QGraphicsView):
     """
     This class controls all the behaviour of the QGraphicsItems, the QGraphicsView and the QGraphicsScene.
     """
+    text: MainText
     split_action: QAction
     join_action: QAction
     classifier: TextClassifier
@@ -39,7 +40,6 @@ class TextHandler(QGraphicsView):
         self.scene = None
         self.items_parent = None
         self.font = None
-        self.text = None
         self.context_menu_pos = None
         self.global_pos_y_offset = None
 
@@ -76,7 +76,7 @@ class TextHandler(QGraphicsView):
         self.font.setFamily('Times')
         self.font.setBold(True)
 
-        self.text = CustomText(format_text(text), min_width - 2 * x_padding, 300, self.items_parent)
+        self.text = MainText(format_text(text), min_width - 2 * x_padding, 300, self.items_parent)
 
         self.classifier = TextClassifier(
             min_width - 2 * x_padding,
@@ -166,11 +166,8 @@ class TextHandler(QGraphicsView):
         Set the text to be analyzed.
         :param text: The text that will appear.
         """
-        print(datetime.datetime.now())
         self.text.set_text(format_text(text))
-        print(datetime.datetime.now())
         self.classifier.reset(self.text.get_points())
-        print(datetime.datetime.now())
 
         # Set text size
         self.scene.setSceneRect(
@@ -182,7 +179,7 @@ class TextHandler(QGraphicsView):
 
     def set_text_size(self, text_size: float | int) -> None:
         """
-        Set the text size. Also, the height of the separators and the rects and the text size of the descriptors is
+        Set the text size. Also, the height of the separators and the rects and the text size of the descriptors_handler is
         changed.
         :param text_size: The text size as a number.
         """
@@ -201,7 +198,7 @@ class TextHandler(QGraphicsView):
             self.items_parent.pos().y() + self.text.boundingRect().height()
         )
 
-        # Change rects, separators and descriptors height
+        # Change rects, separators and descriptors_handler height
         self.classifier.set_line_height(text_size * 2)
 
         # Reposition separators to the new text size
@@ -228,16 +225,18 @@ class TextHandler(QGraphicsView):
         text_list = [""] * (len(self.classifier.separators) - 1)
         separator_points = self.classifier.get_separator_points()
 
-        # This index will be used to access all the positions in separator_points
+        # This ind will be used to access all the positions in separator_points
         separator_index = 0
 
-        for y_index in range(len(self.text.point_list)):
-            for x_index in range(len(self.text.point_list[y_index][1])):
-                if separator_points[separator_index].x() == self.text.point_list[y_index][1][x_index][0] and \
-                        separator_points[separator_index].y() == self.text.point_list[y_index][0]:
+        complete_point_list = self.text.get_complete_points()
+
+        for y_index in range(len(complete_point_list)):
+            for x_index in range(len(complete_point_list[y_index][1])):
+                if separator_points[separator_index].x() == complete_point_list[y_index][1][x_index][0] and \
+                        separator_points[separator_index].y() == complete_point_list[y_index][0]:
                     separator_index += 1
-                if self.text.point_list[y_index][1][x_index][1] != '':
-                    text_list[separator_index - 1] += (self.text.point_list[y_index][1][x_index][1] + " ")
+                if complete_point_list[y_index][1][x_index][1] != '':
+                    text_list[separator_index - 1] += (complete_point_list[y_index][1][x_index][1] + " ")
 
         # Remove last space in every item and empty items
         popped_elements = 0
@@ -256,31 +255,39 @@ class TextHandler(QGraphicsView):
         :param text_list: A list with the groups of words made by the separators.
         """
         text_list_index = 0
-        separator_points = [QPointF(self.text.point_list[0][1][0][0], self.text.point_list[0][0])]
+        complete_point_list = self.text.get_complete_points()
+        separator_points = [QPointF(complete_point_list[0][1][0][0], complete_point_list[0][0])]
         aux_text = ""
 
-        for y_index in range(len(self.text.point_list)):
-            for x_index in range(len(self.text.point_list[y_index][1])):
-                if self.text.point_list[y_index][1][x_index][1] != '':
-                    aux_text += (self.text.point_list[y_index][1][x_index][1] + " ")
+        for y_index in range(len(complete_point_list)):
+            for x_index in range(len(complete_point_list[y_index][1])):
+                if complete_point_list[y_index][1][x_index][1] != '':
+                    aux_text += (complete_point_list[y_index][1][x_index][1] + " ")
 
                     # Do the comparison without the last space character
                     if aux_text[:-1] not in text_list[text_list_index]:
                         text_list_index += 1
-                        aux_text = self.text.point_list[y_index][1][x_index][1] + " "
+                        aux_text = complete_point_list[y_index][1][x_index][1] + " "
                         separator_points.append(
-                            QPointF(self.text.point_list[y_index][1][x_index][0], self.text.point_list[y_index][0])
+                            QPointF(complete_point_list[y_index][1][x_index][0], complete_point_list[y_index][0])
                         )
         # Add last element
         separator_points.append(
-            QPointF(self.text.point_list[-1][1][-1][0], self.text.point_list[-1][0])
+            QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0])
         )
 
         self.classifier.update_general_fixed_points_and_separators_pos(self.text.get_points(), separator_points)
 
+    def get_default_descriptor(self) -> str:
+        """
+        Returns the default descriptor used in all the descriptors_handler.
+        :return: The default descriptor as a string
+        """
+        return self.classifier.default_text
+
     def set_default_descriptor(self, default_descriptor: str, colors: list[str]) -> None:
         """
-        Set the default descriptor for all the descriptors. Should contain one or more "~" characters. The list of
+        Set the default descriptor for all the descriptors_handler. Should contain one or more "~" characters. The list of
         colors will be the colors that the rounded rects will have depending on the value of the descriptor. The length
         of this list should be the same as the possible combinations of the descriptor text plus one (the default one).
         Also, the colors list should be of any HTML valid color.

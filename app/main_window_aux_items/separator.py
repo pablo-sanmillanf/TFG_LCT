@@ -3,7 +3,7 @@ from typing import Any
 
 import numpy as np
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import QPointF, Qt, QRectF, pyqtSignal, QObject
+from PyQt5.QtCore import QPointF, Qt, QRectF, pyqtSignal, QObject, QMutex, QMutexLocker
 from PyQt5.QtGui import QCursor, QPainterPath
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem, QGraphicsSceneMouseEvent, QWidget, \
     QStyleOptionGraphicsItem
@@ -20,7 +20,9 @@ def find_nearest_point(candidate_points: list[float], point_reference: float) ->
 
 
 class Emitter(QObject):
-    pos_changed = pyqtSignal(QGraphicsItem, QPointF, QPointF)
+    pos_changed = pyqtSignal(QGraphicsLineItem, QPointF)
+    released = pyqtSignal(QGraphicsLineItem)
+    clicked_on_the_border = pyqtSignal(QGraphicsLineItem, QPointF, QPointF, QPointF)
 
 
 class Separator(QGraphicsLineItem):
@@ -33,8 +35,8 @@ class Separator(QGraphicsLineItem):
     border_left_pos: bool
     size: QRectF
 
-    def __init__(self, x: float, y: float, height: float,
-                 fixed_points: list[tuple[float, list[float]]], parent: QGraphicsItem) -> None:
+    def __init__(self, x: float, y: float, height: float, fixed_points: list[tuple[float, list[float]]],
+                 emitter: Emitter, parent: QGraphicsItem) -> None:
         """
         Create Separator object. The requested position will be adjusted to the nearest position contained in
         fixed_points
@@ -45,7 +47,10 @@ class Separator(QGraphicsLineItem):
                              be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         """
-        self.emitter = Emitter()
+        self.is_clicked = False
+        self.mutex = QMutex()
+
+        self.emitter = emitter
 
         super().__init__(0, 0, 0, height, parent)
         self.setZValue(2)
@@ -125,6 +130,22 @@ class Separator(QGraphicsLineItem):
                 y_value_next_line - self.pos().y() + self.height
             )
 
+    def emit_pos_changed(self) -> None:
+        """
+        This function is used to notify the position of the Separator. It's an internal function. If the use of this
+        function is needed externally, should be called when the Separator is not moving.
+        """
+        self.emitter.pos_changed.emit(self, self.pos())
+
+    def emit_clicked_on_the_border(self, cursor_pos: QPointF) -> None:
+        """
+        This function is used to notify the position of the Separator and the cursor when the Separator is clicked on
+        the border. It's an internal function. If the use of this function is needed externally, should be called when
+        the Separator is not moving.
+        """
+        lock = QMutexLocker(self.mutex)
+        self.emitter.clicked_on_the_border.emit(self, cursor_pos, self.complete_pos(False), self.complete_pos(True))
+
     def is_on_the_border(self) -> bool:
         """
         Return True if the element is on the border of a line.
@@ -197,12 +218,14 @@ class Separator(QGraphicsLineItem):
         x_value = find_nearest_point(self.get_x_values(y_value), req_x)
         super().setPos(x_value, y_value)
 
-        if x_list_values.index(x_value) == 0 and y_list_values.index(y_value) > 0:
+        if not self.is_clicked and x_list_values.index(x_value) == 0 and y_list_values.index(y_value) > 0:
             self.border_left_pos = True
+            self.border_right_pos = False
             self.set_bounding_rect()
-        elif x_list_values.index(x_value) == len(x_list_values) - 1 and \
+        elif not self.is_clicked and x_list_values.index(x_value) == len(x_list_values) - 1 and \
                 y_list_values.index(y_value) < len(y_list_values) - 1:
             self.border_right_pos = True
+            self.border_left_pos = False
             self.set_bounding_rect()
         elif self.border_left_pos:
             self.prepareGeometryChange()  # Has to be called before bounding rect updating
@@ -293,6 +316,7 @@ class Separator(QGraphicsLineItem):
                       the requested position of the element
         :return: The position to be placed
         """
+        lock = QMutexLocker(self.mutex)
         if self.scene() is not None:
             if change == QGraphicsItem.ItemPositionChange:
                 if self.pos_set is False:
@@ -311,7 +335,7 @@ class Separator(QGraphicsLineItem):
                 else:
                     self.pos_set = False
             elif change == QGraphicsItem.ItemPositionHasChanged:
-                self.emitter.pos_changed.emit(self, self.complete_pos(False), self.complete_pos(True))
+                self.emit_pos_changed()
         return super().itemChange(change, value)
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
@@ -320,16 +344,37 @@ class Separator(QGraphicsLineItem):
         bounding rect if self.border_left_pos or self.border_right_pos are active.
         :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
         """
+        self.is_clicked = True
         if self.border_left_pos and not self.border_right_pos:
+
+            # Obtain cursor position
             cursor_pos = self.parentItem().mapFromScene(self.scene().views()[0].mapFromGlobal(QCursor.pos()))
+
+            # Emit signal with the cursor position and the left and right position
+            self.emit_clicked_on_the_border(cursor_pos)
+
+            # Change Separator position to match with the cursor position
             self.setPos(cursor_pos.x(), cursor_pos.y() + self.scene().views()[0].verticalScrollBar().value())
+
+            # Change bounding rect
             self.prepareGeometryChange()  # Has to be called before bounding rect updating
             self.border_left_pos = False
+
         elif not self.border_left_pos and self.border_right_pos:
+
+            # Obtain cursor position
             cursor_pos = self.parentItem().mapFromScene(self.scene().views()[0].mapFromGlobal(QCursor.pos()))
+
+            # Emit signal with the cursor position and the left and right position
+            self.emit_clicked_on_the_border(cursor_pos)
+
+            # Change Separator position to match with the cursor position
             self.setPos(cursor_pos.x(), cursor_pos.y() + self.scene().views()[0].verticalScrollBar().value())
+
+            # Change bounding rect
             self.prepareGeometryChange()  # Has to be called before bounding rect updating
             self.border_right_pos = False
+
         elif self.border_left_pos and self.border_right_pos:
             raise RuntimeError("Problems with mousePressEvent in Separator object")
         super().mousePressEvent(event)
@@ -340,8 +385,11 @@ class Separator(QGraphicsLineItem):
         automatically to the nearest allowed position.
         :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
         """
+        self.is_clicked = False
         # Set nearest fixed position
         self.setPos(self.pos())
 
         # Execute super function to allow correct object behaviour
         super().mouseReleaseEvent(event)
+
+        self.emitter.released.emit(self)

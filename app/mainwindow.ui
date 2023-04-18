@@ -42,8 +42,18 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <widget class="QMenu" name="menuTarget">
+     <property name="title">
+      <string>Target</string>
+     </property>
+     <addaction name="actionSD"/>
+     <addaction name="actionSG"/>
+     <addaction name="actionSD_SG"/>
+    </widget>
     <addaction name="actionText_size"/>
     <addaction name="actionRects_colors"/>
+    <addaction name="separator"/>
+    <addaction name="menuTarget"/>
    </widget>
    <widget class="QMenu" name="menuRun">
     <property name="title">
@@ -112,6 +122,35 @@
     <string>Run Plotter</string>
    </property>
   </action>
+  <actiongroup name="actiongroupTarget">
+   <action name="actionSG">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>SG</string>
+    </property>
+   </action>
+   <action name="actionSD">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>SD</string>
+    </property>
+   </action>
+   <action name="actionSD_SG">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>SD/SG</string>
+    </property>
+   </action>
+  </actiongroup>
  </widget>
  <customwidgets>
   <customwidget>

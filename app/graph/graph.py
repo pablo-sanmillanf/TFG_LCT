@@ -32,6 +32,6 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    main = GraphWindow("", json.loads(open(relative_path + "data.json", "r").read()))
+    main = GraphWindow("", json.loads(open("./" + "data.json", "r").read()))
     main.show()
     sys.exit(app.exec())

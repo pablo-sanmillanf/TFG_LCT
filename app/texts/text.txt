@@ -1,4 +1,4 @@
-In this tutorial we'll learn how to use PyQt to create desktop applications with Python. First we'll create a  series of simple windows on your desktop to ensure that PyQt is working and introduce some of the basic concepts.
+In this tutorial we'll learn how to use PyQt to}create desktop applications with Python. First we'll create a  series of simple windows on your desktop to ensure that PyQt is working and introduce some of the basic concepts.
 Then we'll take a brief look at the event loop and how it relates to GUI programming in Python.
 In this tutorial we'll learn how to use PyQt to create desktop applications with Python. First we'll create a  series of simple windows on your desktop to ensure that PyQt is working and introduce some of the basic concepts.
 Then we'll take a brief look at the event loop and how it relates to GUI programming in Python.

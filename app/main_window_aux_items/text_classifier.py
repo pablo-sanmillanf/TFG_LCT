@@ -11,7 +11,7 @@ from .multiline_rounded_rect import MultilineRoundedRect
 class TextClassifier(QGraphicsLineItem):
     """
     This class controls all the behaviour of the QGraphicsItems associated with the graphical text
-    classification. That is, the rectangles and its descriptors and the separators between them.
+    classification. That is, the rectangles and its descriptors_handler and the separators between them.
     """
     descriptors: list[Descriptor]
     rects: list[MultilineRoundedRect]
@@ -26,7 +26,7 @@ class TextClassifier(QGraphicsLineItem):
                             greater than text height.
         :param fixed_points: Available points for the separators. The structure must
                              be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
-        :param default_text: The default text that will appear in the descriptors.
+        :param default_text: The default text that will appear in the descriptors_handler.
         :param colors: A list of colors that will be used by the rectangles as a background color depending on the
                        values of its Descriptors.
         :param parent: The QGraphicsItem parent of this element. Can't be None
@@ -66,7 +66,7 @@ class TextClassifier(QGraphicsLineItem):
         self.rects.append(MultilineRoundedRect(max_width, line_height, self.radius, self.offset, self.colors, parent))
         self.rects[0].init_separators((self.separators[0], self.separators[1]))
 
-        # Set descriptors
+        # Set descriptors_handler
         self.descriptors = []
         self.descriptors.append(Descriptor(max_width, line_height * 1.2, default_text, line_height / 3, parent))
         self.descriptors[0].init_separators((self.separators[0], self.separators[1]))
@@ -75,7 +75,7 @@ class TextClassifier(QGraphicsLineItem):
     def reset(self, fixed_points: list[tuple[float, list[float]]]) -> None:
         """
         Reset the object with new fixed points. That is, remove all the separators except the first ant the last and
-        all the associated multiline rounded rects and descriptors.
+        all the associated multiline rounded rects and descriptors_handler.
         :param fixed_points: The new fixed_points
         """
         self.fixed_points = fixed_points
@@ -135,7 +135,7 @@ class TextClassifier(QGraphicsLineItem):
 
     def set_default_descriptor(self, default_descriptor: str, colors: list[str]) -> None:
         """
-        Set the default descriptor for all the descriptors. Should contain one or more "~" characters. The list of
+        Set the default descriptor for all the descriptors_handler. Should contain one or more "~" characters. The list of
         colors will be the colors that the rounded rects will have depending on the value of the descriptor. The length
         of this list should be the same as the possible combinations of the descriptor text plus one (the default one).
         Also, the colors list should be of any HTML valid color.
@@ -181,7 +181,7 @@ class TextClassifier(QGraphicsLineItem):
 
     def set_descriptors_font(self, font: QFont) -> None:
         """
-        Set a font for all the descriptors.
+        Set a font for all the descriptors_handler.
         :param font: The requested font
         """
         for item in self.descriptors:
@@ -244,7 +244,7 @@ class TextClassifier(QGraphicsLineItem):
         for i in range(len(self.separators)):
             self.update_fixed_points_separator(i)
 
-        # Update all the rects and the descriptors to adjust to new separator positions
+        # Update all the rects and the descriptors_handler to adjust to new separator positions
         for i in range(len(self.rects)):
             self.rects[i].update_points()
             self.rects[i].update()
@@ -253,7 +253,7 @@ class TextClassifier(QGraphicsLineItem):
 
     def set_line_height(self, line_height: float | int) -> None:
         """
-        Set line height for all the separators, rects and descriptors. In the case of the descriptors, the value
+        Set line height for all the separators, rects and descriptors_handler. In the case of the descriptors_handler, the value
         modified will be the y_offset, to adjust to the new rect height. In the case of the rects, the radius will
         also be modified.
         :param line_height: Line height in pixels.
@@ -274,7 +274,7 @@ class TextClassifier(QGraphicsLineItem):
 
     def set_width(self, width: float | int) -> None:
         """
-        Set width for all the rects and descriptors.
+        Set width for all the rects and descriptors_handler.
         :param width: Width in pixels
         """
         self.max_width = width
@@ -287,12 +287,12 @@ class TextClassifier(QGraphicsLineItem):
 
     def point_is_occupied(self, x: float, y: float) -> tuple[bool, int]:
         """
-        Check if the given point is occupied by existing separator and return the index of separator.
+        Check if the given point is occupied by existing separator and return the ind of separator.
         :param x: The x coordinate
         :param y: The y coordinate
         :return: A tuple. The first element is True if the point is occupied, False if not. The second element is the
-        index of the separator if the position is occupied. If the position is not occupied, this second element will
-        be the index of the separator before. A -1 will show an error.
+        ind of the separator if the position is occupied. If the position is not occupied, this second element will
+        be the ind of the separator before. A -1 will show an error.
         """
         # Find nearest available point
         real_y = find_nearest_point(self.get_y_values(), y)
@@ -343,11 +343,11 @@ class TextClassifier(QGraphicsLineItem):
                                 if not (i == 0 or i == len(line[1]) - 1):
                                     return line[1][i], line[0], index - 1
                                 if i == 0:
-                                    # If this position is busy, increment by one the index in separators array
+                                    # If this position is busy, increment by one the ind in separators array
                                     index += 1
                             elif self.separators[index].complete_pos(True).x() == line[1][i] and \
                                     self.separators[index].complete_pos(True).y() == line[0]:
-                                # If this position is busy, increment by one the index in separators array
+                                # If this position is busy, increment by one the ind in separators array
                                 index += 1
                             else:
                                 return line[1][i], line[0], index - 1
@@ -479,7 +479,7 @@ class TextClassifier(QGraphicsLineItem):
 
     def update_fixed_points_separator(self, index: int) -> None:
         """
-        Update the fixed_points of the separator for a given index separator.
+        Update the fixed_points of the separator for a given ind separator.
         :param index: Index of the separator
         """
         if (len(self.separators) - 2) >= index >= 1:

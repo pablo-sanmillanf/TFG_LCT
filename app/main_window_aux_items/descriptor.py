@@ -257,7 +257,7 @@ class Descriptor(QGraphicsTextItem):
     def style_editable_text(self, index: int, style: str) -> str:
         """
         Gives style to the n-editable-text-part in the text. The n-editable-text-part styled is given
-        by the index parameter.
+        by the ind parameter.
         :param index: Index of editable text part that is going to be styled.
         :param style: A string with CSS format that contains the style of the text
         :return: The resulting string
@@ -391,7 +391,7 @@ class Descriptor(QGraphicsTextItem):
               option: "QStyleOptionGraphicsItem",
               widget: typing.Optional[QWidget] = ...) -> None:
         """
-        Paints the text descriptors using the information stored in self.points.
+        Paints the text descriptors_handler using the information stored in self.points.
         :param painter: The object to paint the text in the canvas
         :param option: This parameter will be ignored
         :param widget: This parameter will be ignored
