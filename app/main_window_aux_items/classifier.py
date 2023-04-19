@@ -1,11 +1,30 @@
-from .rects_handler import RectsHandler
-from PyQt5.QtCore import QEvent, Qt, QPointF
-from PyQt5.QtGui import QPen, QFont
+from app.main_window_aux_items.rounded_rect.rounded_rect_handler import RoundedRectHandler
+from PyQt5.QtGui import QPen
 from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
 
-from .descriptor_handler import DescriptorHandler, ALLOWED_STRINGS, TEXT_SEPARATOR
-from .separator_handler import SeparatorHandler
+from .descriptor.descriptor_handler import DescriptorHandler
+from .separator.separator_handler import SeparatorHandler
 
+
+COLORS = {
+    "": "#ff0000",
+    "0++1--": "blue",
+    "0++1-": "blue",
+    "0++1+": "blue",
+    "0++1++": "blue",
+    "0+1--": "green",
+    "0+1-": "green",
+    "0+1+": "green",
+    "0+1++": "green",
+    "0-1--": "white",
+    "0-1-": "white",
+    "0-1+": "white",
+    "0-1++": "white",
+    "0--1--": "yellow",
+    "0--1-": "yellow",
+    "0--1+": "yellow",
+    "0--1++": "yellow"
+}
 
 def obtain_limit_points(points):
     return [(line[0], (line[1][0], line[1][-1])) for line in points]
@@ -42,7 +61,9 @@ class TextClassifier(QGraphicsLineItem):
         self.sep_handler.add_separator(fixed_points[0][1][0], fixed_points[0][0], True)
         self.sep_handler.add_separator(fixed_points[-1][1][-1], fixed_points[-1][0], True)
 
-        self.rects_handler = RectsHandler(self.height, self.radius, obtain_limit_points(fixed_points), parent)
+        self.rects_handler = RoundedRectHandler(
+            self.height, self.radius, obtain_limit_points(fixed_points), COLORS, parent
+        )
         self.rects_handler.add_separator_listeners(
             self.sep_handler.emitter.pos_changed,
             self.sep_handler.emitter.clicked_on_the_border
@@ -53,6 +74,8 @@ class TextClassifier(QGraphicsLineItem):
             self.sep_handler.emitter.pos_changed,
             self.sep_handler.emitter.clicked_on_the_border
         )
+
+        self.rects_handler.add_descriptor_listeners(self.descriptors_handler.emitter.editable_text_changed)
 
     def set_separator_pen(self, pen: QPen) -> None:
         """

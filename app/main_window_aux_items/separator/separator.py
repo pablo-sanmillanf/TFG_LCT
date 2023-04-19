@@ -19,7 +19,7 @@ def find_nearest_point(candidate_points: list[float], point_reference: float) ->
     return min(candidate_points, key=lambda x: np.abs(x - point_reference))
 
 
-class Emitter(QObject):
+class SeparatorEmitter(QObject):
     pos_changed = pyqtSignal(QGraphicsLineItem, QPointF)
     released = pyqtSignal(QGraphicsLineItem)
     clicked_on_the_border = pyqtSignal(QGraphicsLineItem, QPointF, QPointF, QPointF)
@@ -36,7 +36,7 @@ class Separator(QGraphicsLineItem):
     size: QRectF
 
     def __init__(self, x: float, y: float, height: float, fixed_points: list[tuple[float, list[float]]],
-                 emitter: Emitter, parent: QGraphicsItem) -> None:
+                 emitter: SeparatorEmitter, parent: QGraphicsItem) -> None:
         """
         Create Separator object. The requested position will be adjusted to the nearest position contained in
         fixed_points
@@ -101,8 +101,8 @@ class Separator(QGraphicsLineItem):
 
     def set_bounding_rect(self) -> None:
         """
-        Set the bounding rect. If the item is not in the border, the bounding rect is the regular bounding rect.
-        If it is on the border, modify the bounding rect to span the original and the copy created at the beginning
+        Set the bounding rounded_rect. If the item is not in the border, the bounding rounded_rect is the regular bounding rounded_rect.
+        If it is on the border, modify the bounding rounded_rect to span the original and the copy created at the beginning
         of the next row (if the original was at the end of the line) or at the end of the previous row (if the
         original was at the beginning of the line).
         """
@@ -110,7 +110,7 @@ class Separator(QGraphicsLineItem):
             y_values = self.get_y_values()
             y_value_previous_line = y_values[y_values.index(self.pos().y()) - 1]
             x_values_previous_line = self.get_x_values(y_value_previous_line)
-            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.prepareGeometryChange()  # Has to be called before bounding rounded_rect updating
             self.size = QRectF(
                 -self.pen().widthF() / 2,
                 y_value_previous_line - self.pos().y(),
@@ -122,7 +122,7 @@ class Separator(QGraphicsLineItem):
             y_values = self.get_y_values()
             y_value_next_line = y_values[y_values.index(self.pos().y()) + 1]
             x_values_next_line = self.get_x_values(y_value_next_line)
-            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.prepareGeometryChange()  # Has to be called before bounding rounded_rect updating
             self.size = QRectF(
                 -self.pen().widthF() / 2 + x_values_next_line[0] - self.pos().x(),
                 0,
@@ -228,15 +228,15 @@ class Separator(QGraphicsLineItem):
             self.border_left_pos = False
             self.set_bounding_rect()
         elif self.border_left_pos:
-            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.prepareGeometryChange()  # Has to be called before bounding rounded_rect updating
             self.border_left_pos = False
         elif self.border_right_pos:
-            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            self.prepareGeometryChange()  # Has to be called before bounding rounded_rect updating
             self.border_right_pos = False
 
     def shape(self) -> QPainterPath:
         """
-        Returns a QPainterPath with the zones within the bounding rect that can be selected for further editing
+        Returns a QPainterPath with the zones within the bounding rounded_rect that can be selected for further editing
         of the text. Each of these zones represents a rectangle that covers the text in one line.
         :return: A QPainterPath with the custom shape
         """
@@ -268,8 +268,8 @@ class Separator(QGraphicsLineItem):
 
     def boundingRect(self) -> QRectF:
         """
-        Returns the bounding rect that occupies the element.
-        :return: The bounding rect as a QRectF
+        Returns the bounding rounded_rect that occupies the element.
+        :return: The bounding rounded_rect as a QRectF
         """
         if not self.border_left_pos and not self.border_right_pos:
             return super().boundingRect()
@@ -277,7 +277,7 @@ class Separator(QGraphicsLineItem):
                 (not self.border_left_pos and self.border_right_pos):
             return self.size
         else:
-            raise RuntimeError("Problems with custom bounding rect in Separator object")
+            raise RuntimeError("Problems with custom bounding rounded_rect in Separator object")
 
     def paint(self,
               painter: QtGui.QPainter,
@@ -341,7 +341,7 @@ class Separator(QGraphicsLineItem):
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         """
         Manages the behaviour of the Separator when the user release the object. In this case, the object changes its
-        bounding rect if self.border_left_pos or self.border_right_pos are active.
+        bounding rounded_rect if self.border_left_pos or self.border_right_pos are active.
         :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
         """
         self.is_clicked = True
@@ -356,8 +356,8 @@ class Separator(QGraphicsLineItem):
             # Change Separator position to match with the cursor position
             self.setPos(cursor_pos.x(), cursor_pos.y() + self.scene().views()[0].verticalScrollBar().value())
 
-            # Change bounding rect
-            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            # Change bounding rounded_rect
+            self.prepareGeometryChange()  # Has to be called before bounding rounded_rect updating
             self.border_left_pos = False
 
         elif not self.border_left_pos and self.border_right_pos:
@@ -371,8 +371,8 @@ class Separator(QGraphicsLineItem):
             # Change Separator position to match with the cursor position
             self.setPos(cursor_pos.x(), cursor_pos.y() + self.scene().views()[0].verticalScrollBar().value())
 
-            # Change bounding rect
-            self.prepareGeometryChange()  # Has to be called before bounding rect updating
+            # Change bounding rounded_rect
+            self.prepareGeometryChange()  # Has to be called before bounding rounded_rect updating
             self.border_right_pos = False
 
         elif self.border_left_pos and self.border_right_pos:

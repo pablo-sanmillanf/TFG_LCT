@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
 
 from .descriptor import Descriptor, ALLOWED_STRINGS, TEXT_SEPARATOR
 from .separator import Separator, find_nearest_point
-from .multiline_rounded_rect import MultilineRoundedRect
+# from .multiline_rounded_rect import MultilineRoundedRect
 
 
 class TextClassifier(QGraphicsLineItem):
@@ -254,7 +254,7 @@ class TextClassifier(QGraphicsLineItem):
     def set_line_height(self, line_height: float | int) -> None:
         """
         Set line height for all the separators, rects and descriptors_handler. In the case of the descriptors_handler, the value
-        modified will be the y_offset, to adjust to the new rect height. In the case of the rects, the radius will
+        modified will be the y_offset, to adjust to the new rounded_rect height. In the case of the rects, the radius will
         also be modified.
         :param line_height: Line height in pixels.
         """

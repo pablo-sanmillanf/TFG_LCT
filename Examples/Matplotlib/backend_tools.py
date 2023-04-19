@@ -685,7 +685,7 @@ class ToolZoom(ZoomPanBase):
         return
 
     def _press(self, event):
-        """the _press mouse button in zoom to rect mode callback"""
+        """the _press mouse button in zoom to rounded_rect mode callback"""
 
         # If we're already in the middle of a zoom, pressing another
         # button works to "cancel"
@@ -750,7 +750,7 @@ class ToolZoom(ZoomPanBase):
                                           data=(x, y, lastx, lasty))
 
     def _release(self, event):
-        """the release mouse button callback in zoom to rect mode"""
+        """the release mouse button callback in zoom to rounded_rect mode"""
 
         for zoom_id in self._ids_zoom:
             self.figure.canvas.mpl_disconnect(zoom_id)

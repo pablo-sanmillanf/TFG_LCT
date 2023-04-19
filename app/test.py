@@ -25,7 +25,7 @@ class Window(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Defining a scene rect of 400x200, with it's origin at 0,0.
+        # Defining a scene rounded_rect of 400x200, with it's origin at 0,0.
         # If we don't set this on creation, we can set it later with .setSceneRect
         self.scene = QGraphicsScene(0, 0, 500, 500)
 
@@ -55,7 +55,7 @@ class Window(QWidget):
         self.scene.addItem(text)
 
         self.classifier = TextClassifier(500, 20, text.get_points(), rect)
-        custom_pen = QPen(Qt.red)
+        custom_pen = QPen(Qt.black)
         custom_pen.setWidth(2)
         self.classifier.set_separator_pen(custom_pen)
 

@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPen
 from PyQt5.QtWidgets import QGraphicsItem
 
-from .separator import Separator, find_nearest_point, Emitter
+from .separator import Separator, find_nearest_point, SeparatorEmitter
 
 
 class SeparatorHandler:
@@ -24,7 +24,7 @@ class SeparatorHandler:
         self.fixed_points = fixed_points
         self.parent = parent
         self.pen = None
-        self.emitter = Emitter()
+        self.emitter = SeparatorEmitter()
 
         # Set separators
         self.separators = []

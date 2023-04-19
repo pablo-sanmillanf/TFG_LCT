@@ -1,19 +1,16 @@
 import typing
-from PyQt5.QtGui import QColor
+from typing import List
 
-from .separator import Separator
+from ..separator.separator import Separator
 
 from PyQt5.QtCore import QPointF
 from PyQt5.QtWidgets import (
-    QGraphicsRectItem,
-    QWidget,
-    QStyleOptionGraphicsItem,
     QGraphicsItem,
 )
-from PyQt5 import QtGui
+from .rounded_rect import RoundedRect
 
 
-class RoundedRect(QGraphicsRectItem):
+class RoundedRectHandler:
     """
     This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his line_height and
     the number of QGraphicsRectItem to fill the gap between the associated Separators.
@@ -22,77 +19,21 @@ class RoundedRect(QGraphicsRectItem):
     ======================================================================
     ====================================|
     """
-
-    def __init__(self, x: float | int, y: float | int, width: float | int, height: float | int, radius: float | int,
-                 parent: QGraphicsItem) -> None:
-        """
-        Create RoundedRect object.
-        :param x: The x-position of the rectangle
-        :param y: The y-position of the rectangle
-        :param width: The width of this element. Is determined by the max text width.
-        :param height: The height of the rectangles.
-        :param radius: The radius of the rounded corners.
-        :param parent: The QGraphicsItem parent of this Separator. Can't be None
-        """
-        super().__init__(0, 0, width, height, parent)
-        self.setPos(x, y)
-        self.radius = radius
-        self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
-
-    def set_background_color(self, color: str) -> None:
-        """
-        Set the rectangle background color
-        :param color: The color as string. Should be a valid HTML color.
-        """
-        self.setBrush(QColor(color))
-        self.update()
-
-    def set_pos_and_size(self, x: float | int, y: float | int, width: float | int, height: float | int):
-        """
-        Set the position and the size of the rect.
-        :param x: The x-position of the rectangle.
-        :param y: The y-position of the rectangle.
-        :param width: The width of this element.
-        :param height: The height of the rectangle.
-        """
-        self.setRect(0, 0, width, height)
-        self.setPos(x, y)
-
-    def paint(self,
-              painter: QtGui.QPainter,
-              option: "QStyleOptionGraphicsItem",
-              widget: typing.Optional[QWidget] = ...) -> None:
-        """
-        Paints the rectangle with a given radius.
-        :param painter: The object to paint the rectangles in the canvas
-        :param option: This parameter will be ignored
-        :param widget: This parameter will be ignored
-        """
-        if self.rect().width() != 0:
-            painter.setBrush(self.brush())
-            painter.drawRoundedRect(self.boundingRect(), self.radius, self.radius)
-
-
-class RectsHandler:
-    """
-    This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his line_height and
-    the number of QGraphicsRectItem to fill the gap between the associated Separators.
-    Assuming the "|" are the separators and the "=" are the rectangles, this is more or less what it will look like:
-    |=====================================================================
-    ======================================================================
-    ====================================|
-    """
-    separators: list[list[Separator | int | QPointF | bool]]
+    rects: list[RoundedRect]
+    separators: list[list[Separator | int | QPointF]]
     points: list[tuple[float | int, tuple[float | int, float | int]]]
     colors: dict[str, str]
+    color_indexes: list[int]
 
     def __init__(self, height: float | int, radius: float | int,
-                 points: list[tuple[float | int, tuple[float | int, float | int]]], parent: QGraphicsItem) -> None:
+                 points: list[tuple[float | int, tuple[float | int, float | int]]], colors: dict[str, str],
+                 parent: QGraphicsItem) -> None:
         """
         Create MultilineRoundedRect object.
         :param height: The height of the rectangles
         :param radius: The radius of the rounded corners
         :param points: The space between the border of a separator and
+        :param colors: The colors
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         """
         self.height = height
@@ -106,12 +47,16 @@ class RectsHandler:
 
         self.separators = []
 
-        """self.colors = colors
-        self.editable_text_changed_slot([])"""
+        self.color_indexes = [0]
+        self.colors = colors
+        self.editable_text_changed_slot(-1, [])
 
     def add_separator_listeners(self, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any) -> None:
         pos_changed_fn.connect(self.separator_position_changed)
         clicked_on_the_border_fn.connect(self.separator_clicked_on_the_border)
+
+    def add_descriptor_listeners(self, editable_text_changed_fn: typing.Any) -> None:
+        editable_text_changed_fn.connect(self.editable_text_changed_slot)
 
     def update_points(self) -> None:
         """
@@ -127,10 +72,23 @@ class RectsHandler:
         one). Also, the colors list should be of any HTML valid color.
         :param colors: Dict of all available colors and the possibilities for the descriptor
         """
-        """self.colors = colors
-        self.setBrush(QColor(list(self.colors.values())[self.color_index]))
-        self.update()"""
-        pass
+        self.colors = colors
+
+    def update_background_color_rects_group(self, separator_index: int, color_index):
+        # Adapt bounds
+        if separator_index == -1:
+            start = 0
+        else:
+            start = self.separators[separator_index][1] + 1
+
+        if separator_index == len(self.separators) - 1:
+            end = len(self.rects)
+        else:
+            end = self.separators[separator_index + 1][1] + 1
+
+        # Update background color for the rects of the same group
+        for i in range(start, end):
+            self.rects[i].set_background_color(list(self.colors.values())[color_index])
 
     def find_separator(self, separator: Separator) -> int:
         for i in range(len(self.separators)):
@@ -140,25 +98,33 @@ class RectsHandler:
     def add_separator(self, separator: Separator, point: QPointF):
         if len(self.separators) == 0:
             self.separators.append([separator, self.insert_rect(point), point])
+
+            # Add new color init_index entry for the new rects group
+            self.color_indexes.append(0)
+            self.update_background_color_rects_group(0, 0)
         else:
             for i in range(len(self.separators)):
-                if (point.y() > self.separators[i][0].pos().y() or
+                if (point.y() < self.separators[i][0].pos().y() or
                         (point.y() == self.separators[i][0].pos().y() and
-                         point.x() > self.separators[i][0].pos().x())):
+                         point.x() < self.separators[i][0].pos().x())):
                     # [Separator, Last_index_before, Last_position]
-                    self.separators.insert(i + 1, [separator, self.insert_rect(point), point])
+                    self.separators.insert(i, [separator, self.insert_rect(point), point])
 
                     # Update "Last_index_before" for the separators after this separator
-                    for e in range(i + 2, len(self.separators)):
+                    for e in range(i + 1, len(self.separators)):
                         self.separators[e][1] += 1
+
+                    # Add new color init_index entry for the new rects group
+                    self.color_indexes.insert(i + 1, 0)
+                    self.update_background_color_rects_group(i, 0)
                     return
 
-            # If the separator is inserted after the first immobile separator
-            self.separators.insert(0, [separator, self.insert_rect(point), point])
+            # If the separator is inserted after the last separator
+            self.separators.append([separator, self.insert_rect(point), point])
 
-            # Update "Last_index_before" for the separators after this separator
-            for e in range(1, len(self.separators)):
-                self.separators[e][1] += 1
+            # Add new color init_index entry for the new rects group
+            self.color_indexes.append(0)
+            self.update_background_color_rects_group(len(self.separators) - 1, 0)
 
     def insert_rect(self, point: QPointF):
         for i in range(len(self.rects)):
@@ -181,8 +147,25 @@ class RectsHandler:
                 )
                 return i - 1
 
-    def update_downwards(self, index, point: QPointF):
-        for i in range(index, len(self.rects)):
+        self.rects.append(RoundedRect(
+            point.x(),
+            point.y(),
+            self.rects[-1].rect().width() + self.rects[-1].pos().x() - point.x(),
+            self.height,
+            self.radius,
+            self.parent
+        ))
+
+        self.rects[-2].set_pos_and_size(
+            self.rects[-2].pos().x(),
+            self.rects[-2].pos().y(),
+            point.x() - self.rects[-2].pos().x(),
+            self.height
+        )
+        return len(self.rects) - 2
+
+    def update_downwards(self, separator_index: int, init_index: int, point: QPointF) -> int:
+        for i in range(init_index, len(self.rects)):
             if point.y() > self.rects[i].pos().y():
                 self.rects[i].set_pos_and_size(
                     self.rects[i].pos().x(),
@@ -190,6 +173,7 @@ class RectsHandler:
                     self.rects[i].rect().width() + self.rects[i + 1].rect().width(),
                     self.height
                 )
+                self.rects[i + 1].set_background_color(list(self.colors.values())[self.color_indexes[separator_index]])
                 self.rects[i + 1].set_pos_and_size(self.rects[i + 2].pos().x(), self.rects[i + 2].pos().y(), 0, 0)
             else:
                 self.rects[i + 1].set_pos_and_size(
@@ -207,8 +191,8 @@ class RectsHandler:
                 return i
         raise RuntimeError("DOWNWARDS FINISH WITHOUT RETURNING")
 
-    def update_upwards(self, index, point: QPointF):
-        for i in range(index, -1, -1):
+    def update_upwards(self, separator_index: int, init_index: int, point: QPointF) -> int:
+        for i in range(init_index, -1, -1):
             if point.y() < self.rects[i].pos().y():
                 self.rects[i + 1].set_pos_and_size(
                     self.rects[i].pos().x(),
@@ -216,6 +200,7 @@ class RectsHandler:
                     self.rects[i].rect().width() + self.rects[i + 1].rect().width(),
                     self.height
                 )
+                self.rects[i].set_background_color(list(self.colors.values())[self.color_indexes[separator_index + 1]])
                 self.rects[i].set_pos_and_size(
                     self.rects[i - 1].pos().x(),
                     self.rects[i - 1].pos().y(),
@@ -247,20 +232,18 @@ class RectsHandler:
         :param point: The position of the separator.
         """
         sep_index = self.find_separator(moved_separator)
-
         if sep_index is None:
             self.add_separator(moved_separator, point)
         else:
             if (point.y() < self.separators[sep_index][2].y() or
                     (point.y() == self.separators[sep_index][2].y() and
                      point.x() < self.separators[sep_index][2].x())):  # Separator moved upwards
-                self.separators[sep_index][1] = self.update_upwards(self.separators[sep_index][1], point)
+                self.separators[sep_index][1] = self.update_upwards(sep_index, self.separators[sep_index][1], point)
 
             elif (point.y() > self.separators[sep_index][2].y() or
                   (point.y() == self.separators[sep_index][2].y() and
                    point.x() > self.separators[sep_index][2].x())):  # Separator moved downwards
-                self.separators[sep_index][1] = self.update_downwards(self.separators[sep_index][1], point)
-
+                self.separators[sep_index][1] = self.update_downwards(sep_index, self.separators[sep_index][1], point)
             self.separators[sep_index][2] = point
 
     def separator_clicked_on_the_border(self, moved_separator: QGraphicsItem, cursor_point: QPointF,
@@ -288,11 +271,14 @@ class RectsHandler:
                     self.height
                 )
 
+                self.rects[ind].set_background_color(list(self.colors.values())[self.color_indexes[sep_index + 1]])
+
                 self.separators[sep_index][1] -= 1
 
-    def editable_text_changed_slot(self, editable_text_list: list[str]) -> None:
+    def editable_text_changed_slot(self, separator_index: int, editable_text_list: list[str]) -> None:
         """
-        Change the background color of the rect depending on the text values of editable_text_list.
+        Change the background color of the rounded_rect depending on the text values of editable_text_list.
+        :param separator_index:
         :param editable_text_list: A list with the editable descriptor text parts.
         """
         index = 0
@@ -303,6 +289,7 @@ class RectsHandler:
             index = list(self.colors.keys()).index(editable_text_string)
         except ValueError:
             pass
-        """self.color_index = ind
-        self.setBrush(QColor(list(self.colors.values())[ind]))
-        self.update()"""
+
+        self.color_indexes[separator_index + 1] = index
+        self.update_background_color_rects_group(separator_index, index)
+

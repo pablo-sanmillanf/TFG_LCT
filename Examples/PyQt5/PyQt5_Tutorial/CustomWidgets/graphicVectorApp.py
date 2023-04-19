@@ -21,7 +21,7 @@ class Window(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Defining a scene rect of 400x200, with it's origin at 0,0.
+        # Defining a scene rounded_rect of 400x200, with it's origin at 0,0.
         # If we don't set this on creation, we can set it later with .setSceneRect
         self.scene = QGraphicsScene(0, 0, 400, 200)
 
