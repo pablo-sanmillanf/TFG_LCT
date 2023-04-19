@@ -14,7 +14,27 @@ from PyQt5.QtWidgets import (
 
 )
 
-from main_window_aux_items.classifier import TextClassifier
+from main_window_aux_items.classifier import Classifier
+
+COLORS = [
+    "#ff0000",
+    "blue",
+    "blue",
+    "blue",
+    "blue",
+    "green",
+    "green",
+    "green",
+    "green",
+    "white",
+    "white",
+    "white",
+    "white",
+    "yellow",
+    "yellow",
+    "yellow",
+    "yellow"
+]
 
 
 def get_points(tuple_list):
@@ -45,19 +65,12 @@ class Window(QWidget):
         font.setBold(True)
         font.setPointSize(10)
 
-        text = MainText("In this tutorial we'll learn how to use PyQt to create "
-                        "desktop applications with Python. First we'll create a "
-                        "series of simple windows on your desktop to ensure that"
-                        " PyQt is working and introduce some of the basic concepts. <br>"
-                        " Then we'll take a brief look at the event loop and how"
-                        " it relates to GUI programming in Python.", 300, 500, rect)
-        text.setZValue(1)
-        self.scene.addItem(text)
-
-        self.classifier = TextClassifier(500, 20, text.get_points(), rect)
-        custom_pen = QPen(Qt.black)
-        custom_pen.setWidth(2)
-        self.classifier.set_separator_pen(custom_pen)
+        self.classifier = Classifier("In this tutorial we'll learn how to use PyQt to create "
+                                     "desktop applications with Python. First we'll create a "
+                                     "series of simple windows on your desktop to ensure that"
+                                     " PyQt is working and introduce some of the basic concepts. <br>"
+                                     " Then we'll take a brief look at the event loop and how"
+                                     " it relates to GUI programming in Python.", 500, 13, "SD~;SG~", COLORS, rect)
 
         self.buttonS = QPushButton("Split")
         self.buttonS.clicked.connect(self.split_action)
@@ -65,18 +78,25 @@ class Window(QWidget):
         self.buttonJ = QPushButton("Join")
         self.buttonJ.clicked.connect(self.join_action)
 
+        self.buttonA = QPushButton("Action")
+        self.buttonA.clicked.connect(self.action)
+
         hbox = QHBoxLayout(self)
         hbox.addWidget(self.buttonS)
         hbox.addWidget(self.buttonJ)
+        hbox.addWidget(self.buttonA)
         hbox.addWidget(view)
 
         self.setLayout(hbox)
 
     def split_action(self):
-        print("Split", self.classifier.split(100, 300))
+        self.classifier.split(100, 300)
 
     def join_action(self):
-        pass
+        print("Join", self.classifier.join(100, 300))
+
+    def action(self):
+        print(self.classifier.get_text_analyzed())
 
 
 app = QApplication(sys.argv)

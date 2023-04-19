@@ -14,10 +14,12 @@ class MainText(QGraphicsTextItem):
     If these conditions are not met, a malfunction results.
     """
 
-    def __init__(self, text: str, width: float | int, line_height: float | int, parent: QGraphicsItem):
+    def __init__(self, text: str, size: float | int, width: float | int, line_height: float | int,
+                 parent: QGraphicsItem) -> None:
         """
         Create MainText object.
         :param text: The text to represent by the element.
+        :param size: The point size of the text.
         :param width: The maximum width for a line.
         :param line_height: Represents the space between strips in the text. Is a number as a percentage so should be
                             greater than 100
@@ -31,6 +33,14 @@ class MainText(QGraphicsTextItem):
         self.setZValue(1)
         self.line_height = line_height
         self.text = text
+
+        # Add specific format
+        font = self.font()
+        font.setFamily('Times')
+        font.setBold(True)
+        self.setFont(font)
+
+        self.set_text_size(size)
         self.set_text(text)
 
     def set_text(self, text: str) -> None:
@@ -49,6 +59,16 @@ class MainText(QGraphicsTextItem):
         :param width: Maximum width in pixels
         """
         self.setTextWidth(width - 10)
+
+    def set_text_size(self, size: float | int) -> None:
+        """
+        Set the point size of the text. Call this function won't update automatically the positions of the points
+        between the words.
+        :param size: The point size as a number
+        """
+        font = self.font()
+        font.setPointSize(size)
+        self.setFont(font)
 
     def get_words_width(self, text_list: list[str]) -> list[tuple[int | float, str, bool]]:
         """
@@ -111,6 +131,7 @@ class MainText(QGraphicsTextItem):
         points = []
         line_index = 0
         words_start_index = 0
+        break_line_index_offset = 0
         words_width = 2 * horizontal_padding
 
         for i in range(len(self.words_width) - 1):
@@ -119,8 +140,15 @@ class MainText(QGraphicsTextItem):
                 # Add line
                 points.append((
                     vertical_padding + line_vertical_offset * line_index + self.pos().y(),
-                    self.get_x_values(words_start_index, i - 1, True, horizontal_padding, half_space)
+                    self.get_x_values(
+                        words_start_index + break_line_index_offset,
+                        i - 1 + break_line_index_offset,
+                        True, horizontal_padding,
+                        half_space
+                    )
                 ))
+                points[-1][1][-1][1] += "\n"
+                break_line_index_offset += 1
                 line_index += 1
                 words_width = 2 * horizontal_padding
                 words_start_index = i
@@ -135,7 +163,13 @@ class MainText(QGraphicsTextItem):
                     # Add line
                     points.append((
                         vertical_padding + line_vertical_offset * line_index + self.pos().y(),
-                        self.get_x_values(words_start_index, i - 1, False, horizontal_padding, half_space)
+                        self.get_x_values(
+                            words_start_index + break_line_index_offset,
+                            i - 1 + break_line_index_offset,
+                            False,
+                            horizontal_padding,
+                            half_space
+                        )
                     ))
                     line_index += 1
                     words_width = 2 * horizontal_padding + self.words_width[i][0]
@@ -143,10 +177,14 @@ class MainText(QGraphicsTextItem):
 
         points.append((
             vertical_padding + line_vertical_offset * line_index + self.pos().y(),
-            self.get_x_values(words_start_index, len(self.words_width) - 1, True, horizontal_padding, half_space)
+            self.get_x_values(
+                words_start_index + break_line_index_offset,
+                len(self.words_width) - 1,
+                True,
+                horizontal_padding,
+                half_space
+            )
         ))
-        print("\n\n\n", self.words_width)
-        print(points)
         return points
 
     def get_x_values(self, start_index: int, end_index: int, break_line: bool,

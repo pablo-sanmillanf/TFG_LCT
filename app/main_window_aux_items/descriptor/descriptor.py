@@ -59,20 +59,19 @@ class Descriptor(QGraphicsTextItem):
         self.highlighted = False
         self.update_text("", True)
 
-    def copy_text(self) -> tuple[list[str], list[str], int, bool, str]:
+    def copy_text(self) -> tuple[list[str], int, bool, str]:
         """
         Copy the relevant information to set the text behaviour. This configuration should be used to set the
         configuration of another descriptor via "paste_text" function.
         """
         return (
-            self.non_editable_text_list,
             self.editable_text_list,
             self.selected_part,
             self.highlighted,
             self.style
         )
 
-    def paste_text(self, info: tuple[list[str], list[str], int, bool, str]) -> None:
+    def paste_text(self, info: tuple[list[str], int, bool, str]) -> None:
         """
         Paste the relevant information to set the text behaviour. This configuration should come from another
         descriptor. To avoid time-consuming logic, the text only changes if the information is not the same as the
@@ -80,13 +79,12 @@ class Descriptor(QGraphicsTextItem):
 
         :param info: The information to set the text behaviour.
         """
-        if not (self.non_editable_text_list == info[0] and self.editable_text_list == info[1] and
-                self.selected_part == info[2] and self.highlighted == info[3] and self.style == info[4]):
-            self.non_editable_text_list = info[0]
-            self.editable_text_list = info[1]
-            self.selected_part = info[2]
-            self.highlighted = info[3]
-            self.style = info[4]
+        if (self.editable_text_list != info[0] or
+                self.selected_part != info[1] or self.highlighted != info[2] or self.style != info[3]):
+            self.editable_text_list = info[0].copy()
+            self.selected_part = info[1]
+            self.highlighted = info[2]
+            self.style = info[3]
             self.document().setHtml(self.style_editable_text(self.selected_part, self.style))
 
     def get_text_height(self) -> float:

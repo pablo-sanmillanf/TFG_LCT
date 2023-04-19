@@ -23,6 +23,7 @@ class SeparatorEmitter(QObject):
     pos_changed = pyqtSignal(QGraphicsLineItem, QPointF)
     released = pyqtSignal(QGraphicsLineItem)
     clicked_on_the_border = pyqtSignal(QGraphicsLineItem, QPointF, QPointF, QPointF)
+    removed = pyqtSignal(QGraphicsLineItem)
 
 
 class Separator(QGraphicsLineItem):

@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QWidget, QGraphicsItem, QGraphicsRectItem, QStyleOpt
 
 class RoundedRect(QGraphicsRectItem):
     """
-    This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his line_height and
+    This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his text_size and
     the number of QGraphicsRectItem to fill the gap between the associated Separators.
     Assuming the "|" are the separators and the "=" are the rectangles, this is more or less what it will look like:
     |=====================================================================

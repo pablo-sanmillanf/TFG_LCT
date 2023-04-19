@@ -76,7 +76,6 @@ class DescriptorHandler:
     """
     descriptors: list[list[Descriptor | float | float | float]]
     separators: list[list[Separator | int | QPointF]]
-    padding_height: float
 
     def __init__(self, y_offset: int | float, default_text: str, text_size: float | int,
                  points: list[tuple[float | int, tuple[float | int, float | int]]], parent: QGraphicsItem,
@@ -100,7 +99,6 @@ class DescriptorHandler:
             self.font = font
 
         self.descriptors = []
-        self.padding_height = self.get_separator_offsets_height()
 
         for i in range(len(points)):
             desc = Descriptor(default_text, parent, font)
@@ -113,15 +111,16 @@ class DescriptorHandler:
 
         self.set_text_size(text_size)
 
-    def add_separator_listeners(self, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any) -> None:
+    def add_separator_listeners(self, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any,
+                                removed_fn: typing.Any) -> None:
         pos_changed_fn.connect(self.separator_position_changed)
         clicked_on_the_border_fn.connect(self.separator_clicked_on_the_border)
+        removed_fn.connect(self.separator_removed)
 
     def set_descriptor_pos(self, ind):
-        rect = self.descriptors[ind][0].boundingRect()
         self.descriptors[ind][0].setPos(
-            (self.descriptors[ind][3] + self.descriptors[ind][2] - rect.width()) / 2,
-            self.descriptors[ind][1] + self.y_offset + self.padding_height + rect.height()
+            (self.descriptors[ind][3] + self.descriptors[ind][2] - self.descriptors[ind][0].boundingRect().width()) / 2,
+            self.descriptors[ind][1] + self.y_offset
         )
         if self.descriptors[ind][3] == self.descriptors[ind][2]:
             self.descriptors[ind][0].hide()
@@ -133,31 +132,11 @@ class DescriptorHandler:
         Set the default text for this descriptor.
         :param default_text: The default text that will appear in the descriptor.
         """
+        self.default_text = default_text
         for i in range(len(self.descriptors)):
             self.descriptors[i][0].set_default_text(default_text)
 
             self.set_descriptor_pos(i)
-
-    def get_separator_offsets_height(self) -> float:
-        """
-        This function gets the height in pixels of the padding introduced by the QGraphicsTextItem
-        element. To do so,the following system of equations must be solved:
-            - padding + strip + padding = height_1
-            - padding + strip + strip + padding = height_2
-        Those values will be used to place the text
-
-        :return: The padding height introduced by QGraphicsTextItem.
-        """
-        aux = QGraphicsTextItem()
-        aux.setFont(self.font)
-
-        aux.setHtml('<p align="justify">Test</p>')
-        height_1 = aux.boundingRect().height()
-
-        aux.setHtml('<p align="justify">Test<br>Test</p>')
-        height_2 = aux.boundingRect().height()
-
-        return height_1 - height_2 / 2
 
     def set_text_size(self, text_size: float | int) -> None:
         """
@@ -175,12 +154,22 @@ class DescriptorHandler:
         :param font: The font object
         """
         self.font = font
-        self.padding_height = self.get_separator_offsets_height()
 
         for i in range(len(self.descriptors)):
             self.descriptors[i][0].setFont(font)
 
             self.set_descriptor_pos(i)
+
+    def get_descriptor_values(self) -> list[str]:
+        """
+        Obtain the texts descriptors for all the clauses in a list.
+        :return: The list of the texts descriptors.
+        """
+        text_list = []
+        for sep in self.separators:
+            text_list.append(self.descriptors[sep[1]][0].toPlainText())
+        text_list.append(self.descriptors[-1][0].toPlainText())
+        return text_list
 
     def find_separator(self, separator: Separator) -> int:
         for i in range(len(self.separators)):
@@ -346,6 +335,28 @@ class DescriptorHandler:
                 # Update text for this group of descriptors
                 self.descriptors[ind + 1][0].emit_text_changed(False)
 
+    def separator_removed(self, separator: Separator):
+        # Get indexes
+        sep_index = self.find_separator(separator)
+        desc_index = self.separators[sep_index][1]
+
+        # Remove separator and descriptor
+        removed_separator = self.separators.pop(sep_index)
+        removed_descriptor = self.descriptors.pop(desc_index + 1)
+
+        # Update "Last_index_before" for the separators after this separator
+        for e in range(sep_index, len(self.separators)):
+            self.separators[e][1] -= 1
+
+        # Update remaining descriptors
+        self.descriptors[desc_index][3] = removed_descriptor[3]
+        self.set_descriptor_pos(desc_index)
+
+        # Update text for the new group of descriptors
+        self.descriptors[desc_index][0].emit_text_changed(False)
+
+        self.parent.scene().removeItem(removed_descriptor[0])
+
     def text_changed(self, changed_descriptor: Descriptor, text_changed: bool):
         # Find changed descriptor using exponential search
         desc_index = exponentialSearchDescriptors(self.descriptors, changed_descriptor.pos())
@@ -369,6 +380,7 @@ class DescriptorHandler:
         # Update text for the rest of the descriptors of the same group
         for i in range(start, end):
             self.descriptors[i][0].paste_text(self.descriptors[desc_index][0].copy_text())
+            self.set_descriptor_pos(i)
 
         # Emit text changed signal
         if text_changed:

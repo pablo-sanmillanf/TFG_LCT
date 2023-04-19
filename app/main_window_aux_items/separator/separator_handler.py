@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QPen
 from PyQt5.QtWidgets import QGraphicsItem
 
@@ -56,6 +56,13 @@ class SeparatorHandler:
         for tuple_point in self.fixed_points:
             if tuple_point[0] == y_value:
                 return tuple_point[1]
+
+    def get_separator_points(self) -> list[QPointF]:
+        """
+        Return a list with the coordinates of all separators.
+        :return: The list of coordinates
+        """
+        return [sep.pos() for sep in self.separators]
 
     def point_is_occupied(self, x: float, y: float) -> tuple[bool, int]:
         """
@@ -126,7 +133,7 @@ class SeparatorHandler:
                                 return line[1][i], line[0], index - 1
         return None, None, -1
 
-    def add_separator(self, x: float, y: float, is_static: bool) -> Separator | None:
+    def add_separator(self, x: float, y: float, is_static: bool) -> bool:
         """
         Add a separator in the nearest valid position. The two first added separators should be the bottom and upper
         limits for all the rest of the separator.
@@ -154,7 +161,7 @@ class SeparatorHandler:
             real_x, real_y, index = self.find_free_point(x, y)
 
             if (real_x is None and real_y is None) or index == -1:
-                return None
+                return False
 
             # Create needed new elements
             new_separator = Separator(
@@ -178,7 +185,7 @@ class SeparatorHandler:
         self.update_fixed_points_separator(index)
         self.update_fixed_points_separator(index + 2)
 
-        return new_separator
+        return True
 
     def delete_separator(self, x: float, y: float) -> Separator | None:
         """
@@ -198,6 +205,8 @@ class SeparatorHandler:
         self.update_fixed_points_separator(index)
 
         self.parent.scene().removeItem(removed_separator)
+
+        self.emitter.removed.emit(removed_separator)
 
         return removed_separator
 

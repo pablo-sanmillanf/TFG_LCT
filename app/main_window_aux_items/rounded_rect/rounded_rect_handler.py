@@ -12,7 +12,7 @@ from .rounded_rect import RoundedRect
 
 class RoundedRectHandler:
     """
-    This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his line_height and
+    This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his text_size and
     the number of QGraphicsRectItem to fill the gap between the associated Separators.
     Assuming the "|" are the separators and the "=" are the rectangles, this is more or less what it will look like:
     |=====================================================================
@@ -51,9 +51,11 @@ class RoundedRectHandler:
         self.colors = colors
         self.editable_text_changed_slot(-1, [])
 
-    def add_separator_listeners(self, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any) -> None:
+    def add_separator_listeners(self, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any,
+                                removed_fn: typing.Any) -> None:
         pos_changed_fn.connect(self.separator_position_changed)
         clicked_on_the_border_fn.connect(self.separator_clicked_on_the_border)
+        removed_fn.connect(self.separator_removed)
 
     def add_descriptor_listeners(self, editable_text_changed_fn: typing.Any) -> None:
         editable_text_changed_fn.connect(self.editable_text_changed_slot)
@@ -73,6 +75,9 @@ class RoundedRectHandler:
         :param colors: Dict of all available colors and the possibilities for the descriptor
         """
         self.colors = colors
+        self.update_background_color_rects_group(-1, self.color_indexes[0])
+        for i in range(len(self.separators)):
+            self.update_background_color_rects_group(i, self.color_indexes[i + 1])
 
     def update_background_color_rects_group(self, separator_index: int, color_index):
         # Adapt bounds
@@ -245,6 +250,40 @@ class RoundedRectHandler:
                    point.x() > self.separators[sep_index][2].x())):  # Separator moved downwards
                 self.separators[sep_index][1] = self.update_downwards(sep_index, self.separators[sep_index][1], point)
             self.separators[sep_index][2] = point
+
+    def separator_removed(self, separator: Separator):
+        # Get indexes
+        sep_index = self.find_separator(separator)
+        rect_index = self.separators[sep_index][1]
+
+        # Remove separator and descriptor
+        removed_separator = self.separators.pop(sep_index)
+        removed_rect = self.rects.pop(rect_index + 1)
+
+        # Update "Last_index_before" for the separators after this separator
+        for e in range(sep_index, len(self.separators)):
+            self.separators[e][1] -= 1
+
+        # Update remaining rects
+        self.rects[rect_index].set_pos_and_size(
+            self.rects[rect_index].pos().x(),
+            self.rects[rect_index].pos().y(),
+            self.rects[rect_index].rect().width() + removed_rect.rect().width(),
+            self.height
+        )
+
+        self.color_indexes.pop(sep_index + 1)
+
+        if sep_index == len(self.separators):
+            end = len(self.rects)
+        else:
+            end = self.separators[sep_index][1] + 1
+
+        # Update background color for the new group of rects
+        for i in range(rect_index + 1, end):
+            self.rects[i].set_background_color(list(self.colors.values())[self.color_indexes[sep_index]])
+
+        self.parent.scene().removeItem(removed_rect)
 
     def separator_clicked_on_the_border(self, moved_separator: QGraphicsItem, cursor_point: QPointF,
                                         right_point: QPointF, left_point: QPointF) -> None:
