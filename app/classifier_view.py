@@ -1,10 +1,9 @@
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QPointF, QPoint
-from PyQt5.QtGui import QFont, QPen, QPainter
+from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QWidget, QMenu, QAction
 
 from main_window_aux_items.classifier import Classifier
-from main_window_aux_items.main_text import MainText
 
 
 def format_text(text: str) -> str:
@@ -21,11 +20,10 @@ def format_text(text: str) -> str:
     return " ".join(text.replace("\n", " <br> ").split())
 
 
-class CustomView(QGraphicsView):
+class ClassifierView(QGraphicsView):
     """
     This class controls all the behaviour of the QGraphicsItems, the QGraphicsView and the QGraphicsScene.
     """
-    text: MainText
     split_action: QAction
     join_action: QAction
     classifier: Classifier
@@ -71,12 +69,6 @@ class CustomView(QGraphicsView):
         self.items_parent.setOpacity(0)
         self.scene.addItem(self.items_parent)
 
-        self.font = QFont()
-        self.font.setFamily('Times')
-        self.font.setBold(True)
-
-        self.text = MainText(format_text(text), min_width - 2 * x_padding, 300, self.items_parent)
-
         self.classifier = Classifier(
             format_text(text),
             min_width - 2 * x_padding,
@@ -85,12 +77,6 @@ class CustomView(QGraphicsView):
             colors,
             self.items_parent
         )
-
-        self.set_text_size(text_size)
-
-        custom_pen = QPen(Qt.black)
-        custom_pen.setWidth(5)
-        self.set_separator_style(custom_pen)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.on_context_menu)
@@ -113,10 +99,10 @@ class CustomView(QGraphicsView):
 
         self.context_menu_pos = pos
         self.join_action.setEnabled(
-            self.classifier.point_is_occupied(
+            self.classifier.there_is_a_separator(
                 pos.x() - self.items_parent.pos().x(),
                 pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset + self.verticalScrollBar().value()
-            )[0]
+            )
         )
 
         context = QMenu(self)
@@ -129,26 +115,20 @@ class CustomView(QGraphicsView):
         Return the text size.
         :return: The text size as a number.
         """
-        return self.text.font().pointSize()
-
-    def set_separator_style(self, pen: QPen) -> None:
-        """
-        Set pen for all the separators and adjust multiline rects offset to the pen width
-        :param pen: The pen.
-        """
-        self.classifier.set_separator_pen(pen)
-        self.classifier.set_multiline_rects_offset(pen.widthF() / 4)
+        return self.classifier.get_text_size()
 
     def split(self) -> None:
         """
         Splits the nearest rectangle to the self.context_menu_pos in two, placing a separator where
         the split has been made.
         """
-        self.classifier.split(
+        """self.classifier.split(
             self.context_menu_pos.x() - self.items_parent.pos().x(),
             self.context_menu_pos.y() - self.items_parent.pos().y() +
             self.global_pos_y_offset + self.verticalScrollBar().value()
-        )
+        )"""
+        while self.classifier.split(10, 10):
+            pass
 
     def join(self) -> None:
         """
@@ -165,20 +145,19 @@ class CustomView(QGraphicsView):
         Set the text to be analyzed.
         :param text: The text that will appear.
         """
-        self.text.set_text(format_text(text))
-        self.classifier.reset(self.text.get_points())
+        self.classifier.set_text(format_text(text))
 
         # Set text size
         self.scene.setSceneRect(
             0,
             0,
             self.size().width(),
-            self.items_parent.pos().y() + self.text.boundingRect().height()
+            self.items_parent.pos().y() + self.classifier.get_text_item_height()
         )
 
     def set_text_size(self, text_size: float | int) -> None:
         """
-        Set the text size. Also, the height of the separators and the rects and the text size of the descriptors_handler is
+        Set the text size. Also, the height of the separators and the rects and the text size of the descriptors is
         changed.
         :param text_size: The text size as a number.
         """
@@ -257,7 +236,7 @@ class CustomView(QGraphicsView):
 
     def set_default_descriptor(self, default_descriptor: str, colors: list[str]) -> None:
         """
-        Set the default descriptor for all the descriptors_handler. Should contain one or more "~" characters. The list of
+        Set the default descriptor for all the descriptors. Should contain one or more "~" characters. The list of
         colors will be the colors that the rounded rects will have depending on the value of the descriptor. The length
         of this list should be the same as the possible combinations of the descriptor text plus one (the default one).
         Also, the colors list should be of any HTML valid color.

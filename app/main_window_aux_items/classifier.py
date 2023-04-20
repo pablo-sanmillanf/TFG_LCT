@@ -127,6 +127,13 @@ class Classifier:
         """
         return self.descriptors_handler.default_text
 
+    def get_text_size(self) -> int | float:
+        """
+        Return the text size.
+        :return: The text size as a number.
+        """
+        return self.text.font().pointSize()
+
     def split(self, x: float, y: float) -> bool:
         """
         Splits the nearest rectangle to the given coordinates in two, placing a separator where
@@ -146,12 +153,27 @@ class Classifier:
         :return: True if success, False if error. There can be a mistake if the coordinates
                  are out of bounds or if in the given coordinates there is no separator
         """
-        removed_separator = self.sep_handler.delete_separator(x, y)
+        return self.sep_handler.delete_separator(x, y)
 
-        if removed_separator is None:
-            return False
+    def there_is_a_separator(self, x: float, y: float) -> bool:
+        """
+        Check if the given point is occupied by existing separator. Should be called when no Separator is moved. Should
+        be called when exist at least one Separator.
+        :param x: The x coordinate
+        :param y: The y coordinate
+        :return: True if the point is occupied by a separator, False if not.
+        """
+        is_occupied, index = self.sep_handler.point_is_occupied(x, y)
+        if is_occupied and (index != 0 and index != len(self.sep_handler.separators) - 1):
+            return True
+        return False
 
-        return True
+    def get_text_item_height(self) -> float:
+        """
+        This function return the number of pixels that will occupy vertically the text item
+        :return: The number of pixels that will occupy the text item
+        """
+        return self.text.boundingRect().height()
 
     def get_text_classified(self) -> list[str]:
         """
@@ -197,3 +219,23 @@ class Classifier:
         for i in range(len(descriptors_list)):
             analyzed_text.append((text_list[i], descriptors_list[i]))
         return analyzed_text
+
+    def set_text(self, text) -> None:
+        """
+        Set the text to be analyzed.
+        :param text: The text that will appear.
+        """
+        self.text.set_text(text)
+        self.fixed_points = self.text.get_points()
+
+        self.sep_handler.delete_all_separators()
+        self.sep_handler.fixed_points = self.fixed_points
+        self.sep_handler.add_separator(self.fixed_points[0][1][0], self.fixed_points[0][0], True)
+        self.sep_handler.add_separator(self.fixed_points[-1][1][-1], self.fixed_points[-1][0], True)
+
+        limit_points = obtain_limit_points(self.fixed_points)
+
+        self.rects_handler.set_points(limit_points)
+        self.descriptors_handler.set_points(limit_points)
+
+

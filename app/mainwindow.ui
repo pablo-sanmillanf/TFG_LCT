@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="TextHandler" name="textHandler"/>
+     <widget class="ClassifierView" name="classifierView"/>
     </item>
    </layout>
   </widget>
@@ -154,9 +154,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>TextHandler</class>
+   <class>ClassifierView</class>
    <extends>QGraphicsView</extends>
-   <header>text_handler</header>
+   <header>classifier_view</header>
   </customwidget>
  </customwidgets>
  <resources/>

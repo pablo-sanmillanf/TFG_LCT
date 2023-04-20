@@ -254,7 +254,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.conf_has_changed = False
 
-        self.textHandler.setup(
+        self.classifierView.setup(
             10,
             10,
             500,
@@ -289,21 +289,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
                 self.open_file_dialog(True)
             else:
-                self.textHandler.set_text(text)
+                self.classifierView.set_text(text)
 
     def text_size_dialog(self, s: bool) -> None:
         value, ok = QInputDialog().getInt(
             self,
             "Change text size",
             "Text size:",
-            self.textHandler.get_text_size(),
+            self.classifierView.get_text_size(),
             4,  # Min value
             30,  # Max value
             1  # Step
         )
 
         if ok:
-            self.textHandler.set_text_size(value)
+            self.classifierView.set_text_size(value)
             self.conf["text_size"] = value
             self.conf_has_changed = True
 
@@ -313,18 +313,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if dlg.has_changed:
             self.conf["colors"] = dlg.colors
-            if self.textHandler.get_default_descriptor() == "SD~;SG~":
-                self.textHandler.set_colors(list(self.conf["colors"]["together"].values()))
+            if self.classifierView.get_default_descriptor() == "SD~;SG~":
+                self.classifierView.set_colors(list(self.conf["colors"]["together"].values()))
             else:
-                self.textHandler.set_colors(list(self.conf["colors"]["alone"].values()))
+                self.classifierView.set_colors(list(self.conf["colors"]["alone"].values()))
             self.conf_has_changed = True
 
     def target_action(self, text: str) -> None:
-        if text != self.textHandler.get_default_descriptor():
+        if text != self.classifierView.get_default_descriptor():
             if text == "SD~;SG~":
-                self.textHandler.set_default_descriptor(text, list(self.conf["colors"]["together"].values()))
+                self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["together"].values()))
             else:
-                self.textHandler.set_default_descriptor(text, list(self.conf["colors"]["alone"].values()))
+                self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["alone"].values()))
 
     def run_graph_window(self, s: bool) -> None:
         if self.graph_window is None:

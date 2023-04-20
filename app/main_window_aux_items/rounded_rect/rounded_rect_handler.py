@@ -38,7 +38,6 @@ class RoundedRectHandler:
         """
         self.height = height
         self.radius = radius
-        self.points = points
         self.parent = parent
         self.rects = []
 
@@ -60,12 +59,45 @@ class RoundedRectHandler:
     def add_descriptor_listeners(self, editable_text_changed_fn: typing.Any) -> None:
         editable_text_changed_fn.connect(self.editable_text_changed_slot)
 
-    def update_points(self) -> None:
+    def set_points(self, points) -> None:
         """
         Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
         resizing the window.
         """
-        pass
+        if len(points) > len(self.rects):  # We need to create more rects
+            i = 0
+            for i in range(len(self.rects)):
+                self.rects[i].set_pos_and_size(
+                    points[i][1][0],
+                    points[i][0],
+                    points[i][1][1] - points[i][1][0],
+                    self.height
+                )
+            for e in range(i + 1, len(points)):
+                self.rects.append(RoundedRect(
+                    points[e][1][0], points[e][0],
+                    points[e][1][1] - points[e][1][0],
+                    self.height,
+                    self.radius,
+                    self.parent)
+                )
+        else:  # We need to delete part of existing rects
+            i = 0
+            for i in range(len(points)):
+                self.rects[i].set_pos_and_size(
+                    points[i][1][0],
+                    points[i][0],
+                    points[i][1][1] - points[i][1][0],
+                    self.height
+                )
+            for _ in range(i + 1, len(self.rects)):
+                removed_rect = self.rects.pop()
+                self.parent.scene().removeItem(removed_rect)
+
+        self.color_indexes.clear()
+        self.color_indexes.append(0)
+        self.separators.clear()
+        self.editable_text_changed_slot(-1, [])
 
     def set_colors(self, colors: dict[str, str]) -> None:
         """

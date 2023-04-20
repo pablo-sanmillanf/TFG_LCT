@@ -117,6 +117,43 @@ class DescriptorHandler:
         clicked_on_the_border_fn.connect(self.separator_clicked_on_the_border)
         removed_fn.connect(self.separator_removed)
 
+    def set_points(self, points) -> None:
+        """
+        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
+        resizing the window.
+        """
+        print(len(self.descriptors))
+        self.separators.clear()
+
+        if len(points) > len(self.descriptors):  # We need to create more descriptors
+            i = 0
+            for i in range(len(self.descriptors)):
+                self.descriptors[i][0].set_default_text(self.default_text)
+                self.descriptors[i][1] = points[i][0]
+                self.descriptors[i][2] = points[i][1][0]
+                self.descriptors[i][3] = points[i][1][1]
+                self.set_descriptor_pos(i)
+            for e in range(i + 1, len(points)):
+                desc = Descriptor(self.default_text, self.parent, self.font)
+                # [Descriptor, Y_Value_Without_Offset, Left_X_Value, Right_X_Value]
+                self.descriptors.append([desc, points[e][0], points[e][1][0], points[e][1][-1]])
+                self.set_descriptor_pos(e)
+                desc.editable_text_changed.connect(self.text_changed)
+
+        else:  # We need to delete part of existing descriptors
+            i = 0
+            for i in range(len(points)):
+                self.descriptors[i][0].set_default_text(self.default_text)
+                self.descriptors[i][1] = points[i][0]
+                self.descriptors[i][2] = points[i][1][0]
+                self.descriptors[i][3] = points[i][1][1]
+                self.set_descriptor_pos(i)
+            for _ in range(i + 1, len(self.descriptors)):
+                removed_descriptor = self.descriptors.pop()
+                self.parent.scene().removeItem(removed_descriptor[0])
+
+        print(len(self.descriptors))
+
     def set_descriptor_pos(self, ind):
         self.descriptors[ind][0].setPos(
             (self.descriptors[ind][3] + self.descriptors[ind][2] - self.descriptors[ind][0].boundingRect().width()) / 2,

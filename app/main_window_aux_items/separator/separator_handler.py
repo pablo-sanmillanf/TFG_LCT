@@ -66,13 +66,13 @@ class SeparatorHandler:
 
     def point_is_occupied(self, x: float, y: float) -> tuple[bool, int]:
         """
-        Check if the given point is occupied by existing separator and return the ind of separator. Should be called
+        Check if the given point is occupied by existing separator and return the index of separator. Should be called
         when no Separator is moved. Should be called when exist at least one Separator.
         :param x: The x coordinate
         :param y: The y coordinate
         :return: A tuple. The first element is True if the point is occupied, False if not. The second element is the
-        ind of the separator if the position is occupied. If the position is not occupied, this second element will
-        be the ind of the separator before. A -1 will show an error.
+        index of the separator if the position is occupied. If the position is not occupied, this second element will
+        be the index of the separator before. A -1 will show an error.
         """
         # Find nearest available point
         real_y = find_nearest_point(self.get_y_values(), y)
@@ -101,7 +101,7 @@ class SeparatorHandler:
         The search goes from left to right and from up to down.
         :param x: The x coordinate
         :param y: The y coordinate
-        :return: The same point if is free or new point if it is busy and the ind of the previous separator. If there
+        :return: The same point if is free or new point if it is busy and the index of the previous separator. If there
                  are no points available, this function will return (None, None, -1)
         """
         # This auxiliary variable will reduce the search because all the separators with lower
@@ -153,7 +153,7 @@ class SeparatorHandler:
                 real_y,
                 self.height,
                 self.fixed_points,
-                self.emitter,
+                None,
                 self.parent
 
             )
@@ -187,17 +187,17 @@ class SeparatorHandler:
 
         return True
 
-    def delete_separator(self, x: float, y: float) -> Separator | None:
+    def delete_separator(self, x: float, y: float) -> bool:
         """
         Remove a separator.
         :param x: The x coordinate
         :param y: The y coordinate
-        :return: The created separator if success, None if error. There can be an error if the coordinates
-                 are out of bounds or if in the given coordinates there is no separator
+        :return: True if success, False if error. There can be an error if the coordinates are out of bounds or if in
+                 the given coordinates there is no separator
         """
         is_occupied, index = self.point_is_occupied(x, y)
         if not is_occupied:
-            return None
+            return False
 
         removed_separator = self.separators.pop(index)
 
@@ -208,7 +208,7 @@ class SeparatorHandler:
 
         self.emitter.removed.emit(removed_separator)
 
-        return removed_separator
+        return True
 
     def delete_all_separators(self) -> None:
         """

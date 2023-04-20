@@ -19,9 +19,9 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.textHandler = TextHandler(self.centralwidget)
-        self.textHandler.setObjectName("textHandler")
-        self.horizontalLayout.addWidget(self.textHandler)
+        self.classifierView = ClassifierView(self.centralwidget)
+        self.classifierView.setObjectName("classifierView")
+        self.horizontalLayout.addWidget(self.classifierView)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 490, 22))
@@ -111,4 +111,4 @@ class Ui_MainWindow(object):
         self.actionSG.setText(_translate("MainWindow", "SG"))
         self.actionSD.setText(_translate("MainWindow", "SD"))
         self.actionSD_SG.setText(_translate("MainWindow", "SD/SG"))
-from text_handler import TextHandler
+from classifier_view import ClassifierView

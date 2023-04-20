@@ -136,7 +136,8 @@ class Separator(QGraphicsLineItem):
         This function is used to notify the position of the Separator. It's an internal function. If the use of this
         function is needed externally, should be called when the Separator is not moving.
         """
-        self.emitter.pos_changed.emit(self, self.pos())
+        if self.emitter is not None:
+            self.emitter.pos_changed.emit(self, self.pos())
 
     def emit_clicked_on_the_border(self, cursor_pos: QPointF) -> None:
         """
@@ -144,8 +145,9 @@ class Separator(QGraphicsLineItem):
         the border. It's an internal function. If the use of this function is needed externally, should be called when
         the Separator is not moving.
         """
-        lock = QMutexLocker(self.mutex)
-        self.emitter.clicked_on_the_border.emit(self, cursor_pos, self.complete_pos(False), self.complete_pos(True))
+        if self.emitter is not None:
+            lock = QMutexLocker(self.mutex)
+            self.emitter.clicked_on_the_border.emit(self, cursor_pos, self.complete_pos(False), self.complete_pos(True))
 
     def is_on_the_border(self) -> bool:
         """
@@ -393,4 +395,5 @@ class Separator(QGraphicsLineItem):
         # Execute super function to allow correct object behaviour
         super().mouseReleaseEvent(event)
 
-        self.emitter.released.emit(self)
+        if self.emitter is not None:
+            self.emitter.released.emit(self)
