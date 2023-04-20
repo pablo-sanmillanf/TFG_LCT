@@ -87,39 +87,6 @@ class Descriptor(QGraphicsTextItem):
             self.style = info[3]
             self.document().setHtml(self.style_editable_text(self.selected_part, self.style))
 
-    def get_text_height(self) -> float:
-        """
-        This function gets the height in pixels of the text item with the given font.
-        :return: The height that occupies the text
-        """
-        aux = QGraphicsTextItem()
-        aux.setFont(self.font())
-
-        aux.setHtml('<p align="justify">Test</p>')
-
-        return aux.boundingRect().height()
-
-    def get_separator_offsets_height(self) -> float:
-        """
-        This function gets the height in pixels of the padding introduced by the QGraphicsTextItem
-        element. To do so,the following system of equations must be solved:
-            - padding + strip + padding = height_1
-            - padding + strip + strip + padding = height_2
-        Those values will be used to place the text
-
-        :return: The padding height introduced by QGraphicsTextItem.
-        """
-        aux = QGraphicsTextItem()
-        aux.setFont(self.font())
-
-        aux.setHtml('<p align="justify">Test</p>')
-        height_1 = aux.boundingRect().height()
-
-        aux.setHtml('<p align="justify">Test<br>Test</p>')
-        height_2 = aux.boundingRect().height()
-
-        return height_1 - height_2 / 2
-
     def update_text(self, style: str, text_changed: bool) -> None:
         """
         Update the content of the QTextDocument with the info in self.editable_text_list and

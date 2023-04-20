@@ -1,5 +1,5 @@
 import numpy as np
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPointF
 
 from app.main_window_aux_items.rounded_rect.rounded_rect_handler import RoundedRectHandler
 from PyQt5.QtGui import QPen
@@ -45,6 +45,15 @@ def obtain_limit_points(points):
     return [(line[0], (line[1][0], line[1][-1])) for line in points]
 
 
+def obtain_points(complete_points: list[tuple[float, list[list[float, str]]]]) -> list[tuple[float, list[float]]]:
+    """
+    Extract from the complex structure that returns MainText object, the list of points with this structure:
+    [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+    :return: The list with the points
+    """
+    return [(i[0], [e[0] for e in i[1]]) for i in complete_points]
+
+
 class Classifier:
     """
     This class controls all the behaviour of the QGraphicsItems associated with the graphical text
@@ -62,7 +71,7 @@ class Classifier:
         """
         self.text = MainText(text, text_size, text_width, 300, parent)
 
-        self.fixed_points = self.text.get_points()
+        self.fixed_points = obtain_points(self.text.get_complete_points())
 
         # Set separators
         self.sep_handler = SeparatorHandler(text_size * 2, self.fixed_points, parent)
@@ -168,6 +177,42 @@ class Classifier:
             return True
         return False
 
+    def repositioning_separators(self, text_list: list[str]) -> None:
+        """
+        Reposition the separators to fit the new text format. The positions that the separators will occupy will be
+        such that the groups of words that form these separators will be the same.
+        :param text_list: A list with the groups of words made by the separators.
+        """
+        text_list_index = 0
+        complete_point_list = self.text.get_complete_points()
+        self.fixed_points = obtain_points(complete_point_list)
+        limit_points = obtain_limit_points(self.fixed_points)
+        separator_points = [QPointF(complete_point_list[0][1][0][0], complete_point_list[0][0])]
+        aux_text = ""
+
+        for y_index in range(len(complete_point_list)):
+            for x_index in range(len(complete_point_list[y_index][1])):
+                if complete_point_list[y_index][1][x_index][1] != '':
+                    aux_text += (complete_point_list[y_index][1][x_index][1] + " ")
+
+                    # Do the comparison without the last space character
+                    if aux_text[:-1] not in text_list[text_list_index]:
+                        text_list_index += 1
+                        aux_text = complete_point_list[y_index][1][x_index][1] + " "
+                        separator_points.append(
+                            QPointF(complete_point_list[y_index][1][x_index][0], complete_point_list[y_index][0])
+                        )
+        # Add last element
+        separator_points.append(
+            QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0])
+        )
+
+        self.rects_handler.set_points(limit_points)
+        self.descriptors_handler.set_points(limit_points)
+
+        self.sep_handler.fixed_points = self.fixed_points
+        self.sep_handler.set_separator_points(separator_points)
+
     def get_text_item_height(self) -> float:
         """
         This function return the number of pixels that will occupy vertically the text item
@@ -226,7 +271,7 @@ class Classifier:
         :param text: The text that will appear.
         """
         self.text.set_text(text)
-        self.fixed_points = self.text.get_points()
+        self.fixed_points = obtain_points(self.text.get_complete_points())
 
         self.sep_handler.delete_all_separators()
         self.sep_handler.fixed_points = self.fixed_points
@@ -236,6 +281,38 @@ class Classifier:
         limit_points = obtain_limit_points(self.fixed_points)
 
         self.rects_handler.set_points(limit_points)
-        self.descriptors_handler.set_points(limit_points)
+        self.descriptors_handler.set_points_for_new_text(limit_points)
 
+    def set_text_size(self, text_size: float | int) -> None:
+        """
+        Set the text size. Also, the height of the separators and the rects and the text size of the descriptors is
+        changed.
+        :param text_size: The text size as a number.
+        """
+        # Save text_list from the original text_size to reposition all the separators
+        text_list_previous_size = self.get_text_classified()
 
+        # Set text size
+        self.text.set_text_size(text_size)
+
+        # Change rects, separators and descriptors_handler height
+        custom_pen = QPen(Qt.black)
+        custom_pen.setWidth(max(1, int(text_size / 2.5)))
+        self.sep_handler.set_separator_pen(custom_pen)
+        self.sep_handler.set_separator_height(text_size * 2)
+
+        self.rects_handler.set_height_and_radius(text_size * 2, text_size / 2)
+        self.descriptors_handler.set_y_offset_and_text_size(text_size * 2.4, text_size * 2 / 3)
+
+        # Reposition separators to the new text size
+        self.repositioning_separators(text_list_previous_size)
+
+    def set_width(self, width: float) -> None:
+        # Save text_list from the original text_size to reposition all the separators
+        text_list_previous_size = self.get_text_classified()
+
+        # Set text width
+        self.text.set_width(width)
+
+        # Reposition separators to the new text size
+        self.repositioning_separators(text_list_previous_size)

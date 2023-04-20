@@ -133,16 +133,20 @@ class MainText(QGraphicsTextItem):
         words_start_index = 0
         break_line_index_offset = 0
         words_width = 2 * horizontal_padding
+        skip = False
 
         for i in range(len(self.words_width) - 1):
-            if self.words_width[i][0] == -1:  # Break line
+            if skip:
+                skip = False
+                continue
+            elif self.words_width[i][0] == -1:  # Break line
 
                 # Add line
                 points.append((
                     vertical_padding + line_vertical_offset * line_index + self.pos().y(),
                     self.get_x_values(
-                        words_start_index + break_line_index_offset,
-                        i - 1 + break_line_index_offset,
+                        words_start_index,
+                        i - 1,
                         True, horizontal_padding,
                         half_space
                     )
@@ -150,8 +154,9 @@ class MainText(QGraphicsTextItem):
                 points[-1][1][-1][1] += "\n"
                 break_line_index_offset += 1
                 line_index += 1
-                words_width = 2 * horizontal_padding
-                words_start_index = i
+                words_width = 2 * horizontal_padding + self.words_width[i + 1][0]
+                words_start_index = i + 1
+                skip = True
             else:
                 if self.words_width[i - 1][2]:  # If current string is part of a string with BREAK_LINE_CHARACTERS
                     words_width += self.words_width[i][0]
@@ -164,8 +169,8 @@ class MainText(QGraphicsTextItem):
                     points.append((
                         vertical_padding + line_vertical_offset * line_index + self.pos().y(),
                         self.get_x_values(
-                            words_start_index + break_line_index_offset,
-                            i - 1 + break_line_index_offset,
+                            words_start_index,
+                            i - 1,
                             False,
                             horizontal_padding,
                             half_space
@@ -178,7 +183,7 @@ class MainText(QGraphicsTextItem):
         points.append((
             vertical_padding + line_vertical_offset * line_index + self.pos().y(),
             self.get_x_values(
-                words_start_index + break_line_index_offset,
+                words_start_index,
                 len(self.words_width) - 1,
                 True,
                 horizontal_padding,
@@ -293,15 +298,6 @@ class MainText(QGraphicsTextItem):
         padding = height_1 - (height_2 / 2)
 
         return padding, strip_plus_line_spacing
-
-    def get_points(self) -> list[tuple[float, list[float]]]:
-        """
-        Return the list of points with this structure:
-        [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
-        :return: The list with the points
-        """
-        points = self.get_complete_points()
-        return [(i[0], [e[0] for e in i[1]]) for i in points]
 
     def setFont(self, font: QtGui.QFont) -> None:
         """

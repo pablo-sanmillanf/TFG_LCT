@@ -40,6 +40,11 @@ class SeparatorHandler:
         for separator in self.separators:
             separator.setPen(pen)
 
+    def set_separator_height(self, height: float) -> None:
+        self.height = height
+        for separator in self.separators:
+            separator.set_height(height)
+
     def get_y_values(self):
         """
         Return y values from self.fixed_points structure
@@ -63,6 +68,18 @@ class SeparatorHandler:
         :return: The list of coordinates
         """
         return [sep.pos() for sep in self.separators]
+
+    def set_separator_points(self, points: list[QPointF]) -> None:
+        """
+        Set the coordinates of all separators with the given QPointF list.
+        :param points: The points list.
+        """
+        if len(points) != len(self.separators):
+            raise RuntimeError("There are not the same points as separators in set_separator_points() function")
+
+        for i in range(len(points)):
+            self.separators[i].fixed_points = self.fixed_points
+            self.separators[i].setPos(points[i])
 
     def point_is_occupied(self, x: float, y: float) -> tuple[bool, int]:
         """

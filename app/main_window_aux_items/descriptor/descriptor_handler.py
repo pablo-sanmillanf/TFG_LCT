@@ -117,18 +117,24 @@ class DescriptorHandler:
         clicked_on_the_border_fn.connect(self.separator_clicked_on_the_border)
         removed_fn.connect(self.separator_removed)
 
+    def set_points_for_new_text(self, points) -> None:
+        """
+        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
+        resizing the window.
+        """
+        self.set_points(points)
+        self.descriptors[0][0].set_default_text(self.default_text)
+
     def set_points(self, points) -> None:
         """
         Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
         resizing the window.
         """
-        print(len(self.descriptors))
         self.separators.clear()
 
         if len(points) > len(self.descriptors):  # We need to create more descriptors
             i = 0
             for i in range(len(self.descriptors)):
-                self.descriptors[i][0].set_default_text(self.default_text)
                 self.descriptors[i][1] = points[i][0]
                 self.descriptors[i][2] = points[i][1][0]
                 self.descriptors[i][3] = points[i][1][1]
@@ -143,7 +149,6 @@ class DescriptorHandler:
         else:  # We need to delete part of existing descriptors
             i = 0
             for i in range(len(points)):
-                self.descriptors[i][0].set_default_text(self.default_text)
                 self.descriptors[i][1] = points[i][0]
                 self.descriptors[i][2] = points[i][1][0]
                 self.descriptors[i][3] = points[i][1][1]
@@ -151,8 +156,6 @@ class DescriptorHandler:
             for _ in range(i + 1, len(self.descriptors)):
                 removed_descriptor = self.descriptors.pop()
                 self.parent.scene().removeItem(removed_descriptor[0])
-
-        print(len(self.descriptors))
 
     def set_descriptor_pos(self, ind):
         self.descriptors[ind][0].setPos(
@@ -174,6 +177,10 @@ class DescriptorHandler:
             self.descriptors[i][0].set_default_text(default_text)
 
             self.set_descriptor_pos(i)
+
+    def set_y_offset_and_text_size(self, y_offset: float, text_size: float) -> None:
+        self.y_offset = y_offset
+        self.set_text_size(text_size)
 
     def set_text_size(self, text_size: float | int) -> None:
         """
@@ -378,7 +385,7 @@ class DescriptorHandler:
         desc_index = self.separators[sep_index][1]
 
         # Remove separator and descriptor
-        removed_separator = self.separators.pop(sep_index)
+        self.separators.pop(sep_index)
         removed_descriptor = self.descriptors.pop(desc_index + 1)
 
         # Update "Last_index_before" for the separators after this separator

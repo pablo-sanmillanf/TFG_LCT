@@ -59,11 +59,19 @@ class RoundedRectHandler:
     def add_descriptor_listeners(self, editable_text_changed_fn: typing.Any) -> None:
         editable_text_changed_fn.connect(self.editable_text_changed_slot)
 
-    def set_points(self, points) -> None:
+    def set_height_and_radius(self, height: float, radius: float) -> None:
+        self.height = height
+        self.radius = radius
+        for rect in self.rects:
+            rect.set_radius(radius)
+            rect.set_pos_and_size(rect.pos().x(), rect.pos().y(), rect.rect().width(), self.height)
+
+    def set_points(self, points: list[tuple[float, tuple[float, float]]]) -> None:
         """
         Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
         resizing the window.
         """
+        self.separators.clear()
         if len(points) > len(self.rects):  # We need to create more rects
             i = 0
             for i in range(len(self.rects)):
@@ -96,7 +104,6 @@ class RoundedRectHandler:
 
         self.color_indexes.clear()
         self.color_indexes.append(0)
-        self.separators.clear()
         self.editable_text_changed_slot(-1, [])
 
     def set_colors(self, colors: dict[str, str]) -> None:

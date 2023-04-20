@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QPointF, QPoint
+from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QWidget, QMenu, QAction
 
@@ -122,13 +122,11 @@ class ClassifierView(QGraphicsView):
         Splits the nearest rectangle to the self.context_menu_pos in two, placing a separator where
         the split has been made.
         """
-        """self.classifier.split(
+        self.classifier.split(
             self.context_menu_pos.x() - self.items_parent.pos().x(),
             self.context_menu_pos.y() - self.items_parent.pos().y() +
             self.global_pos_y_offset + self.verticalScrollBar().value()
-        )"""
-        while self.classifier.split(10, 10):
-            pass
+        )
 
     def join(self) -> None:
         """
@@ -163,24 +161,14 @@ class ClassifierView(QGraphicsView):
         """
         self.global_pos_y_offset = -text_size
 
-        # Save text_list from the original text_size to reposition all the separators
-        text_list_previous_size = self.get_text_classified()
+        self.classifier.set_text_size(text_size)
 
-        # Set text size
-        self.font.setPointSize(text_size)
-        self.text.setFont(self.font)
         self.scene.setSceneRect(
             0,
             0,
             self.size().width(),
-            self.items_parent.pos().y() + self.text.boundingRect().height()
+            self.items_parent.pos().y() + self.classifier.get_text_item_height()
         )
-
-        # Change rects, separators and descriptors_handler height
-        self.classifier.set_line_height(text_size * 2)
-
-        # Reposition separators to the new text size
-        self.set_separators_reposition(text_list_previous_size)
 
     def get_text_analyzed(self) -> list[tuple[str, str]]:
         """
@@ -196,36 +184,6 @@ class ClassifierView(QGraphicsView):
         :return: A list with a group of words per element.
         """
         return self.classifier.get_text_classified()
-
-    def set_separators_reposition(self, text_list: list[str]) -> None:
-        """
-        Reposition the separators to fit the new text format. The positions that the separators will occupy will be
-        such that the groups of words that form these separators will be the same.
-        :param text_list: A list with the groups of words made by the separators.
-        """
-        text_list_index = 0
-        complete_point_list = self.text.get_complete_points()
-        separator_points = [QPointF(complete_point_list[0][1][0][0], complete_point_list[0][0])]
-        aux_text = ""
-
-        for y_index in range(len(complete_point_list)):
-            for x_index in range(len(complete_point_list[y_index][1])):
-                if complete_point_list[y_index][1][x_index][1] != '':
-                    aux_text += (complete_point_list[y_index][1][x_index][1] + " ")
-
-                    # Do the comparison without the last space character
-                    if aux_text[:-1] not in text_list[text_list_index]:
-                        text_list_index += 1
-                        aux_text = complete_point_list[y_index][1][x_index][1] + " "
-                        separator_points.append(
-                            QPointF(complete_point_list[y_index][1][x_index][0], complete_point_list[y_index][0])
-                        )
-        # Add last element
-        separator_points.append(
-            QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0])
-        )
-
-        self.classifier.update_general_fixed_points_and_separators_pos(self.text.get_points(), separator_points)
 
     def get_default_descriptor(self) -> str:
         """
@@ -261,3 +219,15 @@ class ClassifierView(QGraphicsView):
         :param event: The ResizeEvent object.
         """
         super().resizeEvent(event)
+        if event.size().width() != event.oldSize().width():
+            real_width = event.size().width() - 2 * self.items_parent.pos().x()
+
+            # Set text width
+            self.classifier.set_width(real_width)
+
+            self.scene.setSceneRect(
+                0,
+                0,
+                self.size().width(),
+                self.items_parent.pos().y() + self.classifier.get_text_item_height()
+            )

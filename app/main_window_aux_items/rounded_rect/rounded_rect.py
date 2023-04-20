@@ -39,6 +39,13 @@ class RoundedRect(QGraphicsRectItem):
         self.setBrush(QColor(color))
         self.update()
 
+    def set_radius(self, radius: float) -> None:
+        """
+        Set the radius of the rounded rect.
+        :param radius: The radius in pixels
+        """
+        self.radius = radius
+
     def set_pos_and_size(self, x: float | int, y: float | int, width: float | int, height: float | int):
         """
         Set the position and the size of the rounded_rect.
