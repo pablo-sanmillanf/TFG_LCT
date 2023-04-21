@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtCore import Qt, QPoint, QTimerEvent
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QWidget, QMenu, QAction
 
@@ -34,6 +34,8 @@ class ClassifierView(QGraphicsView):
         :param parent: The QWidget parent object.
         """
         super().__init__(parent)
+        self.timerId = 0
+        self.real_width = 0
         self.scene = None
         self.items_parent = None
         self.font = None
@@ -122,11 +124,13 @@ class ClassifierView(QGraphicsView):
         Splits the nearest rectangle to the self.context_menu_pos in two, placing a separator where
         the split has been made.
         """
-        self.classifier.split(
+        """self.classifier.split(
             self.context_menu_pos.x() - self.items_parent.pos().x(),
             self.context_menu_pos.y() - self.items_parent.pos().y() +
             self.global_pos_y_offset + self.verticalScrollBar().value()
-        )
+        )"""
+        while self.classifier.split(10, 10):
+            pass
 
     def join(self) -> None:
         """
@@ -220,14 +224,22 @@ class ClassifierView(QGraphicsView):
         """
         super().resizeEvent(event)
         if event.size().width() != event.oldSize().width():
-            real_width = event.size().width() - 2 * self.items_parent.pos().x()
+            self.real_width = event.size().width() - 2 * self.items_parent.pos().x()
+            if self.timerId:
+                self.killTimer(self.timerId)
+                self.timerId = 0
 
-            # Set text width
-            self.classifier.set_width(real_width)
+            self.timerId = self.startTimer(50)
 
-            self.scene.setSceneRect(
-                0,
-                0,
-                self.size().width(),
-                self.items_parent.pos().y() + self.classifier.get_text_item_height()
-            )
+    def timerEvent(self, a0: 'QTimerEvent') -> None:
+        self.killTimer(self.timerId)
+        self.timerId = 0
+        # Set text width
+        self.classifier.set_width(self.real_width)
+
+        self.scene.setSceneRect(
+            0,
+            0,
+            self.size().width(),
+            self.items_parent.pos().y() + self.classifier.get_text_item_height()
+        )

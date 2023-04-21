@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'graphWindow.ui'
+# Form implementation generated from reading ui file 'graphwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.7
 #

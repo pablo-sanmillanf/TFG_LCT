@@ -3,7 +3,7 @@ import numpy as np
 from PyQt5.QtWidgets import (
     QApplication
 )
-from .graphWindow import Ui_GraphWindow
+from .graphWindowQtCreator import Ui_GraphWindow
 from PyQt5 import QtWidgets
 import sys
 

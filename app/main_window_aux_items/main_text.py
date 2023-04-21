@@ -128,16 +128,24 @@ class MainText(QGraphicsTextItem):
 
         half_space, horizontal_padding = self.set_separator_offsets_width()
         vertical_padding, line_vertical_offset = self.set_separator_offsets_height()
+
+        space = 2 * half_space
         points = []
         line_index = 0
         words_start_index = 0
-        break_line_index_offset = 0
         words_width = 2 * horizontal_padding
         skip = False
 
         for i in range(len(self.words_width) - 1):
             if skip:
-                skip = False
+                if self.words_width[i][0] == -1:  # Another break line
+                    line_index += 1
+                else:
+                    skip = False
+                    words_width += self.words_width[i][0] + space
+                    words_start_index = i
+
+                points[-1][1][-1][1] += "\n"
                 continue
             elif self.words_width[i][0] == -1:  # Break line
 
@@ -151,19 +159,16 @@ class MainText(QGraphicsTextItem):
                         half_space
                     )
                 ))
-                points[-1][1][-1][1] += "\n"
-                break_line_index_offset += 1
                 line_index += 1
-                words_width = 2 * horizontal_padding + self.words_width[i + 1][0]
-                words_start_index = i + 1
+                words_width = 2 * horizontal_padding
                 skip = True
             else:
                 if self.words_width[i - 1][2]:  # If current string is part of a string with BREAK_LINE_CHARACTERS
                     words_width += self.words_width[i][0]
                 else:
-                    words_width += (self.words_width[i][0] + 2 * half_space)
+                    words_width += (self.words_width[i][0] + space)
 
-                if words_width > self.textWidth():  # This line is full
+                if words_width - space > self.textWidth():  # This line is full
 
                     # Add line
                     points.append((
@@ -177,8 +182,28 @@ class MainText(QGraphicsTextItem):
                         )
                     ))
                     line_index += 1
-                    words_width = 2 * horizontal_padding + self.words_width[i][0]
+                    words_width = 2 * horizontal_padding + self.words_width[i][0] + space
                     words_start_index = i
+
+        if self.words_width[len(self.words_width) - 2][2]:
+            words_width += self.words_width[len(self.words_width) - 1][0]
+        else:
+            words_width += (self.words_width[len(self.words_width) - 1][0] + 2 * half_space)
+
+        if words_width - space > self.textWidth():  # This line is full
+            # Add line
+            points.append((
+                vertical_padding + line_vertical_offset * line_index + self.pos().y(),
+                self.get_x_values(
+                    words_start_index,
+                    len(self.words_width) - 2,
+                    False,
+                    horizontal_padding,
+                    half_space
+                )
+            ))
+            line_index += 1
+            words_start_index = len(self.words_width) - 1
 
         points.append((
             vertical_padding + line_vertical_offset * line_index + self.pos().y(),
@@ -214,7 +239,8 @@ class MainText(QGraphicsTextItem):
         sub_str_pos = []
 
         for i in range(start_index, end_index):
-            if self.words_width[i - 1][2]:  # If current string is part of a string with BREAK_LINE_CHARACTERS
+            # If current string is part of a string with BREAK_LINE_CHARACTERS and is not at the start of the line
+            if self.words_width[i - 1][2] and start_index != i:
                 line_width += self.words_width[i][0]
 
                 x_values_with_words[-1][0] += half_space
