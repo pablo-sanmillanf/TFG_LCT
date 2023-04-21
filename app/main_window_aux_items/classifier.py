@@ -1,14 +1,21 @@
 import numpy as np
-from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtCore import QPointF
 
 from app.main_window_aux_items.rounded_rect.rounded_rect_handler import RoundedRectHandler
-from PyQt5.QtGui import QPen
-from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
+from PyQt5.QtWidgets import QGraphicsItem
 
 from .descriptor.descriptor import TEXT_SEPARATOR, ALLOWED_STRINGS
 from .descriptor.descriptor_handler import DescriptorHandler
 from .main_text import MainText
 from .separator.separator_handler import SeparatorHandler
+
+
+from collections import Counter
+
+
+def most_common(lst: list[str]) -> str:
+    data = Counter(lst)
+    return data.most_common(1)[0][0]
 
 
 def create_colors_dict(default_text: str, color_list: list[str]) -> dict[str, str]:
@@ -75,13 +82,16 @@ class Classifier:
 
         # Set separators
         self.sep_handler = SeparatorHandler(text_size * 2, self.fixed_points, parent)
-        self.sep_handler.add_separator(self.fixed_points[0][1][0], self.fixed_points[0][0], True)
-        self.sep_handler.add_separator(self.fixed_points[-1][1][-1], self.fixed_points[-1][0], True)
+        self.sep_handler.add_limit_separators(
+            self.fixed_points[0][1][0],
+            self.fixed_points[0][0],
+            self.fixed_points[-1][1][-1],
+            self.fixed_points[-1][0],
+            "yellow"
+        )
 
         # Set separator width according to text size
-        custom_pen = QPen(Qt.black)
-        custom_pen.setWidth(max(1, int(text_size / 2.5)))
-        self.sep_handler.set_separator_pen(custom_pen)
+        self.sep_handler.set_separator_width(max(1.0, text_size / 2.5))
 
         self.rects_handler = RoundedRectHandler(
             text_size * 2,
@@ -164,6 +174,37 @@ class Classifier:
         """
         return self.sep_handler.delete_separator(x, y)
 
+    def promote_separator(self, x: float, y: float) -> bool:
+        """
+        Remove a separator and join the two remaining rectangles.
+        :param x: The x coordinate
+        :param y: The y coordinate
+        :return: True if success, False if error. There can be a mistake if the coordinates
+                 are out of bounds or if in the given coordinates there is no separator
+        """
+        return self.sep_handler.promote_separator(x, y, "yellow")
+
+    def demote_separator(self, x: float, y: float) -> bool:
+        """
+        Remove a separator and join the two remaining rectangles.
+        :param x: The x coordinate
+        :param y: The y coordinate
+        :return: True if success, False if error. There can be a mistake if the coordinates
+                 are out of bounds or if in the given coordinates there is no separator
+        """
+        print(self.get_text_classified_complete())
+        return self.sep_handler.demote_separator(x, y)
+
+    def is_super_separator(self, x: float, y: float) -> bool:
+        """
+        Remove a separator and join the two remaining rectangles.
+        :param x: The x coordinate
+        :param y: The y coordinate
+        :return: True if success, False if error. There can be a mistake if the coordinates
+                 are out of bounds or if in the given coordinates there is no separator
+        """
+        return self.sep_handler.is_super_separator(x, y)
+
     def there_is_a_separator(self, x: float, y: float) -> bool:
         """
         Check if the given point is occupied by existing separator. Should be called when no Separator is moved. Should
@@ -206,8 +247,9 @@ class Classifier:
         separator_points.append(
             QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0])
         )
-        self.rects_handler.set_points(limit_points, separator_points[1:-1], False)
-        self.descriptors_handler.set_points(limit_points, separator_points[1:-1], False)
+        sep_points_without_limits = separator_points[1:-1]
+        self.rects_handler.set_points(limit_points, sep_points_without_limits, False)
+        self.descriptors_handler.set_points(limit_points, sep_points_without_limits, False)
 
         self.sep_handler.fixed_points = self.fixed_points
         self.sep_handler.set_separator_points(separator_points)
@@ -224,31 +266,30 @@ class Classifier:
         Gets the subgroups of words that form the separators within the text.
         :return: A list with a group of words per element.
         """
-        text_list = [""] * (len(self.sep_handler.separators) - 1)
-        separator_points = self.sep_handler.get_separator_points()
+        text = ""
+        result = []
+        sep_points = self.sep_handler.get_separator_points()
 
         # This ind will be used to access all the positions in separator_points
-        separator_index = 0
+        sep_ind = 0
 
         complete_point_list = self.text.get_complete_points()
 
         for y_index in range(len(complete_point_list)):
             for x_index in range(len(complete_point_list[y_index][1])):
-                if separator_points[separator_index].x() == complete_point_list[y_index][1][x_index][0] and \
-                        separator_points[separator_index].y() == complete_point_list[y_index][0]:
-                    separator_index += 1
-                if complete_point_list[y_index][1][x_index][1] != '':
-                    text_list[separator_index - 1] += (complete_point_list[y_index][1][x_index][1] + " ")
+                if sep_ind < len(sep_points) and \
+                        sep_points[sep_ind].x() == complete_point_list[y_index][1][x_index][0] and \
+                        sep_points[sep_ind].y() == complete_point_list[y_index][0]:
+                    result.append(text[:-1])
+                    sep_ind += 1
+                    text = ""
 
-        # Remove last space in every item and empty items
-        popped_elements = 0
-        for i in range(len(text_list)):
-            if text_list[i - popped_elements] == "":
-                text_list.pop(i - popped_elements)
-                popped_elements += 1
-            else:
-                text_list[i - popped_elements] = text_list[i - popped_elements][:-1]
-        return text_list
+                if complete_point_list[y_index][1][x_index][1] != '':
+                    text += (complete_point_list[y_index][1][x_index][1] + " ")
+
+        result.append(text[:-1])
+
+        return result
 
     def get_text_analyzed(self) -> list[tuple[str, str]]:
         """
@@ -264,6 +305,47 @@ class Classifier:
             analyzed_text.append((text_list[i], descriptors_list[i]))
         return analyzed_text
 
+    def get_text_classified_complete(self) -> list[tuple[list[tuple[str, str]], str]]:
+        """
+        Gets the subgroups of words that form the separators within the text.
+        :return: A list with a group of words per element.
+        """
+        text = ""
+        result = []
+        group = []
+        sep_points = self.sep_handler.get_separator_points()
+        super_sep_points = self.sep_handler.get_super_separator_points()
+        descriptors_list = self.descriptors_handler.get_descriptor_values()
+
+        # This ind will be used to access all the positions in separator_points
+        sep_ind = 0
+        super_sep_ind = 0
+
+        complete_point_list = self.text.get_complete_points()
+
+        for y_index in range(len(complete_point_list)):
+            for x_index in range(len(complete_point_list[y_index][1])):
+                if sep_ind < len(sep_points) and \
+                        sep_points[sep_ind].x() == complete_point_list[y_index][1][x_index][0] and \
+                        sep_points[sep_ind].y() == complete_point_list[y_index][0]:
+                    group.append((text[:-1], descriptors_list[sep_ind]))
+                    sep_ind += 1
+                    text = ""
+                if super_sep_ind < len(super_sep_points) and \
+                        super_sep_points[super_sep_ind].x() == complete_point_list[y_index][1][x_index][0] and \
+                        super_sep_points[super_sep_ind].y() == complete_point_list[y_index][0]:
+                    super_sep_ind += 1
+                    result.append((group, most_common([i[1] for i in group])))
+                    group = []
+
+                if complete_point_list[y_index][1][x_index][1] != '':
+                    text += (complete_point_list[y_index][1][x_index][1] + " ")
+
+        group.append((text[:-1], descriptors_list[sep_ind]))
+        result.append((group, most_common([i[1] for i in group])))
+
+        return result
+
     def set_text(self, text) -> None:
         """
         Set the text to be analyzed.
@@ -274,8 +356,13 @@ class Classifier:
 
         self.sep_handler.delete_all_separators()
         self.sep_handler.fixed_points = self.fixed_points
-        self.sep_handler.add_separator(self.fixed_points[0][1][0], self.fixed_points[0][0], True)
-        self.sep_handler.add_separator(self.fixed_points[-1][1][-1], self.fixed_points[-1][0], True)
+        self.sep_handler.add_limit_separators(
+            self.fixed_points[0][1][0],
+            self.fixed_points[0][0],
+            self.fixed_points[-1][1][-1],
+            self.fixed_points[-1][0],
+            "yellow"
+        )
 
         limit_points = obtain_limit_points(self.fixed_points)
 
@@ -295,9 +382,7 @@ class Classifier:
         self.text.set_text_size(text_size)
 
         # Change rects, separators and descriptors_handler height
-        custom_pen = QPen(Qt.black)
-        custom_pen.setWidth(max(1, int(text_size / 2.5)))
-        self.sep_handler.set_separator_pen(custom_pen)
+        self.sep_handler.set_separator_width(max(1.0, text_size / 2.5))
         self.sep_handler.set_separator_height(text_size * 2)
 
         self.rects_handler.set_height_and_radius(text_size * 2, text_size / 2)

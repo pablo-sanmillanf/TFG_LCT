@@ -1,15 +1,20 @@
 from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QPen
+from PyQt5.QtGui import QPen, QColor
 from PyQt5.QtWidgets import QGraphicsItem
 
 from .separator import Separator, find_nearest_point, SeparatorEmitter
+
+
+SUPER_SEPARATOR_FACTOR = 1.5
 
 
 class SeparatorHandler:
     """
     This class controls all the behaviour of the Separators (insertion, deletion, updates, movement, etc.).
     """
-    separators: list[Separator]
+    super_separators: list[list[Separator | bool]]
+    pen: QPen
+    separators: list[list[Separator | bool]]
 
     def __init__(self, line_height: float, fixed_points: list[tuple[float, list[float]]],
                  parent: QGraphicsItem) -> None:
@@ -20,6 +25,7 @@ class SeparatorHandler:
                              be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
         :param parent: The QGraphicsItem parent of the Separators. Can't be None
         """
+        self.super_separators = []
         self.height = line_height
         self.fixed_points = fixed_points
         self.parent = parent
@@ -38,12 +44,26 @@ class SeparatorHandler:
         """
         self.pen = pen
         for separator in self.separators:
-            separator.setPen(pen)
+            separator[0].setPen(pen)
+
+    def set_separator_width(self, width: float) -> None:
+        """
+        Apply the given pen to all the separators
+        :param width: the width
+        """
+        self.pen.setWidthF(width)
+        for separator in self.separators:
+            pen = separator[0].pen()
+            if separator[1]:
+                pen.setWidthF(width * SUPER_SEPARATOR_FACTOR)
+            else:
+                pen.setWidthF(width)
+            separator[0].setPen(pen)
 
     def set_separator_height(self, height: float) -> None:
         self.height = height
         for separator in self.separators:
-            separator.set_height(height)
+            separator[0].set_height(height)
 
     def get_y_values(self):
         """
@@ -67,7 +87,14 @@ class SeparatorHandler:
         Return a list with the coordinates of all separators.
         :return: The list of coordinates
         """
-        return [sep.pos() for sep in self.separators]
+        return [self.separators[i][0].pos() for i in range(1, len(self.separators) - 1)]
+
+    def get_super_separator_points(self) -> list[QPointF]:
+        """
+        Return a list with the coordinates of all separators.
+        :return: The list of coordinates
+        """
+        return [self.separators[i][0].pos() for i in range(1, len(self.separators) - 1) if self.separators[i][1]]
 
     def set_separator_points(self, points: list[QPointF]) -> None:
         """
@@ -78,8 +105,8 @@ class SeparatorHandler:
             raise RuntimeError("There are not the same points as separators in set_separator_points() function")
 
         for i in range(len(points)):
-            self.separators[i].fixed_points = self.fixed_points
-            self.separators[i].setPos(points[i])
+            self.separators[i][0].fixed_points = self.fixed_points
+            self.separators[i][0].setPos(points[i])
 
     def point_is_occupied(self, x: float, y: float) -> tuple[bool, int]:
         """
@@ -96,18 +123,18 @@ class SeparatorHandler:
         real_x = find_nearest_point(self.get_x_values(real_y), x)
 
         for i in range(len(self.separators)):
-            if self.separators[i].is_on_the_border():
-                if ((self.separators[i].complete_pos(True).x() == real_x and
-                     self.separators[i].complete_pos(True).y() == real_y) or
-                        (self.separators[i].complete_pos(False).x() == real_x and
-                         self.separators[i].complete_pos(False).y() == real_y)):
+            if self.separators[i][0].is_on_the_border():
+                if ((self.separators[i][0].complete_pos(True).x() == real_x and
+                     self.separators[i][0].complete_pos(True).y() == real_y) or
+                        (self.separators[i][0].complete_pos(False).x() == real_x and
+                         self.separators[i][0].complete_pos(False).y() == real_y)):
                     return True, i
             else:
-                if self.separators[i].complete_pos(True).x() == real_x and self.separators[i].complete_pos(
+                if self.separators[i][0].complete_pos(True).x() == real_x and self.separators[i][0].complete_pos(
                         True).y() == real_y:
                     return True, i
-            if self.separators[i].complete_pos(True).y() > real_y or \
-                    (self.separators[i].complete_pos(True).y() == real_y and self.separators[i].complete_pos(
+            if self.separators[i][0].complete_pos(True).y() > real_y or \
+                    (self.separators[i][0].complete_pos(True).y() == real_y and self.separators[i][0].complete_pos(
                         True).x() > real_x):
                 return False, i - 1
         return True, -1
@@ -136,19 +163,27 @@ class SeparatorHandler:
                 if line[0] >= real_y:
                     for i in range(len(line[1])):
                         if (line[0] == real_y and line[1][i] >= real_x) or line[0] > real_y:
-                            if self.separators[index].is_on_the_border():
+                            if self.separators[index][0].is_on_the_border():
                                 if not (i == 0 or i == len(line[1]) - 1):
                                     return line[1][i], line[0], index - 1
                                 if i == 0:
                                     # If this position is busy, increment by one the ind in separators array
                                     index += 1
-                            elif self.separators[index].complete_pos(True).x() == line[1][i] and \
-                                    self.separators[index].complete_pos(True).y() == line[0]:
+                            elif self.separators[index][0].complete_pos(True).x() == line[1][i] and \
+                                    self.separators[index][0].complete_pos(True).y() == line[0]:
                                 # If this position is busy, increment by one the ind in separators array
                                 index += 1
                             else:
                                 return line[1][i], line[0], index - 1
         return None, None, -1
+
+    def add_limit_separators(self, first_limit_x: float, first_limit_y: float, last_limit_x: float, last_limit_y: float,
+                             color: str) -> None:
+
+        self.add_separator(first_limit_x, first_limit_y, True)
+        self.add_separator(last_limit_x, last_limit_y, True)
+        self.promote_separator(last_limit_x, last_limit_y, color)
+        self.promote_separator(first_limit_x, first_limit_y, color)
 
     def add_separator(self, x: float, y: float, is_static: bool) -> bool:
         """
@@ -196,8 +231,10 @@ class SeparatorHandler:
 
         if self.pen is not None:
             new_separator.setPen(self.pen)
+        else:
+            self.pen = new_separator.pen()
 
-        self.separators.insert(index + 1, new_separator)
+        self.separators.insert(index + 1, [new_separator, False])
 
         self.update_fixed_points_separator(index)
         self.update_fixed_points_separator(index + 2)
@@ -221,7 +258,7 @@ class SeparatorHandler:
         self.update_fixed_points_separator(index - 1)
         self.update_fixed_points_separator(index)
 
-        self.parent.scene().removeItem(removed_separator)
+        self.parent.scene().removeItem(removed_separator[0])
 
         self.emitter.removed.emit(removed_separator)
 
@@ -233,7 +270,72 @@ class SeparatorHandler:
         """
         for _ in range(len(self.separators)):
             removed_separator = self.separators.pop()
-            self.parent.scene().removeItem(removed_separator)
+            self.parent.scene().removeItem(removed_separator[0])
+
+    def promote_separator(self, x: float, y: float, color: str) -> bool:
+        """
+        Remove a separator.
+        :param x: The x coordinate
+        :param y: The y coordinate
+        :param color: The color of super separator
+        :return: True if success, False if error. There can be an error if the coordinates are out of bounds or if in
+                 the given coordinates there is no separator
+        """
+        is_occupied, sep_index = self.point_is_occupied(x, y)
+        if not is_occupied:
+            return False
+
+        if self.separators[sep_index][1]:
+            return False
+
+        self.separators[sep_index][1] = True
+
+        pen = self.separators[sep_index][0].pen()
+
+        # Set separator bigger
+        pen.setWidthF(pen.widthF() * SUPER_SEPARATOR_FACTOR)
+
+        # Change color
+        pen.setColor(QColor(color))
+
+        self.separators[sep_index][0].setPen(pen)
+
+        return True
+
+    def demote_separator(self, x: float, y: float) -> bool:
+        """
+        Remove a separator.
+        :param x: The x coordinate
+        :param y: The y coordinate
+        :return: True if success, False if error. There can be an error if the coordinates are out of bounds or if in
+                 the given coordinates there is no separator
+        """
+        is_occupied, sep_index = self.point_is_occupied(x, y)
+        if not is_occupied:
+            return False
+
+        if not self.separators[sep_index][1]:
+            return False
+
+        self.separators[sep_index][1] = False
+
+        self.separators[sep_index][0].setPen(self.pen)
+
+        return True
+
+    def is_super_separator(self, x: float, y: float) -> bool:
+        """
+        Remove a separator.
+        :param x: The x coordinate
+        :param y: The y coordinate
+        :return: True if success, False if error. There can be an error if the coordinates are out of bounds or if in
+                 the given coordinates there is no separator
+        """
+        is_occupied, sep_index = self.point_is_occupied(x, y)
+        if not is_occupied:
+            return False
+
+        return self.separators[sep_index][1]
 
     def set_fixed_points_for_new_separator(self, index: int) -> list[tuple[float, list[float]]]:
         """
@@ -241,11 +343,11 @@ class SeparatorHandler:
         :param index: Index of the element after which the new separator is to be inserted
         :return: The fixed_points structure for the new separator
         """
-        start_x = self.separators[index].complete_pos(True).x()
-        start_y = self.separators[index].complete_pos(True).y()
+        start_x = self.separators[index][0].complete_pos(True).x()
+        start_y = self.separators[index][0].complete_pos(True).y()
 
-        end_x = self.separators[index + 1].complete_pos(False).x()
-        end_y = self.separators[index + 1].complete_pos(False).y()
+        end_x = self.separators[index + 1][0].complete_pos(False).x()
+        end_y = self.separators[index + 1][0].complete_pos(False).y()
         return self.set_fixed_points(start_x, start_y, end_x, end_y)
 
     def set_fixed_points(self,
@@ -284,11 +386,11 @@ class SeparatorHandler:
         :param index: Index of the separator
         """
         if (len(self.separators) - 2) >= index >= 1:
-            self.separators[index].fixed_points = self.set_fixed_points(
-                self.separators[index - 1].complete_pos(True).x(),
-                self.separators[index - 1].complete_pos(True).y(),
-                self.separators[index + 1].complete_pos(False).x(),
-                self.separators[index + 1].complete_pos(False).y()
+            self.separators[index][0].fixed_points = self.set_fixed_points(
+                self.separators[index - 1][0].complete_pos(True).x(),
+                self.separators[index - 1][0].complete_pos(True).y(),
+                self.separators[index + 1][0].complete_pos(False).x(),
+                self.separators[index + 1][0].complete_pos(False).y()
             )
 
     def separator_is_released(self, separator: Separator) -> None:
@@ -296,5 +398,6 @@ class SeparatorHandler:
         Updates the fixed-points of the surrounding separators.
         :param separator: The separator that has been released.
         """
-        self.update_fixed_points_separator(self.separators.index(separator) - 1)
-        self.update_fixed_points_separator(self.separators.index(separator) + 1)
+        only_separators = [e[0] for e in self.separators]
+        self.update_fixed_points_separator(only_separators.index(separator) - 1)
+        self.update_fixed_points_separator(only_separators.index(separator) + 1)

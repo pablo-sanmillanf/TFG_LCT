@@ -1,7 +1,7 @@
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QPoint, QTimerEvent
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QWidget, QMenu, QAction
+from PyQt5.QtGui import QPainter, QCursor
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QWidget, QMenu, QAction, QApplication
 
 from main_window_aux_items.classifier import Classifier
 
@@ -24,6 +24,8 @@ class ClassifierView(QGraphicsView):
     """
     This class controls all the behaviour of the QGraphicsItems, the QGraphicsView and the QGraphicsScene.
     """
+    promote_separator_action: QAction
+    demote_separator_action: QAction
     split_action: QAction
     join_action: QAction
     classifier: Classifier
@@ -85,10 +87,14 @@ class ClassifierView(QGraphicsView):
 
         self.split_action = QAction("Split", self)
         self.join_action = QAction("Join", self)
+        self.promote_separator_action = QAction("Promote to super separator", self)
+        self.demote_separator_action = QAction("Demote from super separator", self)
         self.split_action.setStatusTip("Split clause in two")
         self.join_action.setStatusTip("Join the two clauses in one")
         self.split_action.triggered.connect(self.split)
         self.join_action.triggered.connect(self.join)
+        self.promote_separator_action.triggered.connect(self.promote_separator)
+        self.demote_separator_action.triggered.connect(self.demote_separator)
 
         # As the rectangles height is 2*text_size this offset moves the point to calculate half height.
         self.global_pos_y_offset = -text_size
@@ -100,16 +106,28 @@ class ClassifierView(QGraphicsView):
         """
 
         self.context_menu_pos = pos
-        self.join_action.setEnabled(
-            self.classifier.there_is_a_separator(
+
+        there_is_a_separator = self.classifier.there_is_a_separator(
                 pos.x() - self.items_parent.pos().x(),
                 pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset + self.verticalScrollBar().value()
             )
-        )
+
+        is_super_separator = self.classifier.is_super_separator(
+                pos.x() - self.items_parent.pos().x(),
+                pos.y() - self.items_parent.pos().y() + self.global_pos_y_offset + self.verticalScrollBar().value()
+            )
+
+        self.join_action.setEnabled(there_is_a_separator)
+
+        self.promote_separator_action.setEnabled(there_is_a_separator and not is_super_separator)
+
+        self.demote_separator_action.setEnabled(there_is_a_separator and is_super_separator)
 
         context = QMenu(self)
         context.addAction(self.split_action)
         context.addAction(self.join_action)
+        context.addAction(self.promote_separator_action)
+        context.addAction(self.demote_separator_action)
         context.exec(self.mapToGlobal(pos))
 
     def get_text_size(self) -> int | float:
@@ -140,6 +158,26 @@ class ClassifierView(QGraphicsView):
             self.global_pos_y_offset + self.verticalScrollBar().value()
         )
 
+    def promote_separator(self) -> None:
+        """
+        Remove a separator and join the two remaining rectangles.
+        """
+        self.classifier.promote_separator(
+            self.context_menu_pos.x() - self.items_parent.pos().x(),
+            self.context_menu_pos.y() - self.items_parent.pos().y() +
+            self.global_pos_y_offset + self.verticalScrollBar().value()
+        )
+
+    def demote_separator(self) -> None:
+        """
+        Remove a separator and join the two remaining rectangles.
+        """
+        self.classifier.demote_separator(
+            self.context_menu_pos.x() - self.items_parent.pos().x(),
+            self.context_menu_pos.y() - self.items_parent.pos().y() +
+            self.global_pos_y_offset + self.verticalScrollBar().value()
+        )
+
     def set_text(self, text: str) -> None:
         """
         Set the text to be analyzed.
@@ -161,6 +199,11 @@ class ClassifierView(QGraphicsView):
         changed.
         :param text_size: The text size as a number.
         """
+
+        app = QApplication.instance()
+
+        app.setOverrideCursor(QCursor(Qt.WaitCursor))
+
         self.global_pos_y_offset = -text_size
 
         self.classifier.set_text_size(text_size)
@@ -171,6 +214,8 @@ class ClassifierView(QGraphicsView):
             self.size().width(),
             self.items_parent.pos().y() + self.classifier.get_text_item_height()
         )
+
+        app.restoreOverrideCursor()
 
     def get_text_analyzed(self) -> list[tuple[str, str]]:
         """
@@ -227,11 +272,16 @@ class ClassifierView(QGraphicsView):
                 self.killTimer(self.timerId)
                 self.timerId = 0
 
-            self.timerId = self.startTimer(50)
+            self.timerId = self.startTimer(500)
 
     def timerEvent(self, a0: 'QTimerEvent') -> None:
         self.killTimer(self.timerId)
         self.timerId = 0
+
+        app = QApplication.instance()
+
+        app.setOverrideCursor(QCursor(Qt.WaitCursor))
+
         # Set text width
         self.classifier.set_width(self.real_width)
 
@@ -241,3 +291,6 @@ class ClassifierView(QGraphicsView):
             self.size().width(),
             self.items_parent.pos().y() + self.classifier.get_text_item_height()
         )
+
+        app.restoreOverrideCursor()
+
