@@ -39,6 +39,13 @@ class RoundedRect(QGraphicsRectItem):
         self.setBrush(QColor(color))
         self.update()
 
+    def get_background_color(self) -> str:
+        """
+        Return the rectangle background color
+        :return: The color as string. Is a valid HTML color.
+        """
+        return self.brush().color()
+
     def set_radius(self, radius: float) -> None:
         """
         Set the radius of the rounded rect.

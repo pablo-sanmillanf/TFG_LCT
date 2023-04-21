@@ -34,7 +34,7 @@ def exponentialSearchDescriptors(exp_list: list[list[Descriptor | float | float 
                 last = mid - 1
             else:
                 first = mid + 1
-    return bin_index + int(exp_index/2)
+    return bin_index + int(exp_index / 2)
 
 
 def exponentialSearchSeparators(exp_list: list[list[Separator | int | QPointF]], wanted_index: int) -> int:
@@ -62,7 +62,7 @@ def exponentialSearchSeparators(exp_list: list[list[Separator | int | QPointF]],
     if first > last:
         return last + int(exp_index / 2)
     else:
-        return bin_index + int(exp_index/2)
+        return bin_index + int(exp_index / 2)
 
 
 class DescriptorEmitter(QObject):
@@ -117,43 +117,164 @@ class DescriptorHandler:
         clicked_on_the_border_fn.connect(self.separator_clicked_on_the_border)
         removed_fn.connect(self.separator_removed)
 
-    def set_points_for_new_text(self, points) -> None:
+    def set_points_for_new_text(self, points: list[tuple[float, tuple[float, float]]],
+                                descriptor_text: tuple[list[str], int, bool, str]) -> None:
         """
         Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
         resizing the window.
         """
-        self.set_points(points)
-        self.descriptors[0][0].set_default_text(self.default_text)
-
-    def set_points(self, points) -> None:
-        """
-        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
-        resizing the window.
-        """
-        self.separators.clear()
-
         if len(points) > len(self.descriptors):  # We need to create more descriptors
-            i = 0
-            for i in range(len(self.descriptors)):
-                self.descriptors[i][1] = points[i][0]
-                self.descriptors[i][2] = points[i][1][0]
-                self.descriptors[i][3] = points[i][1][1]
-                self.set_descriptor_pos(i)
-            for e in range(i + 1, len(points)):
+            desc_index = 0
+            for desc_index in range(len(self.descriptors)):
+                self.descriptors[desc_index][1] = points[desc_index][0]
+                self.descriptors[desc_index][2] = points[desc_index][1][0]
+                self.descriptors[desc_index][3] = points[desc_index][1][1]
+                self.descriptors[desc_index][0].paste_text(descriptor_text)
+                self.set_descriptor_pos(desc_index)
+            for e in range(desc_index + 1, len(points)):
                 desc = Descriptor(self.default_text, self.parent, self.font)
                 # [Descriptor, Y_Value_Without_Offset, Left_X_Value, Right_X_Value]
                 self.descriptors.append([desc, points[e][0], points[e][1][0], points[e][1][-1]])
+                self.descriptors[e][0].paste_text(descriptor_text)
                 self.set_descriptor_pos(e)
                 desc.editable_text_changed.connect(self.text_changed)
 
         else:  # We need to delete part of existing descriptors
-            i = 0
-            for i in range(len(points)):
-                self.descriptors[i][1] = points[i][0]
-                self.descriptors[i][2] = points[i][1][0]
-                self.descriptors[i][3] = points[i][1][1]
-                self.set_descriptor_pos(i)
-            for _ in range(i + 1, len(self.descriptors)):
+            desc_index = 0
+            for desc_index in range(len(points)):
+                self.descriptors[desc_index][1] = points[desc_index][0]
+                self.descriptors[desc_index][2] = points[desc_index][1][0]
+                self.descriptors[desc_index][3] = points[desc_index][1][1]
+                self.descriptors[desc_index][0].paste_text(descriptor_text)
+                self.set_descriptor_pos(desc_index)
+            for _ in range(desc_index + 1, len(self.descriptors)):
+                removed_descriptor = self.descriptors.pop()
+                self.parent.scene().removeItem(removed_descriptor[0])
+
+    def set_points(self, points: list[tuple[float, tuple[float, float]]], separator_points: list[QPointF],
+                   new_text: bool) -> None:
+        """
+        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
+        resizing the window.
+        """
+
+        descriptor_texts_list = []
+        if new_text:
+            self.separators.clear()
+            descriptor_texts_list.append(Descriptor(self.default_text, None, self.font).copy_text())
+        else:
+            if len(separator_points) != len(self.separators):
+                raise RuntimeError("There are not the same points as separators in set_points() function")
+
+            for sep in self.separators:
+                descriptor_texts_list.append(self.descriptors[sep[1]][0].copy_text())
+            descriptor_texts_list.append(self.descriptors[-1][0].copy_text())
+
+        if len(separator_points) == 0:
+            self.set_points_for_new_text(points, descriptor_texts_list[0])
+        else:
+            self.set_points_with_separators(points, separator_points, descriptor_texts_list)
+
+    def set_points_with_separators(self, points: list[tuple[float, tuple[float, float]]],
+                                   separator_points: list[QPointF],
+                                   descriptor_texts_list: list[tuple[list[str], int, bool, str]]) -> None:
+        """
+        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
+        resizing the window.
+        """
+
+        if len(separator_points) + len(points) > len(self.descriptors):  # We need to create more descriptors
+            desc_index = 0
+            sep_index = 0
+            points_index = 0
+            sep_find = False
+            for desc_index in range(len(self.descriptors)):
+                self.descriptors[desc_index][1] = points[points_index][0]
+                if sep_find:
+                    self.descriptors[desc_index][2] = separator_points[sep_index].x()
+                    sep_find = False
+                    sep_index += 1
+                else:
+                    self.descriptors[desc_index][2] = points[points_index][1][0]
+
+                if sep_index < len(separator_points) and (
+                        separator_points[sep_index].y() == points[points_index][0] and
+                        separator_points[sep_index].x() < points[points_index][1][1]):
+                    self.descriptors[desc_index][3] = separator_points[sep_index].x()
+
+                    # Update separators
+                    self.separators[sep_index][1] = desc_index
+                    self.separators[sep_index][2] = separator_points[sep_index]
+                    sep_find = True
+                else:
+                    self.descriptors[desc_index][3] = points[points_index][1][1]
+                    points_index += 1
+
+                self.descriptors[desc_index][0].paste_text(descriptor_texts_list[sep_index])
+                self.set_descriptor_pos(desc_index)
+            for e in range(desc_index + 1, len(separator_points) + len(points)):
+                desc = Descriptor(self.default_text, self.parent, self.font)
+
+                if sep_find:
+                    left_x = separator_points[sep_index].x()
+                    sep_find = False
+                    sep_index += 1
+                else:
+                    left_x = points[points_index][1][0]
+
+                if sep_index < len(separator_points) and (
+                        separator_points[sep_index].y() == points[points_index][0] and
+                        separator_points[sep_index].x() < points[points_index][1][1]):
+                    right_x = separator_points[sep_index].x()
+
+                    # Update separators
+                    self.separators[sep_index][1] = desc_index
+                    self.separators[sep_index][2] = separator_points[sep_index]
+                    sep_find = True
+                else:
+                    right_x = points[points_index][1][1]
+                    points_index += 1
+
+                desc.paste_text(descriptor_texts_list[sep_index])
+
+                # [Descriptor, Y_Value_Without_Offset, Left_X_Value, Right_X_Value]
+                self.descriptors.append([desc, points[points_index - 1][0], left_x, right_x])
+
+                self.set_descriptor_pos(e)
+                desc.editable_text_changed.connect(self.text_changed)
+
+        else:  # We need to delete part of existing descriptors
+            desc_index = 0
+            sep_index = 0
+            points_index = 0
+            sep_find = False
+            for desc_index in range(len(separator_points) + len(points)):
+
+                self.descriptors[desc_index][1] = points[points_index][0]
+                if sep_find:
+                    self.descriptors[desc_index][2] = separator_points[sep_index].x()
+                    sep_find = False
+                    sep_index += 1
+                else:
+                    self.descriptors[desc_index][2] = points[points_index][1][0]
+
+                if sep_index < len(separator_points) and (
+                        separator_points[sep_index].y() == points[points_index][0] and
+                        separator_points[sep_index].x() < points[points_index][1][1]):
+                    self.descriptors[desc_index][3] = separator_points[sep_index].x()
+
+                    # Update separators
+                    self.separators[sep_index][1] = desc_index
+                    self.separators[sep_index][2] = separator_points[sep_index]
+                    sep_find = True
+                else:
+                    self.descriptors[desc_index][3] = points[points_index][1][1]
+                    points_index += 1
+
+                self.descriptors[desc_index][0].paste_text(descriptor_texts_list[sep_index])
+                self.set_descriptor_pos(desc_index)
+
+            for _ in range(desc_index + 1, len(self.descriptors)):
                 removed_descriptor = self.descriptors.pop()
                 self.parent.scene().removeItem(removed_descriptor[0])
 

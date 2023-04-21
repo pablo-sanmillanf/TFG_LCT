@@ -66,12 +66,11 @@ class RoundedRectHandler:
             rect.set_radius(radius)
             rect.set_pos_and_size(rect.pos().x(), rect.pos().y(), rect.rect().width(), self.height)
 
-    def set_points(self, points: list[tuple[float, tuple[float, float]]]) -> None:
+    def set_points_for_new_text(self, points: list[tuple[float, tuple[float, float]]], color: str) -> None:
         """
         Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
         resizing the window.
         """
-        self.separators.clear()
         if len(points) > len(self.rects):  # We need to create more rects
             i = 0
             for i in range(len(self.rects)):
@@ -81,6 +80,7 @@ class RoundedRectHandler:
                     points[i][1][1] - points[i][1][0],
                     self.height
                 )
+                self.rects[i].set_background_color(color)
             for e in range(i + 1, len(points)):
                 self.rects.append(RoundedRect(
                     points[e][1][0], points[e][0],
@@ -89,6 +89,7 @@ class RoundedRectHandler:
                     self.radius,
                     self.parent)
                 )
+                self.rects[e].set_background_color(color)
         else:  # We need to delete part of existing rects
             i = 0
             for i in range(len(points)):
@@ -98,13 +99,130 @@ class RoundedRectHandler:
                     points[i][1][1] - points[i][1][0],
                     self.height
                 )
+                self.rects[i].set_background_color(color)
             for _ in range(i + 1, len(self.rects)):
                 removed_rect = self.rects.pop()
                 self.parent.scene().removeItem(removed_rect)
 
-        self.color_indexes.clear()
-        self.color_indexes.append(0)
-        self.editable_text_changed_slot(-1, [])
+    def set_points(self, points: list[tuple[float, tuple[float, float]]], separator_points: list[QPointF],
+                   new_text: bool) -> None:
+        """
+        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
+        resizing the window.
+        """
+
+        rects_colors_list = []
+        if new_text:
+            self.separators.clear()
+            rects_colors_list.append(self.colors[""])
+        else:
+            if len(separator_points) != len(self.separators):
+                raise RuntimeError("There are not the same points as separators in set_points() function")
+
+            for sep in self.separators:
+                rects_colors_list.append(self.rects[sep[1]].get_background_color())
+            rects_colors_list.append(self.rects[-1].get_background_color())
+
+        if len(separator_points) == 0:
+            self.set_points_for_new_text(points, rects_colors_list[0])
+        else:
+            self.set_points_with_separators(points, separator_points, rects_colors_list)
+
+    def set_points_with_separators(self, points: list[tuple[float, tuple[float, float]]],
+                                   separator_points: list[QPointF], colors_list: list[str]) -> None:
+        """
+        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
+        resizing the window.
+        """
+
+        if len(separator_points) + len(points) > len(self.rects):  # We need to create more descriptors
+            rect_index = 0
+            sep_index = 0
+            points_index = 0
+            sep_find = False
+            for rect_index in range(len(self.rects)):
+                y_pos = points[points_index][0]
+                if sep_find:
+                    x_pos = separator_points[sep_index].x()
+                    sep_find = False
+                    sep_index += 1
+                else:
+                    x_pos = points[points_index][1][0]
+
+                if sep_index < len(separator_points) and (
+                        separator_points[sep_index].y() == points[points_index][0] and
+                        separator_points[sep_index].x() < points[points_index][1][1]):
+                    width = separator_points[sep_index].x() - x_pos
+
+                    # Update separators
+                    self.separators[sep_index][1] = rect_index
+                    self.separators[sep_index][2] = separator_points[sep_index]
+                    sep_find = True
+                else:
+                    width = points[points_index][1][1] - x_pos
+                    points_index += 1
+
+                self.rects[rect_index].set_pos_and_size(x_pos, y_pos, width, self.height)
+                self.rects[rect_index].set_background_color(colors_list[sep_index])
+
+            for e in range(rect_index + 1, len(separator_points) + len(points)):
+                y_pos = points[points_index][0]
+                if sep_find:
+                    x_pos = separator_points[sep_index].x()
+                    sep_find = False
+                    sep_index += 1
+                else:
+                    x_pos = points[points_index][1][0]
+
+                if sep_index < len(separator_points) and (
+                        separator_points[sep_index].y() == points[points_index][0] and
+                        separator_points[sep_index].x() < points[points_index][1][1]):
+                    width = separator_points[sep_index].x() - x_pos
+
+                    # Update separators
+                    self.separators[sep_index][1] = rect_index
+                    self.separators[sep_index][2] = separator_points[sep_index]
+                    sep_find = True
+                else:
+                    width = points[points_index][1][1] - x_pos
+                    points_index += 1
+
+                self.rects.append(RoundedRect(x_pos, y_pos, width, self.height, self.radius, self.parent))
+                self.rects[-1].set_background_color(colors_list[sep_index])
+
+        else:  # We need to delete part of existing descriptors
+            rect_index = 0
+            sep_index = 0
+            points_index = 0
+            sep_find = False
+            for rect_index in range(len(separator_points) + len(points)):
+                y_pos = points[points_index][0]
+                if sep_find:
+                    x_pos = separator_points[sep_index].x()
+                    sep_find = False
+                    sep_index += 1
+                else:
+                    x_pos = points[points_index][1][0]
+
+                if sep_index < len(separator_points) and (
+                        separator_points[sep_index].y() == points[points_index][0] and
+                        separator_points[sep_index].x() < points[points_index][1][1]):
+                    width = separator_points[sep_index].x() - x_pos
+
+                    # Update separators
+                    self.separators[sep_index][1] = rect_index
+                    self.separators[sep_index][2] = separator_points[sep_index]
+                    sep_find = True
+                else:
+                    width = points[points_index][1][1] - x_pos
+                    points_index += 1
+
+                self.rects[rect_index].set_pos_and_size(x_pos, y_pos, width, self.height)
+                self.rects[rect_index].set_background_color(colors_list[sep_index])
+
+            for _ in range(rect_index + 1, len(self.rects)):
+                removed_rect = self.rects.pop()
+                self.parent.scene().removeItem(removed_rect)
 
     def set_colors(self, colors: dict[str, str]) -> None:
         """
@@ -370,4 +488,3 @@ class RoundedRectHandler:
 
         self.color_indexes[separator_index + 1] = index
         self.update_background_color_rects_group(separator_index, index)
-

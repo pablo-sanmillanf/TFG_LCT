@@ -206,9 +206,8 @@ class Classifier:
         separator_points.append(
             QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0])
         )
-
-        self.rects_handler.set_points(limit_points)
-        self.descriptors_handler.set_points(limit_points)
+        self.rects_handler.set_points(limit_points, separator_points[1:-1], False)
+        self.descriptors_handler.set_points(limit_points, separator_points[1:-1], False)
 
         self.sep_handler.fixed_points = self.fixed_points
         self.sep_handler.set_separator_points(separator_points)
@@ -280,8 +279,8 @@ class Classifier:
 
         limit_points = obtain_limit_points(self.fixed_points)
 
-        self.rects_handler.set_points(limit_points)
-        self.descriptors_handler.set_points_for_new_text(limit_points)
+        self.rects_handler.set_points(limit_points, [], True)
+        self.descriptors_handler.set_points(limit_points, [], True)
 
     def set_text_size(self, text_size: float | int) -> None:
         """

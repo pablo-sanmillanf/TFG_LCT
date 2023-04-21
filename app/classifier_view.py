@@ -124,13 +124,11 @@ class ClassifierView(QGraphicsView):
         Splits the nearest rectangle to the self.context_menu_pos in two, placing a separator where
         the split has been made.
         """
-        """self.classifier.split(
+        self.classifier.split(
             self.context_menu_pos.x() - self.items_parent.pos().x(),
             self.context_menu_pos.y() - self.items_parent.pos().y() +
             self.global_pos_y_offset + self.verticalScrollBar().value()
-        )"""
-        while self.classifier.split(10, 10):
-            pass
+        )
 
     def join(self) -> None:
         """

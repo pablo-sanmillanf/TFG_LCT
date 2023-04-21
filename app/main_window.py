@@ -43,7 +43,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             500,
             500,
             "This is an example text. If you want to start editing a file select \"File\"->\"Open...\" and browse to "
-            "desired file. \n\nTo set a division in the text, right-click and select \"Split\". To undo a division in the "
+            "desired file.\nTo set a division in the text, right-click and select \"Split\". To undo a division in the "
             "text, right-click and select \"Join\" near the splitter.",
             self.conf["text_size"],
             "SD~;SG~",
