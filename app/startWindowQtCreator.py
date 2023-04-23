@@ -27,10 +27,16 @@ class Ui_StartWindow(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setContentsMargins(30, 15, 30, 15)
         self.verticalLayout.setObjectName("verticalLayout")
+        self.title = QtWidgets.QLabel(self.centralwidget)
+        self.title.setObjectName("title")
+        self.verticalLayout.addWidget(self.title)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setObjectName("label")
+        self.horizontalLayout.addWidget(self.label)
         self.pathText = QtWidgets.QLineEdit(self.centralwidget)
         self.pathText.setObjectName("pathText")
         self.horizontalLayout.addWidget(self.pathText)
@@ -56,4 +62,6 @@ class Ui_StartWindow(object):
     def retranslateUi(self, StartWindow):
         _translate = QtCore.QCoreApplication.translate
         StartWindow.setWindowTitle(_translate("StartWindow", "MainWindow"))
+        self.title.setText(_translate("StartWindow", "Select a directory as a workspace"))
+        self.label.setText(_translate("StartWindow", "Workspace: "))
         self.searchButton.setText(_translate("StartWindow", "..."))

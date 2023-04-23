@@ -46,6 +46,13 @@
      <number>15</number>
     </property>
     <item>
+     <widget class="QLabel" name="title">
+      <property name="text">
+       <string>Select a directory as a workspace</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <spacer name="verticalSpacer_2">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -60,6 +67,13 @@
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Workspace: </string>
+        </property>
+       </widget>
+      </item>
       <item>
        <widget class="QLineEdit" name="pathText"/>
       </item>

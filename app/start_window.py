@@ -5,13 +5,12 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QMessageBox
 
 from startWindowQtCreator import Ui_StartWindow
 
-print("\n\n\n", )
-
 
 class StartWindow(QMainWindow, Ui_StartWindow):
     def __init__(self, *args, **kwargs):
         super(StartWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
+        self.set_styles()
 
         self.default_location = QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0]
 
@@ -20,6 +19,32 @@ class StartWindow(QMainWindow, Ui_StartWindow):
         self.searchButton.clicked.connect(self.select_directory_dialog)
         self.buttonBox.accepted.connect(self.accept_slot)
         self.buttonBox.rejected.connect(self.reject_slot)
+
+    def set_styles(self):
+        self.pathText.setStyleSheet(
+            "QLineEdit {"
+            "    font-size: 13px;"
+            "    border: 2px solid gray;"
+            "    border-radius: 10px;"
+            "    padding: 0 8px;"
+            "    background: yellow;"
+            "    selection-background-color: darkgray;"
+            "}"
+        )
+        self.label.setStyleSheet(
+            "QLabel, QToolTip {"
+            "    font-size: 13px;"
+            "    font-weight: bold;"
+            "    padding: 2px;"
+            "}"
+        )
+        self.title.setStyleSheet(
+            "QLabel, QToolTip {"
+            "    font-size: 15px;"
+            "    font-weight: bold;"
+            "    padding: 2px;"
+            "}"
+        )
 
     def select_directory_dialog(self, s: bool) -> None:
         if not QDir(self.pathText.text()).exists():
@@ -51,4 +76,3 @@ if __name__ == "__main__":
     w.show()
 
     app.exec()
-
