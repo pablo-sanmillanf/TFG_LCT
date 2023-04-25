@@ -49,10 +49,11 @@ def create_colors_dict(default_text: str, color_list: list[str]) -> dict[str, st
 
 
 def obtain_limit_points(points):
-    return [(line[0], (line[1][0], line[1][-1])) for line in points]
+    return [(i[0], (i[1][0][0], i[1][-1][0])) for i in points]
 
 
-def obtain_points(complete_points: list[tuple[float, list[list[float, str]]]]) -> list[tuple[float, list[float]]]:
+def obtain_separator_points(complete_points: list[tuple[float, list[list[float, str]]]]
+                            ) -> list[tuple[float, list[float]]]:
     """
     Extract from the complex structure that returns MainText object, the list of points with this structure:
     [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
@@ -78,15 +79,16 @@ class Classifier:
         """
         self.text = MainText(text, text_size, text_width, 300, parent)
 
-        self.fixed_points = obtain_points(self.text.get_complete_points())
+        complete_points = self.text.get_complete_points()
+        sep_points = obtain_separator_points(complete_points)
 
         # Set separators
-        self.sep_handler = SeparatorHandler(text_size * 2, self.fixed_points, parent)
+        self.sep_handler = SeparatorHandler(text_size * 2, sep_points, parent)
         self.sep_handler.add_limit_separators(
-            self.fixed_points[0][1][0],
-            self.fixed_points[0][0],
-            self.fixed_points[-1][1][-1],
-            self.fixed_points[-1][0],
+            sep_points[0][1][0],
+            sep_points[0][0],
+            sep_points[-1][1][-1],
+            sep_points[-1][0],
             "yellow"
         )
 
@@ -96,7 +98,7 @@ class Classifier:
         self.rects_handler = RoundedRectHandler(
             text_size * 2,
             text_size / 2,
-            obtain_limit_points(self.fixed_points),
+            obtain_limit_points(complete_points),
             create_colors_dict(default_descriptor, rect_colors),
             parent
         )
@@ -107,7 +109,7 @@ class Classifier:
         )
 
         self.descriptors_handler = DescriptorHandler(
-            text_size * 2.4, default_descriptor, text_size * 2 / 3, obtain_limit_points(self.fixed_points), parent
+            text_size * 2.4, default_descriptor, text_size * 2 / 3, obtain_limit_points(complete_points), parent
         )
         self.descriptors_handler.add_separator_listeners(
             self.sep_handler.emitter.pos_changed,
@@ -192,7 +194,7 @@ class Classifier:
         :return: True if success, False if error. There can be a mistake if the coordinates
                  are out of bounds or if in the given coordinates there is no separator
         """
-        print(self.get_text_classified_complete())
+        print(self.get_text_analyzed())
         return self.sep_handler.demote_separator(x, y)
 
     def is_super_separator(self, x: float, y: float) -> bool:
@@ -226,8 +228,6 @@ class Classifier:
         """
         text_list_index = 0
         complete_point_list = self.text.get_complete_points()
-        self.fixed_points = obtain_points(complete_point_list)
-        limit_points = obtain_limit_points(self.fixed_points)
         separator_points = [QPointF(complete_point_list[0][1][0][0], complete_point_list[0][0])]
         aux_text = ""
 
@@ -248,10 +248,11 @@ class Classifier:
             QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0])
         )
         sep_points_without_limits = separator_points[1:-1]
+        limit_points = obtain_limit_points(complete_point_list)
         self.rects_handler.set_points(limit_points, sep_points_without_limits, False)
         self.descriptors_handler.set_points(limit_points, sep_points_without_limits, False)
 
-        self.sep_handler.fixed_points = self.fixed_points
+        self.sep_handler.fixed_points = obtain_separator_points(complete_point_list)
         self.sep_handler.set_separator_points(separator_points)
 
     def get_text_item_height(self) -> float:
@@ -291,24 +292,11 @@ class Classifier:
 
         return result
 
-    def get_text_analyzed(self) -> list[tuple[str, str]]:
+    def get_text_analyzed(self) -> list[tuple[list[tuple[str, str]], str]]:
         """
         Gets the subgroups of words that form the separators within the text and its descriptor tag.
         :return: A list of tuples with the text classified and analyzed. The first tuple element is the text and the
                  second is the descriptor value.
-        """
-        analyzed_text = []
-        text_list = self.get_text_classified()
-        descriptors_list = self.descriptors_handler.get_descriptor_values()
-
-        for i in range(len(descriptors_list)):
-            analyzed_text.append((text_list[i], descriptors_list[i]))
-        return analyzed_text
-
-    def get_text_classified_complete(self) -> list[tuple[list[tuple[str, str]], str]]:
-        """
-        Gets the subgroups of words that form the separators within the text.
-        :return: A list with a group of words per element.
         """
         text = ""
         result = []
@@ -328,7 +316,7 @@ class Classifier:
                 if sep_ind < len(sep_points) and \
                         sep_points[sep_ind].x() == complete_point_list[y_index][1][x_index][0] and \
                         sep_points[sep_ind].y() == complete_point_list[y_index][0]:
-                    group.append((text[:-1], descriptors_list[sep_ind]))
+                    group.append((text[1:], descriptors_list[sep_ind]))
                     sep_ind += 1
                     text = ""
                 if super_sep_ind < len(super_sep_points) and \
@@ -339,9 +327,12 @@ class Classifier:
                     group = []
 
                 if complete_point_list[y_index][1][x_index][1] != '':
-                    text += (complete_point_list[y_index][1][x_index][1] + " ")
+                    if complete_point_list[y_index][1][x_index][2]:
+                        text += complete_point_list[y_index][1][x_index][1]
+                    else:
+                        text += (" " + complete_point_list[y_index][1][x_index][1])
 
-        group.append((text[:-1], descriptors_list[sep_ind]))
+        group.append((text[1:], descriptors_list[sep_ind]))
         result.append((group, most_common([i[1] for i in group])))
 
         return result
@@ -352,19 +343,20 @@ class Classifier:
         :param text: The text that will appear.
         """
         self.text.set_text(text)
-        self.fixed_points = obtain_points(self.text.get_complete_points())
+        complete_points = self.text.get_complete_points()
+        sep_points = obtain_separator_points(complete_points)
 
         self.sep_handler.delete_all_separators()
-        self.sep_handler.fixed_points = self.fixed_points
+        self.sep_handler.fixed_points = sep_points
         self.sep_handler.add_limit_separators(
-            self.fixed_points[0][1][0],
-            self.fixed_points[0][0],
-            self.fixed_points[-1][1][-1],
-            self.fixed_points[-1][0],
+            sep_points[0][1][0],
+            sep_points[0][0],
+            sep_points[-1][1][-1],
+            sep_points[-1][0],
             "yellow"
         )
 
-        limit_points = obtain_limit_points(self.fixed_points)
+        limit_points = obtain_limit_points(complete_points)
 
         self.rects_handler.set_points(limit_points, [], True)
         self.descriptors_handler.set_points(limit_points, [], True)

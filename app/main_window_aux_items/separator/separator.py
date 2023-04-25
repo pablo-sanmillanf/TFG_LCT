@@ -102,8 +102,8 @@ class Separator(QGraphicsLineItem):
 
     def set_bounding_rect(self) -> None:
         """
-        Set the bounding rounded_rect. If the item is not in the border, the bounding rounded_rect is the regular bounding rounded_rect.
-        If it is on the border, modify the bounding rounded_rect to span the original and the copy created at the beginning
+        Set the bounding rect. If the item is not in the border, the bounding rect is the regular bounding rect.
+        If it is on the border, modify the bounding rect to span the original and the copy created at the beginning
         of the next row (if the original was at the end of the line) or at the end of the previous row (if the
         original was at the beginning of the line).
         """

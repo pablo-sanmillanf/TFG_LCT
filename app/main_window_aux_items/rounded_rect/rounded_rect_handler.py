@@ -151,7 +151,7 @@ class RoundedRectHandler:
 
                 if sep_index < len(separator_points) and (
                         separator_points[sep_index].y() == points[points_index][0] and
-                        separator_points[sep_index].x() < points[points_index][1][1]):
+                        separator_points[sep_index].x() <= points[points_index][1][1]):
                     width = separator_points[sep_index].x() - x_pos
 
                     # Update separators
@@ -176,7 +176,7 @@ class RoundedRectHandler:
 
                 if sep_index < len(separator_points) and (
                         separator_points[sep_index].y() == points[points_index][0] and
-                        separator_points[sep_index].x() < points[points_index][1][1]):
+                        separator_points[sep_index].x() <= points[points_index][1][1]):
                     width = separator_points[sep_index].x() - x_pos
 
                     # Update separators
@@ -206,7 +206,7 @@ class RoundedRectHandler:
 
                 if sep_index < len(separator_points) and (
                         separator_points[sep_index].y() == points[points_index][0] and
-                        separator_points[sep_index].x() < points[points_index][1][1]):
+                        separator_points[sep_index].x() <= points[points_index][1][1]):
                     width = separator_points[sep_index].x() - x_pos
 
                     # Update separators

@@ -116,7 +116,7 @@ class MainText(QGraphicsTextItem):
 
         return result
 
-    def get_complete_points(self) -> list[tuple[float, list[list[float, str]]]]:
+    def get_complete_points(self) -> list[tuple[float, list[list[float | str | bool]]]]:
         """
         Calculates the points of separation between the different words of the text. It returns a complex structure that
         is composed by a list of tuples. The first element of the tuple is the y-value for a specific line and the
@@ -218,7 +218,7 @@ class MainText(QGraphicsTextItem):
         return points
 
     def get_x_values(self, start_index: int, end_index: int, break_line: bool,
-                     padding: int | float, half_space: int | float) -> list[list[float, str]]:
+                     padding: int | float, half_space: int | float) -> list[list[float | str | bool]]:
         """
         Calculates the x-points of separation between the different words of a line indicated by start_index and
         end_index. It returns a complex structure. Is composed by a list of two-element lists. Each of these two-element
@@ -233,7 +233,7 @@ class MainText(QGraphicsTextItem):
         :return: The complex structure described above.
         """
         line_width = padding / 2 + self.pos().x()
-        x_values_with_words = [[line_width, self.words_width[start_index][1]]]
+        x_values_with_words = [[line_width, self.words_width[start_index][1], False]]
         line_width += padding / 2 - half_space
 
         sub_str_pos = []
@@ -245,13 +245,17 @@ class MainText(QGraphicsTextItem):
 
                 x_values_with_words[-1][0] += half_space
 
-                x_values_with_words.append([line_width, self.words_width[i + 1][1]])
+                x_values_with_words.append([line_width, self.words_width[i + 1][1], self.words_width[i][2]])
                 sub_str_pos.append(i - start_index)
             else:
                 line_width += (self.words_width[i][0] + 2 * half_space)
-                x_values_with_words.append([line_width, self.words_width[i + 1][1]])
+                x_values_with_words.append([line_width, self.words_width[i + 1][1], self.words_width[i][2]])
 
-        line_width += (self.words_width[end_index][0] + half_space + padding)
+        if self.words_width[end_index - 1][2]:
+            line_width += (self.words_width[end_index][0] - half_space + padding)
+            sub_str_pos.append(end_index)
+        else:
+            line_width += (self.words_width[end_index][0] + half_space + padding)
 
         # Adjust offsets to the justify line
         if not break_line and end_index > start_index + len(sub_str_pos):
@@ -268,9 +272,9 @@ class MainText(QGraphicsTextItem):
                     sub_str_offset += 1
                 x_values_with_words[e][0] += (space_adjust / 2 + space_adjust * (e - sub_str_offset))
 
-            x_values_with_words.append((self.textWidth() - padding / 2 + self.pos().x(), ""))
+            x_values_with_words.append([self.textWidth() - padding / 2 + self.pos().x(), "", self.words_width[end_index][2]])
         else:
-            x_values_with_words.append([line_width, ""])
+            x_values_with_words.append([line_width, "", False])
 
         return x_values_with_words
 

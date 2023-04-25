@@ -147,6 +147,8 @@ class ClassifierView(QGraphicsView):
             self.context_menu_pos.y() - self.items_parent.pos().y() +
             self.global_pos_y_offset + self.verticalScrollBar().value()
         )
+        """while self.classifier.split(0,0):
+            pass"""
 
     def join(self) -> None:
         """

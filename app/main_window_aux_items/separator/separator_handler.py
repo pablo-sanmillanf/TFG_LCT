@@ -12,7 +12,6 @@ class SeparatorHandler:
     """
     This class controls all the behaviour of the Separators (insertion, deletion, updates, movement, etc.).
     """
-    super_separators: list[list[Separator | bool]]
     pen: QPen
     separators: list[list[Separator | bool]]
 
@@ -25,7 +24,6 @@ class SeparatorHandler:
                              be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
         :param parent: The QGraphicsItem parent of the Separators. Can't be None
         """
-        self.super_separators = []
         self.height = line_height
         self.fixed_points = fixed_points
         self.parent = parent
@@ -107,6 +105,9 @@ class SeparatorHandler:
         for i in range(len(points)):
             self.separators[i][0].fixed_points = self.fixed_points
             self.separators[i][0].setPos(points[i])
+
+        for i in range(len(self.separators)):
+            self.update_fixed_points_separator(i)
 
     def point_is_occupied(self, x: float, y: float) -> tuple[bool, int]:
         """
@@ -260,7 +261,7 @@ class SeparatorHandler:
 
         self.parent.scene().removeItem(removed_separator[0])
 
-        self.emitter.removed.emit(removed_separator)
+        self.emitter.removed.emit(removed_separator[0])
 
         return True
 

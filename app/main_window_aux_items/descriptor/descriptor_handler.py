@@ -199,7 +199,7 @@ class DescriptorHandler:
 
                 if sep_index < len(separator_points) and (
                         separator_points[sep_index].y() == points[points_index][0] and
-                        separator_points[sep_index].x() < points[points_index][1][1]):
+                        separator_points[sep_index].x() <= points[points_index][1][1]):
                     self.descriptors[desc_index][3] = separator_points[sep_index].x()
 
                     # Update separators
@@ -224,7 +224,7 @@ class DescriptorHandler:
 
                 if sep_index < len(separator_points) and (
                         separator_points[sep_index].y() == points[points_index][0] and
-                        separator_points[sep_index].x() < points[points_index][1][1]):
+                        separator_points[sep_index].x() <= points[points_index][1][1]):
                     right_x = separator_points[sep_index].x()
 
                     # Update separators
@@ -260,7 +260,7 @@ class DescriptorHandler:
 
                 if sep_index < len(separator_points) and (
                         separator_points[sep_index].y() == points[points_index][0] and
-                        separator_points[sep_index].x() < points[points_index][1][1]):
+                        separator_points[sep_index].x() <= points[points_index][1][1]):
                     self.descriptors[desc_index][3] = separator_points[sep_index].x()
 
                     # Update separators
