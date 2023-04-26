@@ -7,6 +7,34 @@ from PyQt5.QtWidgets import (
 BREAK_LINE_CHARACTERS = ["}", "-", "|", "?", "!", "/"]
 
 
+def apply_text_format(text: str) -> str:
+    """
+    This function format the text to adapt it to the required format by classes TextClassifier and MainText.
+    More specifically, replace the "\n" with "<br>" and remove duplicate spaces.
+    :param text: The text to be formatted.
+    :return: The formatted text.
+    """
+    text = text.replace("&", "&amp;")
+    text = text.replace("\"", "&quot;")
+    text = text.replace(">", "&gt;")
+    text = text.replace("<", "&lt;")
+    return " ".join(text.replace("\n", " <br> ").split())
+
+
+def remove_text_format(text: str) -> str:
+    """
+    This function format the text to adapt it to the required format by classes TextClassifier and MainText.
+    More specifically, replace the "\n" with "<br>" and remove duplicate spaces.
+    :param text: The text to be formatted.
+    :return: The formatted text.
+    """
+    text = text.replace("&amp;", "&")
+    text = text.replace("&quot;", "\"")
+    text = text.replace("&gt;", ">")
+    text = text.replace("&lt;", "<")
+    return text
+
+
 class MainText(QGraphicsTextItem):
     """
     This class represents a multiline text with an interline spacing introduced in the constructor.
@@ -48,8 +76,8 @@ class MainText(QGraphicsTextItem):
         Set the text of the element justified and with the element's line height.
         :param text: The text
         """
-        self.text = text
-        self.setHtml('<p align="justify" style="line-height: ' + str(self.line_height) + '%">' + text + '</p>')
+        self.text = apply_text_format(text)
+        self.setHtml('<p align="justify" style="line-height: ' + str(self.line_height) + '%">' + self.text + '</p>')
 
         self.words_width = self.get_words_width(self.text.split(" "))
 
@@ -233,7 +261,13 @@ class MainText(QGraphicsTextItem):
         :return: The complex structure described above.
         """
         line_width = padding / 2 + self.pos().x()
-        x_values_with_words = [[line_width, self.words_width[start_index][1], False]]
+        x_values_with_words = [
+            [
+                line_width,
+                remove_text_format(self.words_width[start_index][1]),
+                self.words_width[max(0, start_index - 1)][2]
+            ]
+        ]
         line_width += padding / 2 - half_space
 
         sub_str_pos = []
@@ -245,11 +279,13 @@ class MainText(QGraphicsTextItem):
 
                 x_values_with_words[-1][0] += half_space
 
-                x_values_with_words.append([line_width, self.words_width[i + 1][1], self.words_width[i][2]])
                 sub_str_pos.append(i - start_index)
             else:
                 line_width += (self.words_width[i][0] + 2 * half_space)
-                x_values_with_words.append([line_width, self.words_width[i + 1][1], self.words_width[i][2]])
+
+            x_values_with_words.append(
+                [line_width, remove_text_format(self.words_width[i + 1][1]), self.words_width[i][2]]
+            )
 
         if self.words_width[end_index - 1][2]:
             line_width += (self.words_width[end_index][0] - half_space + padding)
@@ -272,7 +308,9 @@ class MainText(QGraphicsTextItem):
                     sub_str_offset += 1
                 x_values_with_words[e][0] += (space_adjust / 2 + space_adjust * (e - sub_str_offset))
 
-            x_values_with_words.append([self.textWidth() - padding / 2 + self.pos().x(), "", self.words_width[end_index][2]])
+            x_values_with_words.append(
+                [self.textWidth() - padding / 2 + self.pos().x(), "", self.words_width[end_index][2]]
+            )
         else:
             x_values_with_words.append([line_width, "", False])
 

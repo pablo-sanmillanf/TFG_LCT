@@ -9,7 +9,6 @@ from .descriptor.descriptor_handler import DescriptorHandler
 from .main_text import MainText
 from .separator.separator_handler import SeparatorHandler
 
-
 from collections import Counter
 
 
@@ -60,6 +59,90 @@ def obtain_separator_points(complete_points: list[tuple[float, list[list[float, 
     :return: The list with the points
     """
     return [(i[0], [e[0] for e in i[1]]) for i in complete_points]
+
+
+def get_repos_sep_points(text_list: list[str],
+                         complete_point_list: list[tuple[float, list[list[float | str | bool]]]]) -> list[QPointF]:
+    """
+    Reposition the separators to fit the new text format. The positions that the separators will occupy will be
+    such that the groups of words that form these separators will be the same.
+    :param text_list: A list with the groups of words made by the separators.
+    :param complete_point_list: A list with the groups of words made by the separators.
+    """
+    text_list_index = 0
+    separator_points = [QPointF(complete_point_list[0][1][0][0], complete_point_list[0][0])]
+    aux_text = ""
+
+    for y_index in range(len(complete_point_list)):
+        for x_index in range(len(complete_point_list[y_index][1])):
+            if complete_point_list[y_index][1][x_index][1] != '':
+                if complete_point_list[y_index][1][x_index][2]:
+                    aux_text += complete_point_list[y_index][1][x_index][1]
+                else:
+                    aux_text += (" " + complete_point_list[y_index][1][x_index][1])
+
+                # Do the comparison without the first space character
+                if aux_text[1:] not in text_list[text_list_index]:
+                    text_list_index += 1
+                    aux_text = " " + complete_point_list[y_index][1][x_index][1]
+                    separator_points.append(
+                        QPointF(complete_point_list[y_index][1][x_index][0], complete_point_list[y_index][0])
+                    )
+    # Add last element
+    separator_points.append(
+        QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0])
+    )
+    return separator_points
+
+
+def get_repos_sep_points_with_super_sep(sep_text_list: list[str], super_sep_text_list: list[str],
+                                        complete_point_list: list[tuple[float, list[list[float | str | bool]]]]
+                                        ) -> list[tuple[QPointF, bool]]:
+    """
+    Reposition the separators to fit the new text format. The positions that the separators will occupy will be
+    such that the groups of words that form these separators will be the same.
+    :param sep_text_list: A list with the groups of words made by the separators.
+    :param super_sep_text_list: A list with the groups of words made by the separators.
+    :param complete_point_list: A list with the groups of words made by the separators.
+    """
+    sep_text_list_index = 0
+    super_sep_text_list_index = 0
+    separator_points = [(QPointF(complete_point_list[0][1][0][0], complete_point_list[0][0]), False)]
+    sep_aux_text = ""
+    super_sep_aux_text = ""
+
+    for y_index in range(len(complete_point_list)):
+        for x_index in range(len(complete_point_list[y_index][1])):
+            if complete_point_list[y_index][1][x_index][1] != '':
+                if complete_point_list[y_index][1][x_index][2]:
+                    sep_aux_text += complete_point_list[y_index][1][x_index][1]
+                else:
+                    sep_aux_text += (" " + complete_point_list[y_index][1][x_index][1])
+
+                # Do the comparison without the first space character
+                if sep_aux_text[1:] not in sep_text_list[sep_text_list_index]:
+                    sep_text_list_index += 1
+                    super_sep_aux_text += sep_aux_text[:-len(complete_point_list[y_index][1][x_index][1]) - 1]
+                    sep_aux_text = " " + complete_point_list[y_index][1][x_index][1]
+
+                    if (super_sep_aux_text[1:] + sep_aux_text) not \
+                            in super_sep_text_list[super_sep_text_list_index]:
+                        super_sep_aux_text = ""
+                        super_sep_text_list_index += 1
+                        separator_points.append(
+                            (QPointF(complete_point_list[y_index][1][x_index][0], complete_point_list[y_index][0]),
+                             True)
+                        )
+                    else:
+                        separator_points.append(
+                            (QPointF(complete_point_list[y_index][1][x_index][0], complete_point_list[y_index][0]),
+                             False)
+                        )
+    # Add last element
+    separator_points.append(
+        (QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0]), False)
+    )
+    return separator_points
 
 
 class Classifier:
@@ -220,41 +303,6 @@ class Classifier:
             return True
         return False
 
-    def repositioning_separators(self, text_list: list[str]) -> None:
-        """
-        Reposition the separators to fit the new text format. The positions that the separators will occupy will be
-        such that the groups of words that form these separators will be the same.
-        :param text_list: A list with the groups of words made by the separators.
-        """
-        text_list_index = 0
-        complete_point_list = self.text.get_complete_points()
-        separator_points = [QPointF(complete_point_list[0][1][0][0], complete_point_list[0][0])]
-        aux_text = ""
-
-        for y_index in range(len(complete_point_list)):
-            for x_index in range(len(complete_point_list[y_index][1])):
-                if complete_point_list[y_index][1][x_index][1] != '':
-                    aux_text += (complete_point_list[y_index][1][x_index][1] + " ")
-
-                    # Do the comparison without the last space character
-                    if aux_text[:-1] not in text_list[text_list_index]:
-                        text_list_index += 1
-                        aux_text = complete_point_list[y_index][1][x_index][1] + " "
-                        separator_points.append(
-                            QPointF(complete_point_list[y_index][1][x_index][0], complete_point_list[y_index][0])
-                        )
-        # Add last element
-        separator_points.append(
-            QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0])
-        )
-        sep_points_without_limits = separator_points[1:-1]
-        limit_points = obtain_limit_points(complete_point_list)
-        self.rects_handler.set_points(limit_points, sep_points_without_limits, False)
-        self.descriptors_handler.set_points(limit_points, sep_points_without_limits, False)
-
-        self.sep_handler.fixed_points = obtain_separator_points(complete_point_list)
-        self.sep_handler.set_separator_points(separator_points)
-
     def get_text_item_height(self) -> float:
         """
         This function return the number of pixels that will occupy vertically the text item
@@ -281,14 +329,17 @@ class Classifier:
                 if sep_ind < len(sep_points) and \
                         sep_points[sep_ind].x() == complete_point_list[y_index][1][x_index][0] and \
                         sep_points[sep_ind].y() == complete_point_list[y_index][0]:
-                    result.append(text[:-1])
+                    result.append(text[1:])
                     sep_ind += 1
                     text = ""
 
                 if complete_point_list[y_index][1][x_index][1] != '':
-                    text += (complete_point_list[y_index][1][x_index][1] + " ")
+                    if complete_point_list[y_index][1][x_index][2] and text != "":
+                        text += complete_point_list[y_index][1][x_index][1]
+                    else:
+                        text += (" " + complete_point_list[y_index][1][x_index][1])
 
-        result.append(text[:-1])
+        result.append(text[1:])
 
         return result
 
@@ -327,7 +378,7 @@ class Classifier:
                     group = []
 
                 if complete_point_list[y_index][1][x_index][1] != '':
-                    if complete_point_list[y_index][1][x_index][2]:
+                    if complete_point_list[y_index][1][x_index][2] and text != "":
                         text += complete_point_list[y_index][1][x_index][1]
                     else:
                         text += (" " + complete_point_list[y_index][1][x_index][1])
@@ -342,6 +393,7 @@ class Classifier:
         Set the text to be analyzed.
         :param text: The text that will appear.
         """
+
         self.text.set_text(text)
         complete_points = self.text.get_complete_points()
         sep_points = obtain_separator_points(complete_points)
@@ -381,7 +433,36 @@ class Classifier:
         self.descriptors_handler.set_y_offset_and_text_size(text_size * 2.4, text_size * 2 / 3)
 
         # Reposition separators to the new text size
-        self.repositioning_separators(text_list_previous_size)
+        complete_point_list = self.text.get_complete_points()
+
+        separator_points = get_repos_sep_points(text_list_previous_size, complete_point_list)
+
+        sep_points_without_limits = separator_points[1:-1]
+        limit_points = obtain_limit_points(complete_point_list)
+        self.rects_handler.set_points(limit_points, sep_points_without_limits, False)
+        self.descriptors_handler.set_points(limit_points, sep_points_without_limits, False)
+
+        self.sep_handler.fixed_points = obtain_separator_points(complete_point_list)
+        self.sep_handler.set_separator_points(separator_points)
+
+    def set_text_analyzed(self, sep_text_list: list[str], super_sep_text_list: list[str], labels: list[str],
+                          values: list[list[int]]):
+
+        self.set_text(" ".join(sep_text_list))
+
+        complete_point_list = self.text.get_complete_points()
+
+        separator_points = get_repos_sep_points_with_super_sep(sep_text_list, super_sep_text_list, complete_point_list)
+
+        for i in range(1, len(separator_points) - 1):
+            self.split(separator_points[i][0].x(), separator_points[i][0].y())
+            if separator_points[i][1]:
+                self.promote_separator(separator_points[i][0].x(), separator_points[i][0].y())
+
+        string_values = []
+        for value in values:
+            string_values.append([ALLOWED_STRINGS[i - 1] for i in value])
+        self.descriptors_handler.set_texts(labels, string_values)
 
     def set_width(self, width: float) -> None:
         # Save text_list from the original text_size to reposition all the separators
@@ -391,4 +472,14 @@ class Classifier:
         self.text.set_width(width)
 
         # Reposition separators to the new text size
-        self.repositioning_separators(text_list_previous_size)
+        complete_point_list = self.text.get_complete_points()
+
+        separator_points = get_repos_sep_points(text_list_previous_size, complete_point_list)
+
+        sep_points_without_limits = separator_points[1:-1]
+        limit_points = obtain_limit_points(complete_point_list)
+        self.rects_handler.set_points(limit_points, sep_points_without_limits, False)
+        self.descriptors_handler.set_points(limit_points, sep_points_without_limits, False)
+
+        self.sep_handler.fixed_points = obtain_separator_points(complete_point_list)
+        self.sep_handler.set_separator_points(separator_points)

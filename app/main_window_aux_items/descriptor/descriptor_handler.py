@@ -325,6 +325,14 @@ class DescriptorHandler:
 
             self.set_descriptor_pos(i)
 
+    def set_texts(self, labels: list[str], values: list[list[str]]):
+        for i in range(1, len(labels)):
+            labels[i] = ";" + labels[i]
+        labels.append("")
+        for i in range(len(self.separators)):
+            self.descriptors[self.separators[i][1]][0].set_text(labels, values[i])
+        self.descriptors[-1][0].set_text(labels, values[-1])
+
     def get_descriptor_values(self) -> list[str]:
         """
         Obtain the texts descriptors for all the clauses in a list.

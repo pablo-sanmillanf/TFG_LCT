@@ -6,20 +6,6 @@ from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QW
 from main_window_aux_items.classifier import Classifier
 
 
-def format_text(text: str) -> str:
-    """
-    This function format the text to adapt it to the required format by classes TextClassifier and MainText.
-    More specifically, replace the "\n" with "<br>" and remove duplicate spaces.
-    :param text: The text to be formatted.
-    :return: The formatted text.
-    """
-    text = text.replace("&", "&amp;")
-    text = text.replace("\"", "&quot;")
-    text = text.replace(">", "&gt;")
-    text = text.replace("<", "&lt;")
-    return " ".join(text.replace("\n", " <br> ").split())
-
-
 class ClassifierView(QGraphicsView):
     """
     This class controls all the behaviour of the QGraphicsItems, the QGraphicsView and the QGraphicsScene.
@@ -74,7 +60,7 @@ class ClassifierView(QGraphicsView):
         self.scene.addItem(self.items_parent)
 
         self.classifier = Classifier(
-            format_text(text),
+            text,
             min_width - 2 * x_padding,
             text_size,
             default_descriptor,
@@ -83,7 +69,7 @@ class ClassifierView(QGraphicsView):
         )
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.on_context_menu)
+        self.customContextMenuRequested.connect(self._on_context_menu)
 
         self.split_action = QAction("Split", self)
         self.join_action = QAction("Join", self)
@@ -99,7 +85,7 @@ class ClassifierView(QGraphicsView):
         # As the rectangles height is 2*text_size this offset moves the point to calculate half height.
         self.global_pos_y_offset = -text_size
 
-    def on_context_menu(self, pos: QPoint) -> None:
+    def _on_context_menu(self, pos: QPoint) -> None:
         """
         This function set a context menu
         :param pos: The clicked position as a QPoint.
@@ -185,7 +171,7 @@ class ClassifierView(QGraphicsView):
         Set the text to be analyzed.
         :param text: The text that will appear.
         """
-        self.classifier.set_text(format_text(text))
+        self.classifier.set_text(text)
 
         # Set text size
         self.scene.setSceneRect(
@@ -219,7 +205,11 @@ class ClassifierView(QGraphicsView):
 
         app.restoreOverrideCursor()
 
-    def get_text_analyzed(self) -> list[tuple[str, str]]:
+    def set_text_analyzed(self, sep_text_list: list[str], super_sep_text_list: list[str], labels: list[str],
+                          values: list[list[int]]):
+        self.classifier.set_text_analyzed(sep_text_list, super_sep_text_list, labels, values)
+
+    def get_text_analyzed(self) -> list[tuple[list[tuple[str, str]], str]]:
         """
         Gets the subgroups of words that form the separators within the text and its descriptor tag.
         :return: A list of tuples with the text classified and analyzed. The first tuple element is the text and the
@@ -295,4 +285,3 @@ class ClassifierView(QGraphicsView):
         )
 
         app.restoreOverrideCursor()
-

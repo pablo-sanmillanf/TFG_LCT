@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import (
     QMainWindow, QInputDialog, QMessageBox, QFileDialog
 )
 
+from lct_handler import LCTHandler
+from main_window_aux_items.descriptor.descriptor import ALLOWED_STRINGS
 from dialogs.colors_dialog import ColorsDialog
 from graph.graph_window import GraphWindow
 from mainWindowQtCreator import Ui_MainWindow
@@ -33,6 +35,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.graph_window = None
 
+        self.current_file = ""
+
+        self.lct_handler = LCTHandler("Semantics", ["SD", "SG"], ALLOWED_STRINGS)
+
         self.conf = json.loads(manage_file("defaultconf.json", "r"))
 
         self.conf_has_changed = False
@@ -50,7 +56,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             list(self.conf["colors"]["together"].values())
         )
 
+        self.actionNew.triggered.connect(self.new_file_dialog)
         self.actionOpen.triggered.connect(self.open_file_dialog)
+        self.actionSave.triggered.connect(self.save_file_dialog)
+        self.actionSave_as.triggered.connect(self.save_as_file_dialog)
         self.actionText_size.triggered.connect(self.text_size_dialog)
         self.actionRects_colors.triggered.connect(self.rects_colors_dialog)
         self.actionSD.triggered.connect(lambda checked: self.target_action("SD~"))
@@ -59,10 +68,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actiongroupTarget.setExclusive(True)
         self.actionRun_Plotter.triggered.connect(self.run_graph_window)
 
-    def open_file_dialog(self, s: bool) -> None:
+    def new_file_dialog(self, s: bool) -> None:
         file, file_type = QFileDialog().getOpenFileName(
             self,
-            "Open file to analyze",
+            "Create new file from text file to analyze",
             "./",
             "Text files (*.txt)"
         )
@@ -70,9 +79,65 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             text = manage_file(file, "r")
             if text is None or text == "":
                 QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
+                self.new_file_dialog(True)
+            else:
+                self.current_file = ""
+                self.classifierView.set_text(text)
+
+    def open_file_dialog(self, s: bool) -> None:
+        file, file_type = QFileDialog().getOpenFileName(
+            self,
+            "Open file to analyze",
+            "./",
+            "LCT Files (*.lct)"
+        )
+        if file != "":
+            text = manage_file(file, "r")
+            if text is None or text == "":
+                QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
                 self.open_file_dialog(True)
             else:
-                self.classifierView.set_text(text)
+                if not self.lct_handler.upload_from_xml_string(text, True):
+                    QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
+                    self.open_file_dialog(True)
+                else:
+                    self.current_file = file
+                    self.classifierView.set_text_analyzed(
+                        self.lct_handler.get_clause_texts(),
+                        self.lct_handler.get_super_clause_texts(),
+                        self.lct_handler.get_raw_labels(),
+                        self.lct_handler.get_clause_values()
+                    )
+
+    def save_file_dialog(self, s: bool) -> None:
+        if self.current_file == "":
+            self.save_as_file_dialog(s)
+        else:
+            if self.lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
+                manage_file(self.current_file, "w", self.lct_handler.to_string())
+                QMessageBox.information(
+                    self, "File Saved", "File saved in \"" + self.current_file + "\"", QMessageBox.Ok
+                )
+            else:
+                QMessageBox.critical(
+                    self, "Error", "The analysis is not completed (All '~' must be replaced)", QMessageBox.Ok
+                )
+
+    def save_as_file_dialog(self, s: bool) -> None:
+        if self.lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
+            file, file_type = QFileDialog().getSaveFileName(
+                self,
+                "Save file",
+                "./",
+                "LCT Files (*.lct)"
+            )
+            if file != "":
+                self.current_file = file
+                manage_file(file, "w", self.lct_handler.to_string())
+        else:
+            QMessageBox.critical(
+                self, "Error", "The analysis is not completed (All '~' must be replaced)", QMessageBox.Ok
+            )
 
     def text_size_dialog(self, s: bool) -> None:
         value, ok = QInputDialog().getInt(

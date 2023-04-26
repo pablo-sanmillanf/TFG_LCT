@@ -49,7 +49,7 @@ class LCTHandler:
             # Root data element
             analysis = self.doc.createElement('analysis')
             lct.appendChild(analysis)
-            analysis.setAttribute("target", "".join(re.split(self.pattern, data[0][1])))
+            analysis.setAttribute("target", "/".join(self.labels))
 
             for super_clause in data:
                 super_clause_node = self.doc.createElement("superClause")
@@ -81,7 +81,7 @@ class LCTHandler:
                         c_attr += str(self.valid_values.index(i) + 1)
                     clause_node.setAttribute('value', c_attr)
 
-                    clause_node.appendChild(self.doc.createTextNode(clause[0].replace("\n", "\\n")))
+                    clause_node.appendChild(self.doc.createTextNode(clause[0]))
         except ValueError:
             self.unmount()
             return False
@@ -132,6 +132,9 @@ class LCTHandler:
                     if len([item for item in clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]) != 0:
                         return False
 
+        self.labels = [item for item in new_doc.firstChild.childNodes
+                       if item.nodeType == minidom.Node.ELEMENT_NODE][1].getAttribute("target").split("/")
+
         self.from_file = True
         self.unmount()
         self.doc = new_doc
@@ -149,6 +152,11 @@ class LCTHandler:
             return self.doc.firstChild.getElementsByTagName("dimension")[0].firstChild.nodeValue
         except AttributeError:
             return ""
+
+    def get_raw_labels(self) -> list[str]:
+        if self.is_valid:
+            return self.labels.copy()
+        return None
 
     def get_clause_labels(self) -> list[list[str]]:
         if self.is_valid:
@@ -183,6 +191,35 @@ class LCTHandler:
 
                 for clause in clauses:
                     result.append([int(i) for i in clause.getAttribute("value")])
+
+            return result
+        return None
+
+    def get_super_clause_texts(self) -> list[str]:
+        if self.is_valid:
+            result = []
+            data_list = self.doc.firstChild.getElementsByTagName("analysis")[0]
+            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+            for super_clause in data_list:
+                clauses = [item for item in super_clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+                aux = ""
+                for clause in clauses:
+                    aux += (clause.firstChild.nodeValue + " ")
+                result.append(aux[:-1])
+
+            return result
+        return None
+
+    def get_clause_texts(self) -> list[str]:
+        if self.is_valid:
+            result = []
+            data_list = self.doc.firstChild.getElementsByTagName("analysis")[0]
+            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+            for super_clause in data_list:
+                clauses = [item for item in super_clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+
+                for clause in clauses:
+                    result.append(clause.firstChild.nodeValue)
 
             return result
         return None

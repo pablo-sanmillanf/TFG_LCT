@@ -52,9 +52,15 @@ class Descriptor(QGraphicsTextItem):
         Set the default text for this descriptor.
         :param default_text: The default text that will appear in the descriptor.
         """
-        self.setHtml('<p align="justify">' + default_text + '</p>')
         self.non_editable_text_list = default_text.split(TEXT_SEPARATOR)
         self.editable_text_list = [TEXT_SEPARATOR] * (len(self.non_editable_text_list) - 1)
+        self.selected_part = 0
+        self.highlighted = False
+        self.update_text("", True)
+
+    def set_text(self, non_editable_text_list: list[str], editable_text_list: list[str]):
+        self.non_editable_text_list = non_editable_text_list
+        self.editable_text_list = editable_text_list
         self.selected_part = 0
         self.highlighted = False
         self.update_text("", True)
