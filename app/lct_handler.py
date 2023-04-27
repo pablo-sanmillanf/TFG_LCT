@@ -2,18 +2,30 @@ import re
 from xml.dom import minidom
 from xml.dom.minidom import Document
 
+# The chars "[" and "]" were no added to avoid problems in pattern conversion. Thus, those characters are not permitted
+# as a part of labels
+SPECIAL_REGEX_CHARS = ["\\", ".", "+", "*", "?", "^", "$", "(", ")", "{", "}", "|"]
+
+
+def get_pattern(labels: list[str]):
+    for i in range(len(labels)):
+        for special_char in SPECIAL_REGEX_CHARS:
+            labels[i] = labels[i].replace(special_char, "[" + special_char + "]")
+    return "(" + "|".join(sorted(labels, key=len, reverse=True)) + ")"
+
 
 class LCTHandler:
     doc: Document
 
-    def __init__(self, dimension: str, labels: list[str], valid_values: list[str]):
+    def __init__(self, dimension: str, labels: list[list[str]]):
         self.doc = minidom.Document()
         self.dimension = dimension
 
         self.labels = labels
-        self.valid_values = valid_values
-
-        self.pattern = "[" + "".join(set("".join(self.valid_values))) + "]+"
+        self.pattern = ""
+        for label in labels:
+            self.pattern += (get_pattern(label.copy()) + ".*")
+        self.pattern = self.pattern[:-2]
         self.from_file = False
 
         self.is_valid = False
@@ -21,12 +33,14 @@ class LCTHandler:
     def unmount(self):
         self.doc.unlink()
 
-    def set_labels(self, labels: list[str]):
+    def set_labels(self, labels: list[list[str]]):
         self.labels = labels
         self.unmount()
 
     def upload_from_data(self, data: list[tuple[list[tuple[str, str]], str]]):
         self.is_valid = self._upload_from_data_valid_not_checked(data)
+        if not self.is_valid:
+            self.unmount()
         return self.is_valid
 
     def _upload_from_data_valid_not_checked(self, data: list[tuple[list[tuple[str, str]], str]]):
@@ -46,10 +60,17 @@ class LCTHandler:
             lct.appendChild(dim_node)
             dim_node.appendChild(self.doc.createTextNode(self.dimension))
 
+            # Add targets.
+            targets = self.doc.createElement("targets")
+            lct.appendChild(targets)
+            for label in self.labels:
+                target = self.doc.createElement('target')
+                targets.appendChild(target)
+                target.appendChild(self.doc.createTextNode(" ".join(label)))
+
             # Root data element
             analysis = self.doc.createElement('analysis')
             lct.appendChild(analysis)
-            analysis.setAttribute("target", "/".join(self.labels))
 
             for super_clause in data:
                 super_clause_node = self.doc.createElement("superClause")
@@ -57,13 +78,16 @@ class LCTHandler:
 
                 sc_matches = re.findall(self.pattern, super_clause[1])
 
+                if len(sc_matches) == 0:
+                    return False
+                sc_matches = sc_matches[0]
+
                 if len(sc_matches) != len(self.labels):
-                    self.unmount()
                     return False
 
                 sc_attr = ""
-                for i in sc_matches:
-                    sc_attr += str(self.valid_values.index(i) + 1)
+                for i in range(len(sc_matches)):
+                    sc_attr += str(self.labels[i].index(sc_matches[i]) + 1)
                 super_clause_node.setAttribute('value', sc_attr)
 
                 for clause in super_clause[0]:
@@ -72,18 +96,20 @@ class LCTHandler:
 
                     c_matches = re.findall(self.pattern, clause[1])
 
+                    if len(c_matches) == 0:
+                        return False
+                    c_matches = c_matches[0]
+
                     if len(c_matches) != len(self.labels):
-                        self.unmount()
                         return False
 
                     c_attr = ""
-                    for i in c_matches:
-                        c_attr += str(self.valid_values.index(i) + 1)
+                    for i in range(len(c_matches)):
+                        c_attr += str(self.labels[i].index(c_matches[i]) + 1)
                     clause_node.setAttribute('value', c_attr)
 
                     clause_node.appendChild(self.doc.createTextNode(clause[0]))
         except ValueError:
-            self.unmount()
             return False
         return True
 
@@ -108,13 +134,18 @@ class LCTHandler:
             if aux[0].tagName != "dimension":
                 return False
 
-            if aux[1].tagName != "analysis":
+            if aux[1].tagName != "targets":
                 return False
 
-            if aux[1].getAttribute("target") == "":
+            targets = [item for item in aux[1].childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+
+            if not all(item.tagName == "target" for item in targets):
                 return False
 
-            aux = [item for item in aux[1].childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+            if aux[2].tagName != "analysis":
+                return False
+
+            aux = [item for item in aux[2].childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
 
             if not all(item.tagName == "superClause" for item in aux):
                 return False
@@ -132,8 +163,11 @@ class LCTHandler:
                     if len([item for item in clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]) != 0:
                         return False
 
-        self.labels = [item for item in new_doc.firstChild.childNodes
-                       if item.nodeType == minidom.Node.ELEMENT_NODE][1].getAttribute("target").split("/")
+        target_list = [item for item in new_doc.firstChild.childNodes
+                       if item.nodeType == minidom.Node.ELEMENT_NODE][1].childNodes
+        self.labels.clear()
+        for target in [item for item in target_list if item.nodeType == minidom.Node.ELEMENT_NODE]:
+            self.labels.append(target.firstChild.nodeValue.split())
 
         self.from_file = True
         self.unmount()
@@ -155,19 +189,21 @@ class LCTHandler:
 
     def get_raw_labels(self) -> list[str]:
         if self.is_valid:
-            return self.labels.copy()
+            result = []
+            index = 1
+            for label in self.labels:
+                first = label[0][:index]
+                while all(first == x[:index] for x in label):
+                    index += 1
+                    first = label[0][:index]
+                result.append(first[:-1])
+
+            return result
         return None
 
     def get_clause_labels(self) -> list[list[str]]:
         if self.is_valid:
-            result = []
-            for label in self.labels:
-                aux = []
-                for value in self.valid_values:
-                    aux.append(label + value)
-                result.append(aux)
-
-            return result
+            return self.labels.copy()
         return None
 
     def get_super_clause_values(self) -> list[list[int]]:

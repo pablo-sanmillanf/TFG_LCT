@@ -77,6 +77,13 @@ class MainText(QGraphicsTextItem):
         :param text: The text
         """
         self.text = apply_text_format(text)
+        self._set_text(self.text)
+
+    def _set_text(self, text: str) -> None:
+        """
+        Set the text of the element justified and with the element's line height.
+        :param text: The text
+        """
         self.setHtml('<p align="justify" style="line-height: ' + str(self.line_height) + '%">' + self.text + '</p>')
 
         self.words_width = self.get_words_width(self.text.split(" "))
@@ -373,4 +380,4 @@ class MainText(QGraphicsTextItem):
         :param font: The font object
         """
         super().setFont(font)
-        self.set_text(self.text)
+        self._set_text(self.text)

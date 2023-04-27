@@ -33,11 +33,15 @@ class MplLine:
 
         self.color = self.data.get_facecolors()[0].tolist()
 
-        # Create smooth union points line
-        interpolation_model = interp1d(x, y, kind="quadratic")
-        smooth_x = np.linspace(np.amin(x), np.amax(x), len(x)*50)
-        smooth_y = interpolation_model(smooth_x)
-        self.smooth_line = self.axis.plot(smooth_x, smooth_y, color=self.color)[0]
+        if len(x) > 1:
+            # Create smooth union points line
+            if len(x) > 2:
+                interpolation_model = interp1d(x, y, kind="quadratic")
+            else:
+                interpolation_model = interp1d(x, y, kind="linear")
+            smooth_x = np.linspace(np.amin(x), np.amax(x), len(x)*50)
+            smooth_y = interpolation_model(smooth_x)
+            self.smooth_line = self.axis.plot(smooth_x, smooth_y, color=self.color)[0]
 
     def set_visible(self, state: bool) -> None:
         """
@@ -63,6 +67,10 @@ class MplLine:
 
     def get_color(self) -> list[int]:
         return self.color
+
+    def __del__(self):
+        self.data.remove()
+        self.smooth_line.remove()
 
 
 class MplCanvas(FigureCanvas):
@@ -109,6 +117,7 @@ class MplWidget(QWidget):
     """
 
     pos_changed = pyqtSignal(int)
+    point_clicked = pyqtSignal(int)
 
     def __init__(self, parent, graph_visible_points: int = 10) -> None:
         """
@@ -124,6 +133,10 @@ class MplWidget(QWidget):
         self.layout.addWidget(self.canvas)
         self.lines = []
 
+        self.secondary_axes = []
+
+        self.tolerance = 0.2
+
         self.canvas.mpl_connect("button_press_event", self.on_press)
         self.canvas.mpl_connect("button_release_event", self.on_release)
         self.canvas.mpl_connect("motion_notify_event", self.on_move)
@@ -131,6 +144,7 @@ class MplWidget(QWidget):
         self.max_len = 0
 
         self.clicked = False
+        self.movement_clicked = False
         self.start_panning_point = 0
         self.left_x_lim = 0
         self.right_x_lim = 0
@@ -166,24 +180,38 @@ class MplWidget(QWidget):
             self.canvas.axes.tick_params(axis='y', colors=line_color)
         else:
 
-            sec_axis = self.canvas.axes.secondary_yaxis(
+            self.secondary_axes.append(self.canvas.axes.secondary_yaxis(
                 - (len(self.lines) - 1) * 0.1,
                 functions=(lambda x_sec: x_sec, lambda x_sec: x_sec)
-            )
+            ))
 
             # Set Y values
-            sec_axis.set_yticks(np.arange(1, 5))
+            self.secondary_axes[-1].set_yticks(np.arange(1, 5))
 
             # Add custom Y-labels
-            sec_axis.set_yticklabels(labels)
+            self.secondary_axes[-1].set_yticklabels(labels)
 
             # Setting up Y-axis tick color
-            sec_axis.spines['left'].set_color(line_color)
+            self.secondary_axes[-1].spines['left'].set_color(line_color)
 
             # Setting up X-axis tick color
-            sec_axis.tick_params(axis='y', colors=line_color)
+            self.secondary_axes[-1].tick_params(axis='y', colors=line_color)
 
             self.canvas.figure.subplots_adjust(left=0.15 + (len(self.lines) - 2) * 0.065)
+        self.canvas.draw()
+
+    def remove_graphs(self) -> None:
+        """
+        Add a graph to the canvas. The  points of the graph will be joined with a smooth line of the same color.
+        """
+        self.lines.clear()
+        for sec_axis in self.secondary_axes:
+            sec_axis.remove()
+        self.secondary_axes.clear()
+        self.canvas.draw()
+
+        # Reset color cycle
+        self.canvas.axes.set_prop_cycle(None)
 
     def on_press(self, event: MouseEvent) -> None:
         """
@@ -205,6 +233,20 @@ class MplWidget(QWidget):
         """
         if event.button is MouseButton.LEFT:
             self.clicked = False
+            if self.movement_clicked:
+                self.movement_clicked = False
+            else:
+                canvas_width, canvas_height = self.canvas.get_width_height()
+                axis_x0, axis_y0, axis_width, axis_height = self.canvas.axes.get_position().bounds
+
+                x_pos = event.x / canvas_width
+                y_pos = event.y / canvas_height
+                if (axis_x0 <= x_pos <= axis_x0 + axis_width) and (axis_y0 <= y_pos <= axis_y0 + axis_height):
+                    x_lims = self.canvas.axes.get_xlim()
+                    x_pos = (x_pos - axis_x0) / axis_width * (x_lims[1] - x_lims[0]) + x_lims[0]
+
+                    if abs(x_pos - np.around(x_pos)) <= self.tolerance:
+                        self.point_clicked.emit(int(np.around(x_pos)))
 
     def on_move(self, event: MouseEvent) -> None:
         """
@@ -213,6 +255,7 @@ class MplWidget(QWidget):
         :param event: The MouseEvent
         """
         if self.clicked:
+            self.movement_clicked = True
             gap_moved = (event.x - self.start_panning_point) * self.panning_multiplier
             self.canvas.axes.set_xlim(left=self.left_x_lim - gap_moved, right=self.right_x_lim - gap_moved)
             self.canvas.draw()

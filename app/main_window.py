@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
 )
 
 from lct_handler import LCTHandler
-from main_window_aux_items.descriptor.descriptor import ALLOWED_STRINGS
 from dialogs.colors_dialog import ColorsDialog
 from graph.graph_window import GraphWindow
 from mainWindowQtCreator import Ui_MainWindow
@@ -33,11 +32,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
-        self.graph_window = None
-
         self.current_file = ""
 
-        self.lct_handler = LCTHandler("Semantics", ["SD", "SG"], ALLOWED_STRINGS)
+        self.lct_handler = LCTHandler("Semantics", [["SD--", "SD-", "SD+", "SD++"], ["SG++", "SG+", "SG-", "SG--"]])
+
+        self.graph_window = GraphWindow("graph/")
 
         self.conf = json.loads(manage_file("defaultconf.json", "r"))
 
@@ -175,16 +174,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["alone"].values()))
 
     def run_graph_window(self, s: bool) -> None:
-        if self.graph_window is None:
-            self.graph_window = GraphWindow("graph/")
-        self.graph_window.show()
+        if self.lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
+            self.graph_window.update_graphs(self.lct_handler)
+            self.graph_window.show()
+        else:
+            QMessageBox.critical(
+                self, "Error", "The analysis is not completed (All '~' must be replaced)", QMessageBox.Ok
+            )
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         if self.conf_has_changed:
-            button = QMessageBox.question(self, "Save settings", "Save current settings as default?")
-            if button == QMessageBox.Yes:
+            button = QMessageBox.question(
+                self,
+                "Save settings",
+                "Save current settings as default?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel
+            )
+            if button == QMessageBox.Save:
                 manage_file("defaultconf.json", "w", json.dumps(self.conf))
-        super().closeEvent(a0)
+                super().closeEvent(a0)
+                self.graph_window.close()
+            elif button == QMessageBox.Discard:
+                super().closeEvent(a0)
+                self.graph_window.close()
+            elif button == QMessageBox.Cancel:
+                a0.ignore()
+        else:
+            super().closeEvent(a0)
+            self.graph_window.close()
 
 
 if __name__ == "__main__":
