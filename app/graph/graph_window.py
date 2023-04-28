@@ -21,31 +21,31 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
         self.visible_points = visible_points
 
         self.clause_data = None
+        self.super_clause_data = None
         self.clause_labels = None
         self.mplWidget.point_clicked.connect(self.text.text_selected)
 
+        self.actiongroupTarget.setExclusive(True)
+        self.actionClauses.triggered.connect(lambda x: self.change_target(True))
+        self.actionSuperClauses.triggered.connect(lambda x: self.change_target(False))
+
+    def change_target(self, is_normal_clause: bool):
+        self.text.set_clauses_type(is_normal_clause)
+        if is_normal_clause:
+            self._load_data_in_the_graph(self.clause_data)
+        else:
+            self._load_data_in_the_graph(self.super_clause_data)
+
     def update_graphs(self, lct_handler: LCTHandler):
-        # Remove previous data
-        self.mplWidget.remove_graphs()
 
         self.clause_data = lct_handler.get_clause_values()
+        self.super_clause_data = lct_handler.get_super_clause_values()
         self.clause_labels = lct_handler.get_clause_labels()
 
-        for i in range(len(self.clause_labels)):
-            y = np.array([e[i] for e in self.clause_data])
-            x = np.arange(len(y))
-            self.mplWidget.add_graph(x, y, np.array(self.clause_labels[i]))
-
-        # Set slots and signals to move slider and graph at the same time
-        if self.visible_points < len(self.clause_data):
-            self.slider.valueChanged.connect(self.mplWidget.position_changed_slot)
-            self.slider.setEnabled(True)
-            self.mplWidget.pos_changed.connect(self.slider.setValue)
-        else:
-            self.slider.setEnabled(False)
+        self._load_data_in_the_graph(self.clause_data)
 
         self.text.set_texts(lct_handler.get_super_clause_texts(), lct_handler.get_clause_texts())
-        self.text.scroll_updated.connect(lambda pos: self.scrollArea.verticalScrollBar().setValue(pos))
+        self.text.scroll_updated.connect(self.scrollArea.verticalScrollBar().setValue)
 
     def applyStyles(self):
         self.slider.setStyleSheet(open(self.relative_path + "slider.css", "r").read())
@@ -60,9 +60,19 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
             "}"
         )
 
+    def _load_data_in_the_graph(self, data: list[list[int]]):
+        # Remove previous data
+        self.mplWidget.remove_graphs()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    main = GraphWindow("", json.loads(open("./" + "data.json", "r").read()))
-    main.show()
-    sys.exit(app.exec())
+        for i in range(len(self.clause_labels)):
+            y = np.array([e[i] for e in data])
+            x = np.arange(len(y))
+            self.mplWidget.add_graph(x, y, np.array(self.clause_labels[i]))
+
+        # Set slots and signals to move slider and graph at the same time
+        if self.visible_points < len(data):
+            self.slider.valueChanged.connect(self.mplWidget.position_changed_slot)
+            self.slider.setEnabled(True)
+            self.mplWidget.pos_changed.connect(self.slider.setValue)
+        else:
+            self.slider.setEnabled(False)

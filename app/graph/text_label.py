@@ -13,16 +13,33 @@ class TextLabel(QLabel):
         super().__init__(parent)
         self.clause_texts = None
         self.super_clause_texts = None
+        self.clauses_type_selected = True  # True if clauses selected, False if super clauses selected
 
     def set_texts(self, super_clause_texts: list[str], clause_texts: list[str]):
         self.clause_texts = clause_texts
         self.super_clause_texts = super_clause_texts
         self.setText("<p style=\"line-height:200%\">" + " ".join(clause_texts).replace("\n", "<br>") + "<p>")
 
+    def set_clauses_type(self, is_normal_clauses: bool):
+        if self.clauses_type_selected != is_normal_clauses:
+            self.clauses_type_selected = is_normal_clauses
+            if self.clauses_type_selected:
+                self.setText(
+                    "<p style=\"line-height:200%\">" + " ".join(self.clause_texts).replace("\n", "<br>") + "<p>"
+                )
+            else:
+                self.setText(
+                    "<p style=\"line-height:200%\">" + " ".join(self.super_clause_texts).replace("\n", "<br>") + "<p>"
+                )
+
     def text_selected(self, text_index):
         text = "<p style=\"line-height:200%\"> "
+        if self.clauses_type_selected:
+            text_list = self.clause_texts
+        else:
+            text_list = self.super_clause_texts
 
-        for i in range(len(self.clause_texts)):
+        for i in range(len(text_list)):
             if i == text_index:
                 if i == 0:
                     self.scroll_updated.emit(0)
@@ -32,9 +49,9 @@ class TextLabel(QLabel):
                     aux_label.setText(text + "</p>")
                     self.scroll_updated.emit(aux_label.height())
 
-                text += ("<span style = \"" + HIGHLIGHT_STYLE + "\">" + self.clause_texts[i].replace("\n", "<br>")
+                text += ("<span style = \"" + HIGHLIGHT_STYLE + "\">" + text_list[i].replace("\n", "<br>")
                          + "</span> ")
             else:
-                text += (self.clause_texts[i].replace("\n", "<br>") + " ")
+                text += (text_list[i].replace("\n", "<br>") + " ")
         text += "</p>"
         self.setText(text)
