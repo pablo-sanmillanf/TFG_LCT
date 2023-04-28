@@ -35,6 +35,10 @@ class LCTHandler:
 
     def set_labels(self, labels: list[list[str]]):
         self.labels = labels
+        self.pattern = ""
+        for label in labels:
+            self.pattern += (get_pattern(label.copy()) + ".*")
+        self.pattern = self.pattern[:-2]
         self.unmount()
 
     def upload_from_data(self, data: list[tuple[list[tuple[str, str]], str]]):
@@ -80,7 +84,9 @@ class LCTHandler:
 
                 if len(sc_matches) == 0:
                     return False
-                sc_matches = sc_matches[0]
+
+                if len(self.labels) > 1:
+                    sc_matches = sc_matches[0]
 
                 if len(sc_matches) != len(self.labels):
                     return False
@@ -98,7 +104,9 @@ class LCTHandler:
 
                     if len(c_matches) == 0:
                         return False
-                    c_matches = c_matches[0]
+
+                    if len(self.labels) > 1:
+                        c_matches = c_matches[0]
 
                     if len(c_matches) != len(self.labels):
                         return False
@@ -227,6 +235,35 @@ class LCTHandler:
 
                 for clause in clauses:
                     result.append([int(i) for i in clause.getAttribute("value")])
+
+            return result
+        return None
+
+    def get_super_clause_tags(self) -> list[list[str]]:
+        if self.is_valid:
+            simplified_labels = self.get_raw_labels()
+            result = []
+            data_list = self.doc.firstChild.getElementsByTagName("analysis")[0]
+            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+            for super_clause in data_list:
+                val = super_clause.getAttribute("value")
+                result.append([self.labels[i][int(val[i]) - 1][len(simplified_labels[i]):] for i in range(len(val))])
+
+            return result
+        return None
+
+    def get_clause_tags(self) -> list[list[str]]:
+        if self.is_valid:
+            simp_labels = self.get_raw_labels()
+            result = []
+            data_list = self.doc.firstChild.getElementsByTagName("analysis")[0]
+            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+            for super_clause in data_list:
+                clauses = [item for item in super_clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+
+                for clause in clauses:
+                    val = clause.getAttribute("value")
+                    result.append([self.labels[i][int(val[i]) - 1][len(simp_labels[i]):] for i in range(len(val))])
 
             return result
         return None

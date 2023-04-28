@@ -12,6 +12,12 @@ from dialogs.colors_dialog import ColorsDialog
 from graph.graph_window import GraphWindow
 from mainWindowQtCreator import Ui_MainWindow
 
+SD_VALUES = ["SD--", "SD-", "SD+", "SD++"]
+SG_VALUES = ["SG++", "SG+", "SG-", "SG--"]
+DEFAULT_TEXT_SG = "SG~"
+DEFAULT_TEXT_SD = "SD~"
+DEFAULT_TEXT_SD_SG = "SD~;SG~"
+
 
 def manage_file(file: str, operation: str, data: str = None) -> str:
     result = None
@@ -34,7 +40,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.current_file = ""
 
-        self.lct_handler = LCTHandler("Semantics", [["SD--", "SD-", "SD+", "SD++"], ["SG++", "SG+", "SG-", "SG--"]])
+        self.lct_handler = LCTHandler("Semantics", [SD_VALUES, SG_VALUES])
 
         self.graph_window = GraphWindow("graph/")
 
@@ -51,7 +57,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "desired file.\nTo set a division in the text, right-click and select \"Split\". To undo a division in the "
             "text, right-click and select \"Join\" near the splitter.",
             self.conf["text_size"],
-            "SD~;SG~",
+            DEFAULT_TEXT_SD_SG,
             list(self.conf["colors"]["together"].values())
         )
 
@@ -61,9 +67,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSave_as.triggered.connect(self.save_as_file_dialog)
         self.actionText_size.triggered.connect(self.text_size_dialog)
         self.actionRects_colors.triggered.connect(self.rects_colors_dialog)
-        self.actionSD.triggered.connect(lambda checked: self.target_action("SD~"))
-        self.actionSG.triggered.connect(lambda checked: self.target_action("SG~"))
-        self.actionSD_SG.triggered.connect(lambda checked: self.target_action("SD~;SG~"))
+        self.actionSD.triggered.connect(lambda checked: self.target_action(DEFAULT_TEXT_SD))
+        self.actionSG.triggered.connect(lambda checked: self.target_action(DEFAULT_TEXT_SG))
+        self.actionSD_SG.triggered.connect(lambda checked: self.target_action(DEFAULT_TEXT_SD_SG))
         self.actiongroupTarget.setExclusive(True)
         self.actionRun_Plotter.triggered.connect(self.run_graph_window)
 
@@ -100,13 +106,58 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
                     self.open_file_dialog(True)
                 else:
-                    self.current_file = file
-                    self.classifierView.set_text_analyzed(
-                        self.lct_handler.get_clause_texts(),
-                        self.lct_handler.get_super_clause_texts(),
-                        self.lct_handler.get_raw_labels(),
-                        self.lct_handler.get_clause_values()
-                    )
+
+                    raw_labels = self.lct_handler.get_raw_labels()
+                    if raw_labels[0] in DEFAULT_TEXT_SG:
+                        self.current_file = file
+
+                        self.classifierView.set_text_analyzed(
+                            self.lct_handler.get_clause_texts(),
+                            self.lct_handler.get_super_clause_texts(),
+                            DEFAULT_TEXT_SG,
+                            list(self.conf["colors"]["alone"].values()),
+                            raw_labels,
+                            self.lct_handler.get_clause_tags()
+                        )
+                    elif raw_labels[0] in DEFAULT_TEXT_SD:
+                        if len(raw_labels) == 1:
+                            self.current_file = file
+
+                            self.classifierView.set_text_analyzed(
+                                self.lct_handler.get_clause_texts(),
+                                self.lct_handler.get_super_clause_texts(),
+                                DEFAULT_TEXT_SD,
+                                list(self.conf["colors"]["alone"].values()),
+                                raw_labels,
+                                self.lct_handler.get_clause_tags()
+                            )
+                        elif len(raw_labels) == 2 and raw_labels[1] in DEFAULT_TEXT_SG:
+                            self.classifierView.set_text_analyzed(
+                                self.lct_handler.get_clause_texts(),
+                                self.lct_handler.get_super_clause_texts(),
+                                DEFAULT_TEXT_SD_SG,
+                                list(self.conf["colors"]["together"].values()),
+                                raw_labels,
+                                self.lct_handler.get_clause_tags()
+                            )
+                        else:
+                            QMessageBox.critical(
+                                self,
+                                "File Error",
+                                "The selected file has not valid content",
+                                QMessageBox.Ok
+                            )
+                            self.lct_handler.unmount()
+                            self.open_file_dialog(True)
+                    else:
+                        QMessageBox.critical(
+                            self,
+                            "File Error",
+                            "The selected file has not valid content",
+                            QMessageBox.Ok
+                        )
+                        self.lct_handler.unmount()
+                        self.open_file_dialog(True)
 
     def save_file_dialog(self, s: bool) -> None:
         if self.current_file == "":
@@ -160,7 +211,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if dlg.has_changed:
             self.conf["colors"] = dlg.colors
-            if self.classifierView.get_default_descriptor() == "SD~;SG~":
+            if self.classifierView.get_default_descriptor() == DEFAULT_TEXT_SD_SG:
                 self.classifierView.set_colors(list(self.conf["colors"]["together"].values()))
             else:
                 self.classifierView.set_colors(list(self.conf["colors"]["alone"].values()))
@@ -168,9 +219,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def target_action(self, text: str) -> None:
         if text != self.classifierView.get_default_descriptor():
-            if text == "SD~;SG~":
+            if text == DEFAULT_TEXT_SD_SG:
+                self.lct_handler.set_labels([SD_VALUES, SG_VALUES])
                 self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["together"].values()))
-            else:
+            elif text == DEFAULT_TEXT_SD:
+                self.lct_handler.set_labels([SD_VALUES])
+                self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["alone"].values()))
+            elif text == DEFAULT_TEXT_SG:
+                self.lct_handler.set_labels([SG_VALUES])
                 self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["alone"].values()))
 
     def run_graph_window(self, s: bool) -> None:

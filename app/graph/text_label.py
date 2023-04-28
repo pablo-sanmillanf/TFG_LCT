@@ -12,9 +12,11 @@ class TextLabel(QLabel):
     def __init__(self, parent):
         super().__init__(parent)
         self.clause_texts = None
+        self.super_clause_texts = None
 
     def set_texts(self, super_clause_texts: list[str], clause_texts: list[str]):
         self.clause_texts = clause_texts
+        self.super_clause_texts = super_clause_texts
         self.setText("<p style=\"line-height:200%\">" + " ".join(clause_texts).replace("\n", "<br>") + "<p>")
 
     def text_selected(self, text_index):
@@ -36,4 +38,3 @@ class TextLabel(QLabel):
                 text += (self.clause_texts[i].replace("\n", "<br>") + " ")
         text += "</p>"
         self.setText(text)
-

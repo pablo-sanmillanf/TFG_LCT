@@ -222,7 +222,7 @@ class Classifier:
         :param colors: List of all available colors
         """
         self.descriptors_handler.set_default_text(default_descriptor)
-        self.rects_handler.set_colors(create_colors_dict(self.descriptors_handler.default_text, colors))
+        self.rects_handler.set_colors(create_colors_dict(default_descriptor, colors))
 
     def get_default_descriptor(self) -> str:
         """
@@ -445,8 +445,8 @@ class Classifier:
         self.sep_handler.fixed_points = obtain_separator_points(complete_point_list)
         self.sep_handler.set_separator_points(separator_points)
 
-    def set_text_analyzed(self, sep_text_list: list[str], super_sep_text_list: list[str], labels: list[str],
-                          values: list[list[int]]):
+    def set_text_analyzed(self, sep_text_list: list[str], super_sep_text_list: list[str], default_descriptor: [str],
+                          colors: list[str], labels: list[str], values: list[list[str]]):
 
         self.set_text(" ".join(sep_text_list))
 
@@ -459,10 +459,9 @@ class Classifier:
             if separator_points[i][1]:
                 self.promote_separator(separator_points[i][0].x(), separator_points[i][0].y())
 
-        string_values = []
-        for value in values:
-            string_values.append([ALLOWED_STRINGS[i - 1] for i in value])
-        self.descriptors_handler.set_texts(labels, string_values)
+        self.rects_handler.set_colors(create_colors_dict(default_descriptor, colors))
+        self.descriptors_handler.default_text = default_descriptor
+        self.descriptors_handler.set_texts(labels, values)
 
     def set_width(self, width: float) -> None:
         # Save text_list from the original text_size to reposition all the separators

@@ -205,9 +205,15 @@ class ClassifierView(QGraphicsView):
 
         app.restoreOverrideCursor()
 
-    def set_text_analyzed(self, sep_text_list: list[str], super_sep_text_list: list[str], labels: list[str],
-                          values: list[list[int]]):
-        self.classifier.set_text_analyzed(sep_text_list, super_sep_text_list, labels, values)
+    def set_text_analyzed(self, sep_text_list: list[str], super_sep_text_list: list[str], default_descriptor: [str],
+                          colors: list[str], labels: list[str], values: list[list[str]]):
+        self.classifier.set_text_analyzed(
+            sep_text_list,
+            super_sep_text_list,
+            default_descriptor,
+            colors, labels,
+            values
+        )
 
     def get_text_analyzed(self) -> list[tuple[list[tuple[str, str]], str]]:
         """
