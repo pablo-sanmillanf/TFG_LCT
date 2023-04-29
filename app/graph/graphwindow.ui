@@ -126,6 +126,8 @@
      <addaction name="actionClauses"/>
      <addaction name="actionSuperClauses"/>
     </widget>
+    <addaction name="actionVisible_points"/>
+    <addaction name="separator"/>
     <addaction name="menuTarget"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -141,11 +143,6 @@
     </widget>
     <addaction name="menuVisibility"/>
    </widget>
-   <widget class="QMenu" name="menuWindow">
-    <property name="title">
-     <string>Window</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
@@ -154,7 +151,6 @@
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
-   <addaction name="menuWindow"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionSave_Visibe_Chart_as_Image">
@@ -163,13 +159,30 @@
    </property>
   </action>
   <action name="actionSD">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>SD</string>
    </property>
   </action>
   <action name="actionSG">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>SG</string>
+   </property>
+  </action>
+  <action name="actionVisible_points">
+   <property name="text">
+    <string>Visible points</string>
    </property>
   </action>
   <actiongroup name="actiongroupTarget">

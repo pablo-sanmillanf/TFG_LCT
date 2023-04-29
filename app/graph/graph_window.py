@@ -1,7 +1,7 @@
 import json
 import numpy as np
 from PyQt5.QtWidgets import (
-    QApplication
+    QApplication, QInputDialog
 )
 
 from lct_handler import LCTHandler
@@ -20,16 +20,41 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
 
         self.visible_points = visible_points
 
+        self.connected = False
+
         self.clause_data = None
         self.super_clause_data = None
         self.clause_labels = None
         self.mplWidget.point_clicked.connect(self.text.text_selected)
 
         self.actiongroupTarget.setExclusive(True)
-        self.actionClauses.triggered.connect(lambda x: self.change_target(True))
-        self.actionSuperClauses.triggered.connect(lambda x: self.change_target(False))
+        self.actionClauses.triggered.connect(lambda x: self.change_target_action(True))
+        self.actionSuperClauses.triggered.connect(lambda x: self.change_target_action(False))
+        self.actionSD.triggered.connect(lambda x: self.visibility_action(0, x))
+        self.actionSG.triggered.connect(lambda x: self.visibility_action(1, x))
+        self.actionSave_Visibe_Chart_as_Image.triggered.connect(self.mplWidget.save_figure)
+        self.actionVisible_points.triggered.connect(self.set_visible_points_dialog)
 
-    def change_target(self, is_normal_clause: bool):
+    def set_visible_points_dialog(self, s: bool):
+        value, ok = QInputDialog().getInt(
+            self,
+            "Change visible points in the graph",
+            "Visible points:",
+            self.visible_points,
+            1,  # Min value
+            50,  # Max value
+            1  # Step
+        )
+
+        if ok:
+            self.visible_points = value
+            self.mplWidget.set_visible_points(value)
+            self._set_slider_behaviour(len(self.text.get_data()))
+
+    def visibility_action(self, graph_index: int, s: bool):
+        self.mplWidget.set_graph_visible(graph_index, s)
+
+    def change_target_action(self, is_normal_clause: bool):
         self.text.set_clauses_type(is_normal_clause)
         if is_normal_clause:
             self._load_data_in_the_graph(self.clause_data)
@@ -69,10 +94,20 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
             x = np.arange(len(y))
             self.mplWidget.add_graph(x, y, np.array(self.clause_labels[i]))
 
+        self._set_slider_behaviour(len(data))
+
+    def _set_slider_behaviour(self, data_len):
+        self.slider.setValue(0)
         # Set slots and signals to move slider and graph at the same time
-        if self.visible_points < len(data):
-            self.slider.valueChanged.connect(self.mplWidget.position_changed_slot)
+        if self.visible_points < data_len:
             self.slider.setEnabled(True)
-            self.mplWidget.pos_changed.connect(self.slider.setValue)
+            if not self.connected:
+                self.connected = True
+                self.slider.valueChanged.connect(self.mplWidget.position_changed_slot)
+                self.mplWidget.pos_changed.connect(self.slider.setValue)
         else:
             self.slider.setEnabled(False)
+            if self.connected:
+                self.connected = False
+                self.slider.valueChanged.disconnect(self.mplWidget.position_changed_slot)
+                self.mplWidget.pos_changed.disconnect(self.slider.setValue)

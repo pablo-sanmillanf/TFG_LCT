@@ -55,3 +55,9 @@ class TextLabel(QLabel):
                 text += (text_list[i].replace("\n", "<br>") + " ")
         text += "</p>"
         self.setText(text)
+
+    def get_data(self):
+        if self.clauses_type_selected:
+            return self.clause_texts
+        else:
+            return self.super_clause_texts

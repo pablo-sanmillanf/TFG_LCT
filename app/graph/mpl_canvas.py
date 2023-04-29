@@ -1,3 +1,5 @@
+from typing import List, Any
+
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from matplotlib import ticker
@@ -110,11 +112,17 @@ class MplCanvas(FigureCanvas):
 
         self.axes.set_xlim(left=init_x, right=init_x + graph_visible_points)
 
+    def set_visible_points(self, visible_points: int) -> None:
+        self.graph_visible_points = visible_points
+        self.axes.set_xlim(left=0, right=visible_points)
+        self.draw()
+
 
 class MplWidget(QWidget):
     """
     This class is used to create an embedded matplotlib graph in a Qt environment.
     """
+    lines: list[MplLine]
 
     pos_changed = pyqtSignal(int)
     point_clicked = pyqtSignal(int)
@@ -149,6 +157,14 @@ class MplWidget(QWidget):
         self.left_x_lim = 0
         self.right_x_lim = 0
         self.panning_multiplier = 0
+
+    def set_visible_points(self, visible_points: int) -> None:
+        self.canvas.set_visible_points(int(visible_points))
+
+    def set_graph_visible(self, graph_index: int, visible: bool):
+        if graph_index < len(self.lines):
+            self.lines[graph_index].set_visible(visible)
+            self.canvas.draw()
 
     def add_graph(self, x: np.ndarray, y: np.ndarray, labels: list[str] | np.ndarray) -> None:
         """
@@ -212,6 +228,9 @@ class MplWidget(QWidget):
 
         # Reset color cycle
         self.canvas.axes.set_prop_cycle(None)
+
+    def save_figure(self, s: bool):
+        self.toolbar.save_figure(s)
 
     def on_press(self, event: MouseEvent) -> None:
         """
