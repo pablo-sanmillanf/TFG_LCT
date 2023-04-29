@@ -44,6 +44,8 @@ class MplLine:
             smooth_x = np.linspace(np.amin(x), np.amax(x), len(x)*50)
             smooth_y = interpolation_model(smooth_x)
             self.smooth_line = self.axis.plot(smooth_x, smooth_y, color=self.color)[0]
+        else:
+            self.smooth_line = None
 
     def set_visible(self, state: bool) -> None:
         """
@@ -51,7 +53,8 @@ class MplLine:
         :param state: If True, elements visible. If False, elements invisible.
         """
         self.data.set_visible(state)
-        self.smooth_line.set_visible(state)
+        if self.smooth_line is not None:
+            self.smooth_line.set_visible(state)
 
     def get_data(self) -> matplotlib.collections.PathCollection:
         """
@@ -72,7 +75,8 @@ class MplLine:
 
     def __del__(self):
         self.data.remove()
-        self.smooth_line.remove()
+        if self.smooth_line is not None:
+            self.smooth_line.remove()
 
 
 class MplCanvas(FigureCanvas):

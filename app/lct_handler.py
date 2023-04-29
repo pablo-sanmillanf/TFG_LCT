@@ -22,10 +22,7 @@ class LCTHandler:
         self.dimension = dimension
 
         self.labels = labels
-        self.pattern = ""
-        for label in labels:
-            self.pattern += (get_pattern(label.copy()) + ".*")
-        self.pattern = self.pattern[:-2]
+        self._set_pattern(labels)
         self.from_file = False
 
         self.is_valid = False
@@ -33,12 +30,15 @@ class LCTHandler:
     def unmount(self):
         self.doc.unlink()
 
-    def set_labels(self, labels: list[list[str]]):
-        self.labels = labels
+    def _set_pattern(self, labels: list[list[str]]):
         self.pattern = ""
         for label in labels:
             self.pattern += (get_pattern(label.copy()) + ".*")
         self.pattern = self.pattern[:-2]
+
+    def set_labels(self, labels: list[list[str]]):
+        self.labels = labels
+        self._set_pattern(labels)
         self.unmount()
 
     def upload_from_data(self, data: list[tuple[list[tuple[str, str]], str]]):
@@ -176,6 +176,8 @@ class LCTHandler:
         self.labels.clear()
         for target in [item for item in target_list if item.nodeType == minidom.Node.ELEMENT_NODE]:
             self.labels.append(target.firstChild.nodeValue.split())
+
+        self._set_pattern(self.labels)
 
         self.from_file = True
         self.unmount()

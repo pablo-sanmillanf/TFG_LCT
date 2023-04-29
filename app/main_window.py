@@ -119,6 +119,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             raw_labels,
                             self.lct_handler.get_clause_tags()
                         )
+                        self.actionSG.setChecked(True)
                     elif raw_labels[0] in DEFAULT_TEXT_SD:
                         if len(raw_labels) == 1:
                             self.current_file = file
@@ -131,7 +132,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 raw_labels,
                                 self.lct_handler.get_clause_tags()
                             )
+                            self.actionSD.setChecked(True)
                         elif len(raw_labels) == 2 and raw_labels[1] in DEFAULT_TEXT_SG:
+                            self.current_file = file
+
                             self.classifierView.set_text_analyzed(
                                 self.lct_handler.get_clause_texts(),
                                 self.lct_handler.get_super_clause_texts(),
@@ -140,6 +144,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 raw_labels,
                                 self.lct_handler.get_clause_tags()
                             )
+                            self.actionSD_SG.setChecked(True)
                         else:
                             QMessageBox.critical(
                                 self,

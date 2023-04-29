@@ -41,12 +41,12 @@ class TextLabel(QLabel):
 
         for i in range(len(text_list)):
             if i == text_index:
-                if i == 0:
+                aux_label = QLabel()
+                aux_label.setFont(self.font())
+                aux_label.setText(text + "</p>")
+                if aux_label.width() >= aux_label.fontMetrics().boundingRect(aux_label.text()).width():
                     self.scroll_updated.emit(0)
                 else:
-                    aux_label = QLabel()
-                    aux_label.setFont(self.font())
-                    aux_label.setText(text + "</p>")
                     self.scroll_updated.emit(aux_label.height())
 
                 text += ("<span style = \"" + HIGHLIGHT_STYLE + "\">" + text_list[i].replace("\n", "<br>")

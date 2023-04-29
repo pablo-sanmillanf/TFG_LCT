@@ -1,13 +1,15 @@
-import json
 import numpy as np
 from PyQt5.QtWidgets import (
-    QApplication, QInputDialog
+    QInputDialog
 )
 
 from lct_handler import LCTHandler
 from .graphWindowQtCreator import Ui_GraphWindow
 from PyQt5 import QtWidgets
-import sys
+
+
+TEXT_SG = "SG"
+TEXT_SD = "SD"
 
 
 class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
@@ -30,8 +32,8 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
         self.actiongroupTarget.setExclusive(True)
         self.actionClauses.triggered.connect(lambda x: self.change_target_action(True))
         self.actionSuperClauses.triggered.connect(lambda x: self.change_target_action(False))
-        self.actionSD.triggered.connect(lambda x: self.visibility_action(0, x))
-        self.actionSG.triggered.connect(lambda x: self.visibility_action(1, x))
+        self.actionSD.triggered.connect(self.sd_visibility_action)
+        self.actionSG.triggered.connect(self.sg_visibility_action)
         self.actionSave_Visibe_Chart_as_Image.triggered.connect(self.mplWidget.save_figure)
         self.actionVisible_points.triggered.connect(self.set_visible_points_dialog)
 
@@ -51,8 +53,14 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
             self.mplWidget.set_visible_points(value)
             self._set_slider_behaviour(len(self.text.get_data()))
 
-    def visibility_action(self, graph_index: int, s: bool):
-        self.mplWidget.set_graph_visible(graph_index, s)
+    def sd_visibility_action(self, s: bool):
+        self.mplWidget.set_graph_visible(0, s)
+
+    def sg_visibility_action(self, s: bool):
+        if self.actionSD.isEnabled():
+            self.mplWidget.set_graph_visible(1, s)
+        else:
+            self.mplWidget.set_graph_visible(0, s)
 
     def change_target_action(self, is_normal_clause: bool):
         self.text.set_clauses_type(is_normal_clause)
@@ -68,6 +76,35 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
         self.clause_labels = lct_handler.get_clause_labels()
 
         self._load_data_in_the_graph(self.clause_data)
+
+        raw_labels = lct_handler.get_raw_labels()
+
+        if raw_labels[0] in TEXT_SG:
+            self.actionSD.setEnabled(False)
+            self.actionSD.setChecked(False)
+            self.actionSG.setEnabled(True)
+            self.actionSG.setChecked(True)
+        elif raw_labels[0] in TEXT_SD:
+            if len(raw_labels) == 1:
+                self.actionSD.setEnabled(True)
+                self.actionSD.setChecked(True)
+                self.actionSG.setEnabled(False)
+                self.actionSG.setChecked(False)
+            elif len(raw_labels) == 2 and raw_labels[1] in TEXT_SG:
+                self.actionSD.setEnabled(True)
+                self.actionSD.setChecked(True)
+                self.actionSG.setEnabled(True)
+                self.actionSG.setChecked(True)
+            else:
+                self.actionSD.setEnabled(False)
+                self.actionSD.setChecked(False)
+                self.actionSG.setEnabled(False)
+                self.actionSG.setChecked(False)
+        else:
+            self.actionSD.setEnabled(False)
+            self.actionSD.setChecked(False)
+            self.actionSG.setEnabled(False)
+            self.actionSG.setChecked(False)
 
         self.text.set_texts(lct_handler.get_super_clause_texts(), lct_handler.get_clause_texts())
         self.text.scroll_updated.connect(self.scrollArea.verticalScrollBar().setValue)
