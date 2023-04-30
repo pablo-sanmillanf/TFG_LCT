@@ -37,6 +37,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
+        self.setWindowIcon(QtGui.QIcon('logo.jpg'))
 
         self.current_file = ""
 
@@ -47,6 +48,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.conf = json.loads(manage_file("defaultconf.json", "r"))
 
         self.conf_has_changed = False
+        self.not_saved = False
 
         self.classifierView.setup(
             10,
@@ -60,6 +62,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             DEFAULT_TEXT_SD_SG,
             list(self.conf["colors"]["together"].values())
         )
+        self.classifierView.classifier.emitter.classifier_has_changed.connect(self.classifier_has_changed)
 
         self.actionNew.triggered.connect(self.new_file_dialog)
         self.actionOpen.triggered.connect(self.open_file_dialog)
@@ -72,6 +75,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSD_SG.triggered.connect(lambda checked: self.target_action(DEFAULT_TEXT_SD_SG))
         self.actiongroupTarget.setExclusive(True)
         self.actionRun_Plotter.triggered.connect(self.run_graph_window)
+
+    def classifier_has_changed(self):
+        self.not_saved = True
 
     def new_file_dialog(self, s: bool) -> None:
         file, file_type = QFileDialog().getOpenFileName(
@@ -120,6 +126,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             self.lct_handler.get_clause_tags()
                         )
                         self.actionSG.setChecked(True)
+                        self.not_saved = False
                     elif raw_labels[0] in DEFAULT_TEXT_SD:
                         if len(raw_labels) == 1:
                             self.current_file = file
@@ -133,6 +140,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 self.lct_handler.get_clause_tags()
                             )
                             self.actionSD.setChecked(True)
+                            self.not_saved = False
                         elif len(raw_labels) == 2 and raw_labels[1] in DEFAULT_TEXT_SG:
                             self.current_file = file
 
@@ -145,6 +153,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 self.lct_handler.get_clause_tags()
                             )
                             self.actionSD_SG.setChecked(True)
+                            self.not_saved = False
                         else:
                             QMessageBox.critical(
                                 self,
@@ -164,21 +173,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         self.lct_handler.unmount()
                         self.open_file_dialog(True)
 
-    def save_file_dialog(self, s: bool) -> None:
+    def save_file_dialog(self, s: bool) -> bool:
         if self.current_file == "":
-            self.save_as_file_dialog(s)
+            return self.save_as_file_dialog(s)
         else:
             if self.lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
                 manage_file(self.current_file, "w", self.lct_handler.to_string())
                 QMessageBox.information(
                     self, "File Saved", "File saved in \"" + self.current_file + "\"", QMessageBox.Ok
                 )
+                self.not_saved = False
+                return True
             else:
                 QMessageBox.critical(
                     self, "Error", "The analysis is not completed (All '~' must be replaced)", QMessageBox.Ok
                 )
+                return False
 
-    def save_as_file_dialog(self, s: bool) -> None:
+    def save_as_file_dialog(self, s: bool) -> bool:
         if self.lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
             file, file_type = QFileDialog().getSaveFileName(
                 self,
@@ -189,10 +201,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if file != "":
                 self.current_file = file
                 manage_file(file, "w", self.lct_handler.to_string())
+                self.not_saved = False
+                return True
         else:
             QMessageBox.critical(
                 self, "Error", "The analysis is not completed (All '~' must be replaced)", QMessageBox.Ok
             )
+        return False
 
     def text_size_dialog(self, s: bool) -> None:
         value, ok = QInputDialog().getInt(
@@ -244,6 +259,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        close = False
+        if self.not_saved:
+            button = QMessageBox.question(
+                self,
+                "Save file",
+                "Save changes in the file?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel
+            )
+            if button == QMessageBox.Save:
+                save = True
+                while save and not self.save_file_dialog(True):
+                    button = QMessageBox.question(
+                        self,
+                        "Save file",
+                        "Save changes in the file?",
+                        QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel
+                    )
+                    if button == QMessageBox.Save:
+                        save = True
+                    else:
+                        save = False
+                close = True
+            elif button == QMessageBox.Discard:
+                close = True
+            elif button == QMessageBox.Cancel:
+                a0.ignore()
+                return
         if self.conf_has_changed:
             button = QMessageBox.question(
                 self,
@@ -253,14 +295,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             if button == QMessageBox.Save:
                 manage_file("defaultconf.json", "w", json.dumps(self.conf))
-                super().closeEvent(a0)
-                self.graph_window.close()
+                close = True
             elif button == QMessageBox.Discard:
-                super().closeEvent(a0)
-                self.graph_window.close()
+                close = True
             elif button == QMessageBox.Cancel:
                 a0.ignore()
-        else:
+                return
+
+        if close or not (self.conf_has_changed and self.not_saved):
             super().closeEvent(a0)
             self.graph_window.close()
 

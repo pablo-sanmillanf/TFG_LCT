@@ -1,5 +1,7 @@
+from typing import Any
+
 import numpy as np
-from PyQt5.QtCore import QPointF
+from PyQt5.QtCore import QPointF, QObject, pyqtSignal
 
 from app.main_window_aux_items.rounded_rect.rounded_rect_handler import RoundedRectHandler
 from PyQt5.QtWidgets import QGraphicsItem
@@ -145,6 +147,10 @@ def get_repos_sep_points_with_super_sep(sep_text_list: list[str], super_sep_text
     return separator_points
 
 
+class ClassifierEmitter(QObject):
+    classifier_has_changed = pyqtSignal()
+
+
 class Classifier:
     """
     This class controls all the behaviour of the QGraphicsItems associated with the graphical text
@@ -202,6 +208,10 @@ class Classifier:
 
         self.rects_handler.add_descriptor_listeners(self.descriptors_handler.emitter.editable_text_changed)
 
+        self.emitter = ClassifierEmitter()
+        self.sep_handler.emitter.released.connect(self.separator_is_released)
+        self.descriptors_handler.emitter.editable_text_changed.connect(self.descriptor_changed)
+
     def set_colors(self, colors: list[str]) -> None:
         """
         Set the colors that will be used by the rounded rects depending on the value of the descriptor. The length
@@ -223,6 +233,7 @@ class Classifier:
         """
         self.descriptors_handler.set_default_text(default_descriptor)
         self.rects_handler.set_colors(create_colors_dict(default_descriptor, colors))
+        self.emitter.classifier_has_changed.emit()
 
     def get_default_descriptor(self) -> str:
         """
@@ -247,7 +258,10 @@ class Classifier:
         :return: True if success, False if error. There can be a mistake if the coordinates
                  are out of bounds or if there is no more space to place a separator
         """
-        return self.sep_handler.add_separator(x, y, False)
+        if self.sep_handler.add_separator(x, y, False):
+            self.emitter.classifier_has_changed.emit()
+            return True
+        return False
 
     def join(self, x: float, y: float) -> bool:
         """
@@ -257,7 +271,10 @@ class Classifier:
         :return: True if success, False if error. There can be a mistake if the coordinates
                  are out of bounds or if in the given coordinates there is no separator
         """
-        return self.sep_handler.delete_separator(x, y)
+        if self.sep_handler.delete_separator(x, y):
+            self.emitter.classifier_has_changed.emit()
+            return True
+        return False
 
     def promote_separator(self, x: float, y: float) -> bool:
         """
@@ -267,7 +284,10 @@ class Classifier:
         :return: True if success, False if error. There can be a mistake if the coordinates
                  are out of bounds or if in the given coordinates there is no separator
         """
-        return self.sep_handler.promote_separator(x, y, "yellow")
+        if self.sep_handler.promote_separator(x, y, "yellow"):
+            self.emitter.classifier_has_changed.emit()
+            return True
+        return False
 
     def demote_separator(self, x: float, y: float) -> bool:
         """
@@ -277,8 +297,10 @@ class Classifier:
         :return: True if success, False if error. There can be a mistake if the coordinates
                  are out of bounds or if in the given coordinates there is no separator
         """
-        print(self.get_text_analyzed())
-        return self.sep_handler.demote_separator(x, y)
+        if self.sep_handler.demote_separator(x, y):
+            self.emitter.classifier_has_changed.emit()
+            return True
+        return False
 
     def is_super_separator(self, x: float, y: float) -> bool:
         """
@@ -393,6 +415,7 @@ class Classifier:
         Set the text to be analyzed.
         :param text: The text that will appear.
         """
+        self.emitter.classifier_has_changed.emit()
 
         self.text.set_text(text)
         complete_points = self.text.get_complete_points()
@@ -419,6 +442,8 @@ class Classifier:
         changed.
         :param text_size: The text size as a number.
         """
+        self.emitter.classifier_has_changed.emit()
+
         # Save text_list from the original text_size to reposition all the separators
         text_list_previous_size = self.get_text_classified()
 
@@ -482,3 +507,9 @@ class Classifier:
 
         self.sep_handler.fixed_points = obtain_separator_points(complete_point_list)
         self.sep_handler.set_separator_points(separator_points)
+
+    def separator_is_released(self, separator: Any) -> None:
+        self.emitter.classifier_has_changed.emit()
+
+    def descriptor_changed(self, separator_index: int, editable_text_list: list[str]) -> None:
+        self.emitter.classifier_has_changed.emit()
