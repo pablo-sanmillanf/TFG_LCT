@@ -15,7 +15,7 @@ class SeparatorHandler:
     pen: QPen
     separators: list[list[Separator | bool]]
 
-    def __init__(self, line_height: float, fixed_points: list[tuple[float, list[float]]],
+    def __init__(self, line_height: float, fixed_points: list[tuple[float, list[tuple[float, bool]]]],
                  parent: QGraphicsItem) -> None:
         """
         Create SeparatorHandler object. Only one object from this class should be created
@@ -70,7 +70,7 @@ class SeparatorHandler:
         """
         return [i[0] for i in self.fixed_points]
 
-    def get_x_values(self, y_value: float) -> list:
+    def get_x_values(self, y_value: float) -> list[float]:
         """
         Find the x values corresponding to the given y value from self.fixed_points
         :param y_value: the y value to compare with
@@ -78,7 +78,7 @@ class SeparatorHandler:
         """
         for tuple_point in self.fixed_points:
             if tuple_point[0] == y_value:
-                return tuple_point[1]
+                return [i[0] for i in tuple_point[1]]
 
     def get_separator_points(self) -> list[QPointF]:
         """
@@ -163,10 +163,10 @@ class SeparatorHandler:
             for line in self.fixed_points:
                 if line[0] >= real_y:
                     for i in range(len(line[1])):
-                        if (line[0] == real_y and line[1][i] >= real_x) or line[0] > real_y:
+                        if (line[0] == real_y and line[1][i][0] >= real_x) or line[0] > real_y:
                             if self.separators[index][0].is_on_the_border():
                                 if not (i == 0 or i == len(line[1]) - 1):
-                                    return line[1][i], line[0], index - 1
+                                    return line[1][i][0], line[0], index - 1
                                 if i == 0:
                                     # If this position is busy, increment by one the ind in separators array
                                     index += 1
@@ -175,7 +175,7 @@ class SeparatorHandler:
                                 # If this position is busy, increment by one the ind in separators array
                                 index += 1
                             else:
-                                return line[1][i], line[0], index - 1
+                                return line[1][i][0], line[0], index - 1
         return None, None, -1
 
     def add_limit_separators(self, first_limit_x: float, first_limit_y: float, last_limit_x: float, last_limit_y: float,
@@ -370,8 +370,8 @@ class SeparatorHandler:
                 if line[0] >= start_y:
                     start_recording = True
                     for x_value in line[1]:
-                        if ((line[0] == start_y and x_value > start_x) or line[0] > start_y) and \
-                                ((line[0] == end_y and x_value < end_x) or line[0] < end_y):
+                        if ((line[0] == start_y and x_value[0] > start_x) or line[0] > start_y) and \
+                                ((line[0] == end_y and x_value[0] < end_x) or line[0] < end_y):
                             if start_recording:
                                 start_recording = False
                                 new_fixed_points.append((line[0], []))

@@ -71,6 +71,9 @@ class MainText(QGraphicsTextItem):
         self.set_text_size(size)
         self.set_text(text)
 
+    def get_text(self) -> str:
+        return remove_text_format(self.text).replace(" <br> ", " \n ")
+
     def set_text(self, text: str) -> None:
         """
         Set the text of the element justified and with the element's line height.

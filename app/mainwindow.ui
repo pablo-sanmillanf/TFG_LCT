@@ -55,16 +55,17 @@
     <addaction name="separator"/>
     <addaction name="menuTarget"/>
    </widget>
-   <widget class="QMenu" name="menuRun">
+   <widget class="QMenu" name="menuTools">
     <property name="title">
-     <string>Run</string>
+     <string>Tools</string>
     </property>
-    <addaction name="actionRun_Plotter"/>
+    <addaction name="actionSplit_in_sentences"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
      <string>Window</string>
     </property>
+    <addaction name="actionRun_Plotter"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -73,7 +74,7 @@
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
-   <addaction name="menuRun"/>
+   <addaction name="menuTools"/>
    <addaction name="menuWindow"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -120,6 +121,11 @@
   <action name="actionRun_Plotter">
    <property name="text">
     <string>Run Plotter</string>
+   </property>
+  </action>
+  <action name="actionSplit_in_sentences">
+   <property name="text">
+    <string>Split in sentences</string>
    </property>
   </action>
   <actiongroup name="actiongroupTarget">

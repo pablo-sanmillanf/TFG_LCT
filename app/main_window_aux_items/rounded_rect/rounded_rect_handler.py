@@ -224,6 +224,10 @@ class RoundedRectHandler:
                 removed_rect = self.rects.pop()
                 self.parent.scene().removeItem(removed_rect)
 
+    def reset_colors(self):
+        for i in range(len(self.color_indexes)):
+            self.color_indexes[i] = 0
+
     def set_colors(self, colors: dict[str, str]) -> None:
         """
         Set the colors that will be used by the rounded rect depending on the value of the associated descriptor. The

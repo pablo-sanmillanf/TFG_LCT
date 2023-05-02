@@ -31,7 +31,8 @@ class ClassifierView(QGraphicsView):
         self.global_pos_y_offset = None
 
     def setup(self, x_padding: float | int, y_padding: float | int, min_width: float | int, min_height: float | int,
-              text: str, text_size: float | int, default_descriptor: str, colors: list[str]) -> None:
+              text: str, text_size: float | int, default_descriptor: str, default_descriptor_value: str,
+              allowed_descriptor_values: list[str], colors: list[str]) -> None:
         """
         Set up the object.
         :param x_padding: Pixels of horizontal padding for the text.
@@ -64,6 +65,8 @@ class ClassifierView(QGraphicsView):
             min_width - 2 * x_padding,
             text_size,
             default_descriptor,
+            default_descriptor_value,
+            allowed_descriptor_values,
             colors,
             self.items_parent
         )
@@ -115,6 +118,9 @@ class ClassifierView(QGraphicsView):
         context.addAction(self.promote_separator_action)
         context.addAction(self.demote_separator_action)
         context.exec(self.mapToGlobal(pos))
+
+    def get_text(self) -> str:
+        return self.classifier.get_text()
 
     def get_text_size(self) -> int | float:
         """
@@ -211,7 +217,8 @@ class ClassifierView(QGraphicsView):
             sep_text_list,
             super_sep_text_list,
             default_descriptor,
-            colors, labels,
+            colors,
+            labels,
             values
         )
 

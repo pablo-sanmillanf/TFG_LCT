@@ -3,13 +3,12 @@ from typing import Any
 import numpy as np
 from PyQt5.QtCore import QPointF, QObject, pyqtSignal
 
-from app.main_window_aux_items.rounded_rect.rounded_rect_handler import RoundedRectHandler
 from PyQt5.QtWidgets import QGraphicsItem
 
-from .descriptor.descriptor import TEXT_SEPARATOR, ALLOWED_STRINGS
 from .descriptor.descriptor_handler import DescriptorHandler
 from .main_text import MainText
 from .separator.separator_handler import SeparatorHandler
+from .rounded_rect.rounded_rect_handler import RoundedRectHandler
 
 from collections import Counter
 
@@ -19,7 +18,8 @@ def most_common(lst: list[str]) -> str:
     return data.most_common(1)[0][0]
 
 
-def create_colors_dict(default_text: str, color_list: list[str]) -> dict[str, str]:
+def create_colors_dict(default_text: str, color_list: list[str], default_descriptor_value: str,
+                       allowed_descriptor_values: list[str]) -> dict[str, str]:
     """
     Create a dictionary from a list of colors. This dictionary will have as a key of each element the color
     itself and as a value, a list containing the values of the different editable parts of the descriptor text.
@@ -27,8 +27,8 @@ def create_colors_dict(default_text: str, color_list: list[str]) -> dict[str, st
     :param color_list: The list with the colors.
     :return: The dictionary.
     """
-    editable_texts_number = len(default_text.split(TEXT_SEPARATOR)) - 1
-    allo_str_len = len(ALLOWED_STRINGS)
+    editable_texts_number = len(default_text.split(default_descriptor_value)) - 1
+    allo_str_len = len(allowed_descriptor_values)
 
     if len(color_list) != np.power(allo_str_len, editable_texts_number) + 1:
         raise RuntimeError("There should be " + str(np.power(allo_str_len, editable_texts_number) + 1) +
@@ -40,9 +40,9 @@ def create_colors_dict(default_text: str, color_list: list[str]) -> dict[str, st
         value = ""
         for e in range(editable_texts_number):
             if e == editable_texts_number - 1:
-                value += (str(e) + ALLOWED_STRINGS[(i - 1) % allo_str_len])
+                value += (str(e) + allowed_descriptor_values[(i - 1) % allo_str_len])
             else:
-                value += (str(e) + ALLOWED_STRINGS[
+                value += (str(e) + allowed_descriptor_values[
                     np.floor_divide(i - 1, allo_str_len * (editable_texts_number - 1 - e)) % allo_str_len
                     ])
         colors[value] = color_list[i]
@@ -53,14 +53,14 @@ def obtain_limit_points(points):
     return [(i[0], (i[1][0][0], i[1][-1][0])) for i in points]
 
 
-def obtain_separator_points(complete_points: list[tuple[float, list[list[float, str]]]]
-                            ) -> list[tuple[float, list[float]]]:
+def obtain_separator_points(complete_points: list[tuple[float, list[list[float | str | bool]]]]
+                            ) -> list[tuple[float, list[tuple[float, bool]]]]:
     """
     Extract from the complex structure that returns MainText object, the list of points with this structure:
     [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
     :return: The list with the points
     """
-    return [(i[0], [e[0] for e in i[1]]) for i in complete_points]
+    return [(i[0], [(e[0], e[2]) for e in i[1]]) for i in complete_points]
 
 
 def get_repos_sep_points(text_list: list[str],
@@ -157,7 +157,8 @@ class Classifier:
     classification. That is, the rectangles and its descriptors_handler and the separators between them.
     """
 
-    def __init__(self, text: str, text_width: float, text_size: float, default_descriptor: str,
+    def __init__(self, text: str, text_width: float, text_size: float, default_descriptor_string: str,
+                 default_descriptor_value: str, allowed_descriptor_values: list[str],
                  rect_colors: list[str], parent: QGraphicsItem) -> None:
         """
         Create TextClassifier object. Only one object form this class should be created
@@ -166,6 +167,9 @@ class Classifier:
                             greater than text height.
         :param parent: The QGraphicsItem parent of this element. Can't be None
         """
+        self.default_descriptor_value = default_descriptor_value
+        self.allowed_descriptor_values = allowed_descriptor_values
+
         self.text = MainText(text, text_size, text_width, 300, parent)
 
         complete_points = self.text.get_complete_points()
@@ -174,9 +178,9 @@ class Classifier:
         # Set separators
         self.sep_handler = SeparatorHandler(text_size * 2, sep_points, parent)
         self.sep_handler.add_limit_separators(
-            sep_points[0][1][0],
+            sep_points[0][1][0][0],
             sep_points[0][0],
-            sep_points[-1][1][-1],
+            sep_points[-1][1][-1][0],
             sep_points[-1][0],
             "yellow"
         )
@@ -188,7 +192,9 @@ class Classifier:
             text_size * 2,
             text_size / 2,
             obtain_limit_points(complete_points),
-            create_colors_dict(default_descriptor, rect_colors),
+            create_colors_dict(
+                default_descriptor_string, rect_colors, self.default_descriptor_value, self.allowed_descriptor_values
+            ),
             parent
         )
         self.rects_handler.add_separator_listeners(
@@ -198,7 +204,13 @@ class Classifier:
         )
 
         self.descriptors_handler = DescriptorHandler(
-            text_size * 2.4, default_descriptor, text_size * 2 / 3, obtain_limit_points(complete_points), parent
+            text_size * 2.4,
+            default_descriptor_string,
+            default_descriptor_value,
+            allowed_descriptor_values,
+            text_size * 2 / 3,
+            obtain_limit_points(complete_points),
+            parent
         )
         self.descriptors_handler.add_separator_listeners(
             self.sep_handler.emitter.pos_changed,
@@ -212,6 +224,9 @@ class Classifier:
         self.sep_handler.emitter.released.connect(self.separator_is_released)
         self.descriptors_handler.emitter.editable_text_changed.connect(self.descriptor_changed)
 
+    def get_text(self) -> str:
+        return self.text.get_text()
+
     def set_colors(self, colors: list[str]) -> None:
         """
         Set the colors that will be used by the rounded rects depending on the value of the descriptor. The length
@@ -219,7 +234,9 @@ class Classifier:
         Also, the colors list should be of any HTML valid color.
         :param colors: List of all available colors
         """
-        self.rects_handler.set_colors(create_colors_dict(self.descriptors_handler.default_text, colors))
+        self.rects_handler.set_colors(create_colors_dict(
+            self.descriptors_handler.default_text, colors, self.default_descriptor_value, self.allowed_descriptor_values
+        ))
 
     def set_default_descriptor(self, default_descriptor: str, colors: list[str]) -> None:
         """
@@ -232,7 +249,9 @@ class Classifier:
         :param colors: List of all available colors
         """
         self.descriptors_handler.set_default_text(default_descriptor)
-        self.rects_handler.set_colors(create_colors_dict(default_descriptor, colors))
+        self.rects_handler.set_colors(create_colors_dict(
+            default_descriptor, colors, self.default_descriptor_value, self.allowed_descriptor_values
+        ))
         self.emitter.classifier_has_changed.emit()
 
     def get_default_descriptor(self) -> str:
@@ -424,9 +443,9 @@ class Classifier:
         self.sep_handler.delete_all_separators()
         self.sep_handler.fixed_points = sep_points
         self.sep_handler.add_limit_separators(
-            sep_points[0][1][0],
+            sep_points[0][1][0][0],
             sep_points[0][0],
-            sep_points[-1][1][-1],
+            sep_points[-1][1][-1][0],
             sep_points[-1][0],
             "yellow"
         )
@@ -484,7 +503,10 @@ class Classifier:
             if separator_points[i][1]:
                 self.promote_separator(separator_points[i][0].x(), separator_points[i][0].y())
 
-        self.rects_handler.set_colors(create_colors_dict(default_descriptor, colors))
+        self.rects_handler.reset_colors()
+        self.rects_handler.set_colors(create_colors_dict(
+            default_descriptor, colors, self.default_descriptor_value, self.allowed_descriptor_values
+        ))
         self.descriptors_handler.default_text = default_descriptor
         self.descriptors_handler.set_texts(labels, values)
 

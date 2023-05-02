@@ -77,9 +77,9 @@ class DescriptorHandler:
     descriptors: list[list[Descriptor | float | float | float]]
     separators: list[list[Separator | int | QPointF]]
 
-    def __init__(self, y_offset: int | float, default_text: str, text_size: float | int,
-                 points: list[tuple[float | int, tuple[float | int, float | int]]], parent: QGraphicsItem,
-                 font: QFont = None) -> None:
+    def __init__(self, y_offset: int | float, default_text: str, text_separator: str, allowed_strings: list[str],
+                 text_size: float | int, points: list[tuple[float | int, tuple[float | int, float | int]]],
+                 parent: QGraphicsItem, font: QFont = None) -> None:
         """
         Create Descriptor object.
         :param y_offset: Set y offset for all the points calculated.
@@ -92,6 +92,8 @@ class DescriptorHandler:
         self.parent = parent
         self.y_offset = y_offset
         self.default_text = default_text
+        self.text_separator = text_separator
+        self.allowed_strings = allowed_strings
 
         if font is None:
             self.font = QGraphicsTextItem().font()
@@ -101,7 +103,7 @@ class DescriptorHandler:
         self.descriptors = []
 
         for i in range(len(points)):
-            desc = Descriptor(default_text, parent, font)
+            desc = Descriptor(default_text, self.text_separator, self.allowed_strings, parent, font)
             # [Descriptor, Y_Value_Without_Offset, Left_X_Value, Right_X_Value]
             self.descriptors.append([desc, points[i][0], points[i][1][0], points[i][1][-1]])
             self.set_descriptor_pos(i)
@@ -118,7 +120,7 @@ class DescriptorHandler:
         removed_fn.connect(self.separator_removed)
 
     def set_points_for_new_text(self, points: list[tuple[float, tuple[float, float]]],
-                                descriptor_text: tuple[list[str], int, bool, str]) -> None:
+                                descriptor_text: tuple[list[str], list[str], int, bool, str]) -> None:
         """
         Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
         resizing the window.
@@ -132,7 +134,7 @@ class DescriptorHandler:
                 self.descriptors[desc_index][0].paste_text(descriptor_text)
                 self.set_descriptor_pos(desc_index)
             for e in range(desc_index + 1, len(points)):
-                desc = Descriptor(self.default_text, self.parent, self.font)
+                desc = Descriptor(self.default_text, self.text_separator, self.allowed_strings, self.parent, self.font)
                 # [Descriptor, Y_Value_Without_Offset, Left_X_Value, Right_X_Value]
                 self.descriptors.append([desc, points[e][0], points[e][1][0], points[e][1][-1]])
                 self.descriptors[e][0].paste_text(descriptor_text)
@@ -161,7 +163,9 @@ class DescriptorHandler:
         descriptor_texts_list = []
         if new_text:
             self.separators.clear()
-            descriptor_texts_list.append(Descriptor(self.default_text, None, self.font).copy_text())
+            descriptor_texts_list.append(
+                Descriptor(self.default_text, self.text_separator, self.allowed_strings, None, self.font).copy_text()
+            )
         else:
             if len(separator_points) != len(self.separators):
                 raise RuntimeError("There are not the same points as separators in set_points() function")
@@ -177,7 +181,7 @@ class DescriptorHandler:
 
     def set_points_with_separators(self, points: list[tuple[float, tuple[float, float]]],
                                    separator_points: list[QPointF],
-                                   descriptor_texts_list: list[tuple[list[str], int, bool, str]]) -> None:
+                                   descriptor_texts_list: list[tuple[list[str], list[str], int, bool, str]]) -> None:
         """
         Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
         resizing the window.
@@ -387,7 +391,7 @@ class DescriptorHandler:
                 self.descriptors.insert(
                     i,
                     [
-                        Descriptor(self.default_text, self.parent, self.font),
+                        Descriptor(self.default_text, self.text_separator, self.allowed_strings, self.parent, self.font),
                         point.y(),
                         point.x(),
                         self.descriptors[i - 1][3]
@@ -403,7 +407,7 @@ class DescriptorHandler:
 
         self.descriptors.append(
             [
-                Descriptor(self.default_text, self.parent, self.font),
+                Descriptor(self.default_text, self.text_separator, self.allowed_strings, self.parent, self.font),
                 point.y(),
                 point.x(),
                 self.descriptors[-1][3]

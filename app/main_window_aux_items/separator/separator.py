@@ -9,14 +9,22 @@ from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem, QGraphicsSceneMous
     QStyleOptionGraphicsItem
 
 
-def find_nearest_point(candidate_points: list[float], point_reference: float) -> float:
+def find_nearest_point(candidate_points: list[float] | tuple[float] | list[tuple[float, bool]], point_reference: float,
+                       ) -> float:
     """
     Find the nearest float to point_reference from the list candidate_points.
-    :param candidate_points: A list of floats with the possible values
+    :param candidate_points: A list of floats with the possible values. If the list is of type list[tuple[float, bool]],
+                             the boolean indicates if the point has to be ignored in the finding.
     :param point_reference: The float to compare with
     :return: The nearest float in the list
     """
-    return min(candidate_points, key=lambda x: np.abs(x - point_reference))
+    if all(isinstance(item, tuple) for item in candidate_points):
+        return min(
+            candidate_points,
+            key=lambda x: 1000000 if x[1] else np.abs(x[0] - point_reference)
+        )[0]
+    else:
+        return min(candidate_points, key=lambda x: np.abs(x - point_reference))
 
 
 class SeparatorEmitter(QObject):
@@ -32,11 +40,12 @@ class Separator(QGraphicsLineItem):
     fixed_points structure.
     To avoid redundant information this structure must be: [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
     """
+    fixed_points: list[tuple[float, list[tuple[float, bool]]]]
     border_right_pos: bool
     border_left_pos: bool
     size: QRectF
 
-    def __init__(self, x: float, y: float, height: float, fixed_points: list[tuple[float, list[float]]],
+    def __init__(self, x: float, y: float, height: float, fixed_points: list[tuple[float, list[tuple[float, bool]]]],
                  emitter: SeparatorEmitter, parent: QGraphicsItem) -> None:
         """
         Create Separator object. The requested position will be adjusted to the nearest position contained in
@@ -69,8 +78,6 @@ class Separator(QGraphicsLineItem):
         # When position is changed via setPos, change itemChange behaviour
         self.pos_set = False
 
-        if not isinstance(fixed_points, (np.ndarray, np.generic, list)):
-            raise TypeError('fixed_x_points must be a list')
         self.fixed_points = fixed_points
 
         self.setPos(x, y)
@@ -82,9 +89,21 @@ class Separator(QGraphicsLineItem):
         """
         return [i[0] for i in self.fixed_points]
 
-    def get_x_values(self, y_value: float) -> list:
+    def get_x_values(self, y_value: float) -> list[float]:
         """
         Find the x values corresponding to the given y value from self.fixed_points
+        :param y_value: the y value to compare with
+        :return: the list of available x points for y point given
+        """
+        for tuple_point in self.fixed_points:
+            if tuple_point[0] == y_value:
+                return [i[0] for i in tuple_point[1]]
+
+    def get_x_values_with_complete_info(self, y_value: float) -> list[tuple[float, bool]]:
+        """
+        Find the x values corresponding to the given y value from self.fixed_points and return a tuple array
+        with the x_values and a boolean that indicates if the separator can be released in this position (False) or
+        not (True).
         :param y_value: the y value to compare with
         :return: the list of available x points for y point given
         """
@@ -215,18 +234,20 @@ class Separator(QGraphicsLineItem):
             raise TypeError('TypeError in setPos() function')
 
         y_list_values = self.get_y_values()
-        y_value = find_nearest_point(self.get_y_values(), req_y)
+        y_value = find_nearest_point(y_list_values, req_y)
 
-        x_list_values = self.get_x_values(y_value)
-        x_value = find_nearest_point(self.get_x_values(y_value), req_x)
+        x_list_values = self.get_x_values_with_complete_info(y_value)
+        x_value = find_nearest_point(x_list_values, req_x)
         super().setPos(x_value, y_value)
 
-        if not self.is_clicked and x_list_values.index(x_value) == 0 and y_list_values.index(y_value) > 0:
+        x_index = [i[0] for i in x_list_values].index(x_value)
+        y_index = y_list_values.index(y_value)
+
+        if not self.is_clicked and x_index == 0 and y_index > 0:
             self.border_left_pos = True
             self.border_right_pos = False
             self.set_bounding_rect()
-        elif not self.is_clicked and x_list_values.index(x_value) == len(x_list_values) - 1 and \
-                y_list_values.index(y_value) < len(y_list_values) - 1:
+        elif not self.is_clicked and x_index == len(x_list_values) - 1 and y_index < len(y_list_values) - 1:
             self.border_right_pos = True
             self.border_left_pos = False
             self.set_bounding_rect()
@@ -253,7 +274,7 @@ class Separator(QGraphicsLineItem):
                     self.height - self.boundingRect().height(),
                     self.boundingRect().width(),
                     self.height
-                    )
+                )
             )
             return path
         elif not self.border_left_pos and self.border_right_pos:

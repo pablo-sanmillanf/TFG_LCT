@@ -4,9 +4,6 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QGraphicsTextItem, QGraphicsItem, QWidget, QStyleOptionGraphicsItem, \
     QGraphicsSceneMouseEvent
 
-TEXT_SEPARATOR = "~"
-ALLOWED_CHARACTERS = ["+", "-"]
-ALLOWED_STRINGS = ["++", "+", "-", "--"]
 HIGHLIGHT_STYLE = "color:white;background-color:#1F51FF;"
 UNDERLINE_STYLE = "text-decoration: underline;"
 
@@ -23,7 +20,8 @@ class Descriptor(QGraphicsTextItem):
     non_editable_text_list: list[str]
     editable_text_changed = pyqtSignal(QGraphicsTextItem, bool)
 
-    def __init__(self, default_text: str, parent: QGraphicsItem, font: QFont = None) -> None:
+    def __init__(self, default_text: str, text_separator: str, allowed_strings: list[str], parent: QGraphicsItem,
+                 font: QFont = None) -> None:
         """
         Create Descriptor object.
         :param default_text: The default text that will appear in the descriptor.
@@ -31,6 +29,9 @@ class Descriptor(QGraphicsTextItem):
         :param font: The Descriptor's text font.
         """
         super().__init__(parent)
+        self.text_separator = text_separator
+        self.allowed_strings = allowed_strings
+        self.allowed_chars = list(set("".join(self.allowed_strings)))
         self.setPos(0, 0)
         self.setFlag(QGraphicsItem.ItemIgnoresParentOpacity)
         self.points = []
@@ -41,8 +42,8 @@ class Descriptor(QGraphicsTextItem):
 
         self.setTextInteractionFlags(Qt.TextEditable)
 
-        self.non_editable_text_list = default_text.split(TEXT_SEPARATOR)
-        self.editable_text_list = [TEXT_SEPARATOR] * (len(self.non_editable_text_list) - 1)
+        self.non_editable_text_list = default_text.split(self.text_separator)
+        self.editable_text_list = [self.text_separator] * (len(self.non_editable_text_list) - 1)
         self.selected_part = 0
         self.highlighted = False
         self.style = ""
@@ -52,8 +53,8 @@ class Descriptor(QGraphicsTextItem):
         Set the default text for this descriptor.
         :param default_text: The default text that will appear in the descriptor.
         """
-        self.non_editable_text_list = default_text.split(TEXT_SEPARATOR)
-        self.editable_text_list = [TEXT_SEPARATOR] * (len(self.non_editable_text_list) - 1)
+        self.non_editable_text_list = default_text.split(self.text_separator)
+        self.editable_text_list = [self.text_separator] * (len(self.non_editable_text_list) - 1)
         self.selected_part = 0
         self.highlighted = False
         self.update_text("", True)
@@ -182,21 +183,21 @@ class Descriptor(QGraphicsTextItem):
                 else:
                     self.editable_text_list[self.selected_part] = self.editable_text_list[self.selected_part][:-1]
                 if self.editable_text_list[self.selected_part] == "":  # If no chars, add default char
-                    self.editable_text_list[self.selected_part] = TEXT_SEPARATOR
+                    self.editable_text_list[self.selected_part] = self.text_separator
                     self.update_text(HIGHLIGHT_STYLE, True)
                 else:
                     self.update_text(UNDERLINE_STYLE, True)
             elif Qt.Key_Space <= event.key() <= Qt.Key_ydiaeresis:  # If readable character
                 char = chr(event.key())
-                if char in ALLOWED_CHARACTERS:  # If valid char
+                if char in self.allowed_chars:  # If valid char
                     if self.highlighted:
                         self.highlighted = False
                         self.editable_text_list[self.selected_part] = char
                         self.update_text(UNDERLINE_STYLE, True)
-                    elif self.editable_text_list[self.selected_part] == TEXT_SEPARATOR:
+                    elif self.editable_text_list[self.selected_part] == self.text_separator:
                         self.editable_text_list[self.selected_part] = char
                         self.update_text(UNDERLINE_STYLE, True)
-                    elif (self.editable_text_list[self.selected_part] + char) in ALLOWED_STRINGS:
+                    elif (self.editable_text_list[self.selected_part] + char) in self.allowed_strings:
                         self.editable_text_list[self.selected_part] += char
                         self.update_text(UNDERLINE_STYLE, True)
 

@@ -1,5 +1,6 @@
 import json
 import sys
+import nltk.data
 
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
@@ -7,6 +8,7 @@ from PyQt5.QtWidgets import (
     QMainWindow, QInputDialog, QMessageBox, QFileDialog
 )
 
+from app.text_splitter import SentenceSplitter
 from lct_handler import LCTHandler
 from dialogs.colors_dialog import ColorsDialog
 from graph.graph_window import GraphWindow
@@ -17,6 +19,8 @@ SG_VALUES = ["SG++", "SG+", "SG-", "SG--"]
 DEFAULT_TEXT_SG = "SG~"
 DEFAULT_TEXT_SD = "SD~"
 DEFAULT_TEXT_SD_SG = "SD~;SG~"
+DEFAULT_DESCRIPTOR_VALUE = "~"
+ALLOWED_DESCRIPTOR_VALUES = ["++", "+", "-", "--"]
 
 
 def manage_file(file: str, operation: str, data: str = None) -> str:
@@ -60,6 +64,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "text, right-click and select \"Join\" near the splitter.",
             self.conf["text_size"],
             DEFAULT_TEXT_SD_SG,
+            DEFAULT_DESCRIPTOR_VALUE,
+            ALLOWED_DESCRIPTOR_VALUES,
             list(self.conf["colors"]["together"].values())
         )
         self.classifierView.classifier.emitter.classifier_has_changed.connect(self.classifier_has_changed)
@@ -75,6 +81,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSD_SG.triggered.connect(lambda checked: self.target_action(DEFAULT_TEXT_SD_SG))
         self.actiongroupTarget.setExclusive(True)
         self.actionRun_Plotter.triggered.connect(self.run_graph_window)
+        self.actionSplit_in_sentences.triggered.connect(self.split_in_sentences_action)
 
     def classifier_has_changed(self):
         self.not_saved = True
@@ -248,6 +255,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             elif text == DEFAULT_TEXT_SG:
                 self.lct_handler.set_labels([SG_VALUES])
                 self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["alone"].values()))
+
+    def split_in_sentences_action(self, s: bool):
+        text = self.classifierView.get_text()
+        split_text = SentenceSplitter().split_text(text)
+
+        if self.actionSD.isChecked():
+            self.classifierView.set_text_analyzed(
+                split_text,
+                [text],
+                DEFAULT_TEXT_SD,
+                list(self.conf["colors"]["alone"].values()),
+                ["SD"],
+                [[DEFAULT_DESCRIPTOR_VALUE]] * len(split_text)
+            )
+        elif self.actionSG.isChecked():
+            self.classifierView.set_text_analyzed(
+                split_text,
+                [text],
+                DEFAULT_TEXT_SG,
+                list(self.conf["colors"]["alone"].values()),
+                ["SG"],
+                [[DEFAULT_DESCRIPTOR_VALUE]] * len(split_text)
+            )
+        elif self.actionSD_SG.isChecked():
+            self.classifierView.set_text_analyzed(
+                split_text,
+                [text],
+                DEFAULT_TEXT_SD_SG,
+                list(self.conf["colors"]["together"].values()),
+                ["SD", "SG"],
+                [[DEFAULT_DESCRIPTOR_VALUE, DEFAULT_DESCRIPTOR_VALUE]] * len(split_text)
+            )
 
     def run_graph_window(self, s: bool) -> None:
         if self.lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
