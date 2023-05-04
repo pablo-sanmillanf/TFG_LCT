@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/conf">
+        <file alias="defconf">defaultconf.json</file>
+    </qresource>
+    <qresource prefix="/icon">
+        <file alias="logo">logo.ico</file>
+    </qresource>
+</RCC>

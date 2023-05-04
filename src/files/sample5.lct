@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<lct version="1.0">
+   <dimension>Semantics</dimension>
+   <targets>
+      <target>SD-- SD- SD+ SD++</target>
+      <target>SG++ SG+ SG- SG--</target>
+   </targets>
+   <analysis>
+      <superClause value="22">
+         <clause value="22">This is an example text. If you want to start editing a file select &quot;File&quot;-&gt;&quot;Open...&quot; and browse to desired file. 
+ To set a division in the text, right-click and select &quot;Split&quot;. To undo a division</clause>
+         <clause value="33">in the text, right-click and select &quot;Join&quot; near the splitter.</clause>
+      </superClause>
+   </analysis>
+</lct>
