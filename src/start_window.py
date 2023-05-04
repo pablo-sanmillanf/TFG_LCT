@@ -1,11 +1,15 @@
+import os
 import sys
 import traceback
 
-from PyQt5.QtCore import QStandardPaths, QDir
+from PyQt5 import QtGui
+from PyQt5.QtCore import QStandardPaths, QDir, QSettings, QFile, QTextStream
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QMessageBox
 
-from app.main_window import MainWindow
+from app.main_window import MainWindow, manage_file
 from startWindowQtCreator import Ui_StartWindow
+
+from app.main_resources import main_resources
 
 
 try:
@@ -19,10 +23,19 @@ except ImportError:
 class StartWindow(QMainWindow, Ui_StartWindow):
     def __init__(self, *args, **kwargs):
         super(StartWindow, self).__init__(*args, **kwargs)
+        self._conf_file_path = None
+        self._app_window = None
         self.setupUi(self)
         self.set_styles()
 
-        self.default_location = QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0]
+        self.setWindowIcon(QtGui.QIcon(':/icon/logo'))
+
+        self.settings = QSettings("LCT", "Semantics Analyzer")
+
+        self.default_location = self.settings.value(
+            "workspace/root_dir",
+            QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0]
+        )
 
         self.pathText.setText(self.default_location)
 
@@ -71,43 +84,51 @@ class StartWindow(QMainWindow, Ui_StartWindow):
             self.pathText.setText(directory)
 
     def accept_slot(self) -> None:
-        if not QDir(self.pathText.text()).exists():
+        root_dir = self.pathText.text()
+        if root_dir == "" or not QDir(root_dir).exists():
             QMessageBox.critical(self, "Directory Error", "This directory doesn't exists", QMessageBox.Ok)
             self.pathText.setText(self.default_location)
+        else:
+            self.settings.setValue("workspace/root_dir", root_dir)
+            self.close()
+
+            conf_file = None
+
+            QDir().mkdir(os.path.join(root_dir, 'conf'))  # If dir already exists, do nothing
+
+            self._conf_file_path = os.path.join(root_dir, 'conf/conf.conf')
+            if not QFile.exists(self._conf_file_path):
+                file = QFile(":/conf/defconf")
+                file.open(QFile.ReadOnly)
+                manage_file(self._conf_file_path, "w", QTextStream(file.readAll()).readAll())
+            else:
+                conf_file = manage_file(self._conf_file_path, "r")
+
+            QDir().mkdir(os.path.join(root_dir, 'graph'))  # If dir already exists, do nothing
+
+            QDir().mkdir(os.path.join(root_dir, 'analysis'))  # If dir already exists, do nothing
+
+            self._app_window = MainWindow(self.pathText.text(), conf_file)
+            self._app_window.show()
 
     def reject_slot(self) -> None:
         self.close()
 
-
-"""if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
-    w = StartWindow()
-    w.show()
-
-    app.exec()"""
+    def save_conf(self):
+        if self._app_window is not None and self._app_window.conf_data is not None:
+            manage_file(self._conf_file_path, "w", self._app_window.conf_data)
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    DEBUG = None
+    try:
+        app = QApplication(sys.argv)
 
-    if DEBUG is not None:
-
-        try:
-            w = MainWindow()
-            w.show()
-
-            app.exec()
-        except Exception:
-            open("./error.txt", "w", encoding="utf8").write(traceback.format_exc())
-            print(traceback.format_exc())
-    else:
-        w = MainWindow()
-        w.show()
+        sw = StartWindow()
+        sw.show()
 
         app.exec()
 
-        if w.conf_data is not None:
-            open("defaultconf.json", "w", encoding="utf8").write(w.conf_data)
-
+        sw.save_conf()
+    except Exception:
+        open("./error.txt", "w", encoding="utf8").write(traceback.format_exc())
+        print(traceback.format_exc())

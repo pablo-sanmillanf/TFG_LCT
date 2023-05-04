@@ -1,11 +1,8 @@
 import json
-import sys
-import traceback
 
 from PyQt5 import QtGui
-from PyQt5.QtCore import QSettings, QFile, QTextStream
+from PyQt5.QtCore import QFile, QTextStream
 from PyQt5.QtWidgets import (
-    QApplication,
     QMainWindow, QInputDialog, QMessageBox, QFileDialog
 )
 
@@ -51,11 +48,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.lct_handler = LCTHandler("Semantics", [SD_VALUES, SG_VALUES])
 
-        self.settings = QSettings("LCT", "Semantics Analyzer")
-
-        self.graph_window = GraphWindow(root_directory + "graph/")
+        self.graph_window = GraphWindow(root_directory + "/graph/")
         if conf_file is not None:
-            self.conf = json.loads(conf_file)
+            try:
+                self.conf = json.loads(conf_file)
+            except:
+                file = QFile(":/conf/defconf")
+                file.open(QFile.ReadOnly)
+                self.conf = json.loads(QTextStream(file.readAll()).readAll())
         else:
             file = QFile(":/conf/defconf")
             file.open(QFile.ReadOnly)
@@ -118,7 +118,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file, file_type = QFileDialog().getOpenFileName(
             self,
             "Open file to analyze",
-            self.root_directory,
+            self.root_directory + "/analysis",
             "LCT Files (*.lct)"
         )
         if file != "":
@@ -214,7 +214,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             file, file_type = QFileDialog().getSaveFileName(
                 self,
                 "Save file",
-                self.root_directory,
+                self.root_directory + "/analysis",
                 "LCT Files (*.lct)"
             )
             if file != "":

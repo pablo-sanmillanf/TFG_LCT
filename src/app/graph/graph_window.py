@@ -1,7 +1,7 @@
 import numpy as np
 from PyQt5.QtCore import QFile, QTextStream
 from PyQt5.QtWidgets import (
-    QInputDialog
+    QInputDialog, QFileDialog
 )
 
 from ..lct_handler import LCTHandler
@@ -51,8 +51,22 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
         self.actionSuperClauses.triggered.connect(lambda x: self._change_target_action(False))
         self.actionSD.triggered.connect(self._sd_visibility_action)
         self.actionSG.triggered.connect(self._sg_visibility_action)
-        self.actionSave_Visibe_Chart_as_Image.triggered.connect(self.mplWidget.save_figure)
+        self.actionSave_Visibe_Chart_as_Image.triggered.connect(self._save_figure)
         self.actionVisible_points.triggered.connect(self._set_visible_points_dialog)
+
+    def _save_figure(self, s: bool) -> None:
+        """
+        Show a dialog to select the path where the image of the graph will be saved.
+        :param s: The value of the button. Non-relevant.
+        """
+        file, file_type = QFileDialog().getSaveFileName(
+            self,
+            "Save graph as image",
+            self._relative_path,
+            "Images (*.png *.jpg)"
+        )
+        if file != "":
+            self.mplWidget.save_figure(file)
 
     def _set_visible_points_dialog(self, s: bool) -> None:
         """

@@ -255,12 +255,12 @@ class MplWidget(QWidget):
         # Reset color cycle
         self._canvas.axes.set_prop_cycle(None)
 
-    def save_figure(self, s: bool) -> None:
+    def save_figure(self, file_name: str) -> None:
         """
         Save the visible figure as an image.
-        :param s: The value of the button. Non-relevant.
+        :param file_name: The path of the file to be saved.
         """
-        self._toolbar.save_figure(s)
+        self._canvas.figure.savefig(file_name)
 
     def on_press(self, event: MouseEvent) -> None:
         """
