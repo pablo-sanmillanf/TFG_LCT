@@ -55,7 +55,7 @@ class Window(QWidget):
             item.setFlag(QGraphicsItem.ItemIsMovable)
             item.setFlag(QGraphicsItem.ItemIsSelectable)
 
-        # Define our layout.
+        # Define our _layout.
         vbox = QVBoxLayout()
 
         up = QPushButton("Up")

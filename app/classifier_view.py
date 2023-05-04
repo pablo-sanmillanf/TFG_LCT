@@ -39,7 +39,7 @@ class ClassifierView(QGraphicsView):
         :param y_padding: Pixels of vertical padding for the text.
         :param min_width: Minimum width of the item.
         :param min_height: Minimum height of the item.
-        :param text: The text to analyze. New lines in this text should be represented as '\n' characters.
+        :param text: The text to analyze. New _lines in this text should be represented as '\n' characters.
         :param text_size: The text size as a number. All the elements in QGraphicsScene will adjust their size to
                           the text size.
         :param default_descriptor: The text that will appear in the descriptor as default. Depending on the number of

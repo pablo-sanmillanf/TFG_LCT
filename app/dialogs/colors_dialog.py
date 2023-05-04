@@ -6,7 +6,13 @@ from PyQt5.QtWidgets import QDialog, QColorDialog, QPushButton
 from .colorsDialogQtCreator import Ui_ColorsDialog
 
 
-def get_btn_style_str(color: str) -> str:
+def _get_btn_style_str(color: str) -> str:
+    """
+    This function helps to set the CSS style of the buttons of the dialog. All the CSS properties are the same  for all
+    the buttons except the color, that is passed as a parameter.
+    :param color: The color of the CSS-style. Should be a valid CSS color.
+    :return: The style of the button.
+    """
     return (
             "QPushButton {"
             "    border: 2px solid \"grey\";"
@@ -18,150 +24,174 @@ def get_btn_style_str(color: str) -> str:
 
 
 class ColorsDialog(QDialog, Ui_ColorsDialog):
+    """
+    This class manages the change of all the colors for the targets SD, SG and SG and SG together.
+    The dialog has two tabs: one called alone to edit the background color when the target is SD or SG alone, and
+    another called together to edit the background color when the target is SD and SG together. To edit a color from a
+    specific value, the user has to click the associated button and a Color Dialog will be shown to find the desired
+    color.
+    """
     def __init__(self, colors, parent=None):
+        """
+
+        :param colors: A dictionary with all the colors that will be able to edit in the dialog.
+        :param parent: The QWidget that calls this dialog.
+        """
         super().__init__(parent)
         self.setupUi(self)
 
         self.colors = colors
         self.has_changed = False
 
-        self.set_button_styles()
-        self.set_button_actions()
+        self._set_button_styles()
+        self._set_button_actions()
 
-    def set_button_actions(self) -> None:
+    def _set_button_actions(self) -> None:
+        """
+        Connect the clicked signal for all the buttons with the slot "_button_clicked_dialog()" that will show a
+        QColorDialog that will change the background-color of the button and the SG/SD/SG;SD associated value.
+        """
         # Set alone-tab button actions
         self.alone_default_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.alone_default_button)
+            lambda checked: self._button_clicked_dialog(self.alone_default_button)
         )
         self.alone_d_plusplus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.alone_d_plusplus_button)
+            lambda checked: self._button_clicked_dialog(self.alone_d_plusplus_button)
         )
         self.alone_d_plus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.alone_d_plus_button)
+            lambda checked: self._button_clicked_dialog(self.alone_d_plus_button)
         )
         self.alone_d_minus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.alone_d_minus_button)
+            lambda checked: self._button_clicked_dialog(self.alone_d_minus_button)
         )
         self.alone_d_minusminus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.alone_d_minusminus_button)
+            lambda checked: self._button_clicked_dialog(self.alone_d_minusminus_button)
         )
 
         # Set together-tab button actions
         self.together_default_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_default_button)
+            lambda checked: self._button_clicked_dialog(self.together_default_button)
         )
         self.together_d_plusplus_g_minusminus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_plusplus_g_minusminus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_plusplus_g_minusminus_button)
         )
         self.together_d_plusplus_g_minus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_plusplus_g_minus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_plusplus_g_minus_button)
         )
         self.together_d_plusplus_g_plus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_plusplus_g_plus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_plusplus_g_plus_button)
         )
         self.together_d_plusplus_g_plusplus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_plusplus_g_plusplus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_plusplus_g_plusplus_button)
         )
         self.together_d_plus_g_minusminus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_plus_g_minusminus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_plus_g_minusminus_button)
         )
         self.together_d_plus_g_minus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_plus_g_minus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_plus_g_minus_button)
         )
         self.together_d_plus_g_plus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_plus_g_plus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_plus_g_plus_button)
         )
         self.together_d_plus_g_plusplus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_plus_g_plusplus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_plus_g_plusplus_button)
         )
         self.together_d_minus_g_minusminus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_minus_g_minusminus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_minus_g_minusminus_button)
         )
         self.together_d_minus_g_minus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_minus_g_minus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_minus_g_minus_button)
         )
         self.together_d_minus_g_plus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_minus_g_plus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_minus_g_plus_button)
         )
         self.together_d_minus_g_plusplus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_minus_g_plusplus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_minus_g_plusplus_button)
         )
         self.together_d_minusminus_g_minusminus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_minusminus_g_minusminus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_minusminus_g_minusminus_button)
         )
         self.together_d_minusminus_g_minus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_minusminus_g_minus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_minusminus_g_minus_button)
         )
         self.together_d_minusminus_g_plus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_minusminus_g_plus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_minusminus_g_plus_button)
         )
         self.together_d_minusminus_g_plusplus_button.clicked.connect(
-            lambda checked: self.button_clicked_dialog(self.together_d_minusminus_g_plusplus_button)
+            lambda checked: self._button_clicked_dialog(self.together_d_minusminus_g_plusplus_button)
         )
 
-    def set_button_styles(self) -> None:
+    def _set_button_styles(self) -> None:
+        """
+        Apply the style for all the buttons of the dialog.
+        """
 
         # Set alone-tab button styles
-        self.alone_default_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["Default"]))
-        self.alone_d_plusplus_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["SD++"]))
-        self.alone_d_plus_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["SD+"]))
-        self.alone_d_minus_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["SD-"]))
-        self.alone_d_minusminus_button.setStyleSheet(get_btn_style_str(self.colors["alone"]["SD--"]))
+        self.alone_default_button.setStyleSheet(_get_btn_style_str(self.colors["alone"]["Default"]))
+        self.alone_d_plusplus_button.setStyleSheet(_get_btn_style_str(self.colors["alone"]["SD++"]))
+        self.alone_d_plus_button.setStyleSheet(_get_btn_style_str(self.colors["alone"]["SD+"]))
+        self.alone_d_minus_button.setStyleSheet(_get_btn_style_str(self.colors["alone"]["SD-"]))
+        self.alone_d_minusminus_button.setStyleSheet(_get_btn_style_str(self.colors["alone"]["SD--"]))
 
         # Set together-tab button styles
         self.together_default_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["Default"])
+            _get_btn_style_str(self.colors["together"]["Default"])
         )
         self.together_d_plusplus_g_minusminus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD++;SG--"])
+            _get_btn_style_str(self.colors["together"]["SD++;SG--"])
         )
         self.together_d_plusplus_g_minus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD++;SG-"])
+            _get_btn_style_str(self.colors["together"]["SD++;SG-"])
         )
         self.together_d_plusplus_g_plus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD++;SG+"])
+            _get_btn_style_str(self.colors["together"]["SD++;SG+"])
         )
         self.together_d_plusplus_g_plusplus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD++;SG++"])
+            _get_btn_style_str(self.colors["together"]["SD++;SG++"])
         )
         self.together_d_plus_g_minusminus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD+;SG--"])
+            _get_btn_style_str(self.colors["together"]["SD+;SG--"])
         )
         self.together_d_plus_g_minus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD+;SG-"])
+            _get_btn_style_str(self.colors["together"]["SD+;SG-"])
         )
         self.together_d_plus_g_plus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD+;SG+"])
+            _get_btn_style_str(self.colors["together"]["SD+;SG+"])
         )
         self.together_d_plus_g_plusplus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD+;SG++"])
+            _get_btn_style_str(self.colors["together"]["SD+;SG++"])
         )
         self.together_d_minus_g_minusminus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD-;SG--"])
+            _get_btn_style_str(self.colors["together"]["SD-;SG--"])
         )
         self.together_d_minus_g_minus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD-;SG-"])
+            _get_btn_style_str(self.colors["together"]["SD-;SG-"])
         )
         self.together_d_minus_g_plus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD-;SG+"])
+            _get_btn_style_str(self.colors["together"]["SD-;SG+"])
         )
         self.together_d_minus_g_plusplus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD-;SG++"])
+            _get_btn_style_str(self.colors["together"]["SD-;SG++"])
         )
         self.together_d_minusminus_g_minusminus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD--;SG--"])
+            _get_btn_style_str(self.colors["together"]["SD--;SG--"])
         )
         self.together_d_minusminus_g_minus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD--;SG-"])
+            _get_btn_style_str(self.colors["together"]["SD--;SG-"])
         )
         self.together_d_minusminus_g_plus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD--;SG+"])
+            _get_btn_style_str(self.colors["together"]["SD--;SG+"])
         )
         self.together_d_minusminus_g_plusplus_button.setStyleSheet(
-            get_btn_style_str(self.colors["together"]["SD--;SG++"])
+            _get_btn_style_str(self.colors["together"]["SD--;SG++"])
         )
 
-    def button_clicked_dialog(self, button: QPushButton) -> None:
+    def _button_clicked_dialog(self, button: QPushButton) -> None:
+        """
+        Manages the QColorDialog associated to the QPushButton and changes the background-color of this button and its
+        associated SG/SD/SG;SD value in the color dict.
+        :param button: The QPushButton that has been clicked.
+        """
         new_color = QColorDialog().getColor(
             QColor(re.search("background-color: \"([#a-zA-Z0-9]*)\";", button.styleSheet()).group(1)),
             self,
@@ -169,7 +199,7 @@ class ColorsDialog(QDialog, Ui_ColorsDialog):
         )
 
         if new_color.isValid():
-            button.setStyleSheet(get_btn_style_str(new_color.name()))
+            button.setStyleSheet(_get_btn_style_str(new_color.name()))
             self.has_changed = True
             match button:
                 case self.alone_default_button:

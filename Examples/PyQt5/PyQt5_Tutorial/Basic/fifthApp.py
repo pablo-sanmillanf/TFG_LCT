@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         # to take up all the space in the window by default.
         self.setCentralWidget(label)
 
-        toolbar = QToolBar("My app toolbar")
+        toolbar = QToolBar("My app _toolbar")
         toolbar.setIconSize(QSize(16, 16))
         self.addToolBar(toolbar)
 

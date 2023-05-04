@@ -1,6 +1,6 @@
 import json
 import sys
-import nltk.data
+import traceback
 
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
@@ -13,6 +13,9 @@ from lct_handler import LCTHandler
 from dialogs.colors_dialog import ColorsDialog
 from graph.graph_window import GraphWindow
 from mainWindowQtCreator import Ui_MainWindow
+
+DEBUG = None
+
 
 SD_VALUES = ["SD--", "SD-", "SD+", "SD++"]
 SG_VALUES = ["SG++", "SG+", "SG-", "SG--"]
@@ -267,7 +270,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 DEFAULT_TEXT_SD,
                 list(self.conf["colors"]["alone"].values()),
                 ["SD"],
-                [[DEFAULT_DESCRIPTOR_VALUE]] * len(split_text)
+                [[DEFAULT_DESCRIPTOR_VALUE] for _ in range(len(split_text))]
             )
         elif self.actionSG.isChecked():
             self.classifierView.set_text_analyzed(
@@ -276,7 +279,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 DEFAULT_TEXT_SG,
                 list(self.conf["colors"]["alone"].values()),
                 ["SG"],
-                [[DEFAULT_DESCRIPTOR_VALUE]] * len(split_text)
+                [[DEFAULT_DESCRIPTOR_VALUE] for _ in range(len(split_text))]
             )
         elif self.actionSD_SG.isChecked():
             self.classifierView.set_text_analyzed(
@@ -285,7 +288,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 DEFAULT_TEXT_SD_SG,
                 list(self.conf["colors"]["together"].values()),
                 ["SD", "SG"],
-                [[DEFAULT_DESCRIPTOR_VALUE, DEFAULT_DESCRIPTOR_VALUE]] * len(split_text)
+                [[DEFAULT_DESCRIPTOR_VALUE, DEFAULT_DESCRIPTOR_VALUE] for _ in range(len(split_text))]
             )
 
     def run_graph_window(self, s: bool) -> None:
@@ -349,7 +352,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    w = MainWindow()
-    w.show()
+    if DEBUG is not None:
 
-    app.exec()
+        try:
+            w = MainWindow()
+            w.show()
+
+            app.exec()
+        except Exception:
+            manage_file("./error.txt", "w", traceback.format_exc())
+            print(traceback.format_exc())
+    else:
+        w = MainWindow()
+        w.show()
+
+        app.exec()

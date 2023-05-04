@@ -70,7 +70,7 @@ class RoundedRect(QGraphicsRectItem):
               widget: typing.Optional[QWidget] = ...) -> None:
         """
         Paints the rectangle with a given radius.
-        :param painter: The object to paint the rectangles in the canvas
+        :param painter: The object to paint the rectangles in the _canvas
         :param option: This parameter will be ignored
         :param widget: This parameter will be ignored
         """

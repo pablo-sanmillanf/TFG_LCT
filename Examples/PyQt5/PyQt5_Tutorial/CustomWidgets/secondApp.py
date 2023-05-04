@@ -45,7 +45,7 @@ class _Bar(QtWidgets.QWidget):
         vmin, vmax = parent.minimum(), parent.maximum()
         value = parent.value()
 
-        # Define our canvas.
+        # Define our _canvas.
         d_height = (int)(painter.device().height() - (self._padding * 2))
         d_width = (int)(painter.device().width() - (self._padding * 2))
 
