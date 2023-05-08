@@ -9,8 +9,9 @@ BREAK_LINE_CHARACTERS = ["}", "-", "|", "?", "!", "/"]
 
 def apply_text_format(text: str) -> str:
     """
-    This function format the text to adapt it to the required format by classes TextClassifier and MainText.
-    More specifically, replace the "\n" with "<br>" and remove duplicate spaces.
+    This function format the text to adapt it to the required format by class MainText.
+    More specifically, replace the "\n" with "<br>", remove duplicate spaces and change special HTML characters with
+    valid HTML ones.
     :param text: The text to be formatted.
     :return: The formatted text.
     """
@@ -23,8 +24,7 @@ def apply_text_format(text: str) -> str:
 
 def remove_text_format(text: str) -> str:
     """
-    This function format the text to adapt it to the required format by classes TextClassifier and MainText.
-    More specifically, replace the "\n" with "<br>" and remove duplicate spaces.
+    This function remove the HTML format from the text to obtain plain text.
     :param text: The text to be formatted.
     :return: The formatted text.
     """
@@ -37,9 +37,8 @@ def remove_text_format(text: str) -> str:
 
 class MainText(QGraphicsTextItem):
     """
-    This class represents a multiline text with an interline spacing introduced in the constructor.
-    To insert line breaks, the characters "<br>" surrounded by spaces must be entered in the text.
-    If these conditions are not met, a malfunction results.
+    This class represents a multiline text with an interline spacing introduced in the constructor. Can also calculate
+    the points that represents the spaces in the text.
     """
 
     def __init__(self, text: str, size: float | int, width: float | int, line_height: float | int,
@@ -72,11 +71,16 @@ class MainText(QGraphicsTextItem):
         self.set_text(text)
 
     def get_text(self) -> str:
+        """
+        Return the plain text of the element.
+        :return: The plain text.
+        """
         return remove_text_format(self.text).replace(" <br> ", " \n ")
 
     def set_text(self, text: str) -> None:
         """
-        Set the text of the element justified and with the element's line height.
+        Set the text of the element justified and with the element's line height. Also apply the format accepted by the
+        HTML engine.
         :param text: The text
         """
         self.text = apply_text_format(text)
@@ -87,7 +91,7 @@ class MainText(QGraphicsTextItem):
         Set the text of the element justified and with the element's line height.
         :param text: The text
         """
-        self.setHtml('<p align="justify" style="line-height: ' + str(self.line_height) + '%">' + self.text + '</p>')
+        self.setHtml('<p align="justify" style="line-height: ' + str(self.line_height) + '%">' + text + '</p>')
 
         self.words_width = self.get_words_width(self.text.split(" "))
 
@@ -111,9 +115,9 @@ class MainText(QGraphicsTextItem):
     def get_words_width(self, text_list: list[str]) -> list[tuple[int | float, str, bool]]:
         """
         This function calculates the width of all the words passed as parameter.
-        :param text_list: List. For each element, the first sub-element is the word width, the second the word and the
-                          last, a list of tuples with the length of substrings (from the starting char to the requested
-                          char included) if the word contains one or more BREAK_LINE_CHARACTERS.
+        :param text_list: A list of words.
+        :return: A list. For each element, the first sub-element is the word width, the second the word and the last, a
+                 boolean that indicates if the word is part of a word with one or more BREAK_LINE_CHARACTERS.
         """
         # Obtain the offsets to correctly place the separators
         half_space, padding = self.set_separator_offsets_width()
@@ -158,9 +162,9 @@ class MainText(QGraphicsTextItem):
         """
         Calculates the points of separation between the different words of the text. It returns a complex structure that
         is composed by a list of tuples. The first element of the tuple is the y-value for a specific line and the
-        second element is a two-element list. Each of these two-element lists represents an x-value in the specific line
-        and the word that is immediately after the x-point. In the case of an end of line, and empty string will be
-        stored.
+        second element is a three-element list. Each of these three-element lists represents an x-value in the specific
+        line, the word that is immediately after the x-point and a boolean that indicates if this word is part of a word
+        with one or more BREAK_LINE_CHARACTERS. In the case of an end of line, and empty string will be stored.
         :return: The complex structure described above.
         """
 
@@ -259,8 +263,9 @@ class MainText(QGraphicsTextItem):
                      padding: int | float, half_space: int | float) -> list[list[float | str | bool]]:
         """
         Calculates the x-points of separation between the different words of a line indicated by start_index and
-        end_index. It returns a complex structure. Is composed by a list of two-element lists. Each of these two-element
-        lists represents an x-value in the line and the word that is immediately after the x-point. In the case of the
+        end_index. It returns a complex structure. Is composed by a list of three-element lists. Each of these
+        three-element lists represents an x-value in the line, the word that is immediately after the x-point and a
+        boolean that indicates if this word is part of a word with one or more BREAK_LINE_CHARACTERS. In the case of the
         end of line, and empty string will be stored.
         :param start_index: Index of the first word in the line in self.words_width structure.
         :param end_index: Index of the last word in the line in self.words_width structure plus one.
@@ -326,12 +331,11 @@ class MainText(QGraphicsTextItem):
 
         return x_values_with_words
 
-    def set_separator_offsets_width(self) -> tuple:
+    def set_separator_offsets_width(self) -> tuple[float, float]:
         """
-        This function gets the width in pixels of what would occupy half of what the space
-        character occupies with the given font. In addition, it also gets the width in
-        pixels of the padding introduced by the QGraphicsTextItem element. To do this, the
-        following system of equations must be solved:
+        This function gets the width in pixels of what would occupy half of what the space character occupies with the
+        given font. In addition, it also gets the width in pixels of the padding introduced by the QGraphicsTextItem
+        element. To do this, the following system of equations must be solved:
             - padding + space + padding = len_text1
             - padding + space + space + padding = len_text2
         Those values will be used to place the text separators
@@ -350,7 +354,7 @@ class MainText(QGraphicsTextItem):
 
         return space / 2, padding
 
-    def set_separator_offsets_height(self) -> tuple:
+    def set_separator_offsets_height(self) -> tuple[float, float]:
         """
         This function gets the height in pixels of the height of the strip used to represent the text with the given
         font plus the line spacing. In addition, it also gets the height in pixels of the padding introduced by the

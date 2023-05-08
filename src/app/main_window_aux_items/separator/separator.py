@@ -36,9 +36,12 @@ class SeparatorEmitter(QObject):
 
 class Separator(QGraphicsLineItem):
     """
-    This class represents a QGraphicsLineItem that can only move between the points contained in the
-    fixed_points structure.
-    To avoid redundant information this structure must be: [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+    This class represents a QGraphicsLineItem that can only move between the points contained in the fixed_points
+    structure. If the "Ignored" boolean is True, the separator cannot release in this point. If the separator is
+    released in the border of a line, a copy of it appears at the end of the previous line (if it is on the left border)
+    or at the beginning of the next line (if it is on the right border) and both copies are also selectable.
+    To avoid redundant information this structure must be:
+    [(y_0, [(x_0, Ignored), (x_1, Ignored), ...]), (y_1, [(x_0, Ignored), (x_1, Ignored), ...]), ...]
     """
     fixed_points: list[tuple[float, list[tuple[float, bool]]]]
     border_right_pos: bool
@@ -53,8 +56,13 @@ class Separator(QGraphicsLineItem):
         :param x: X coordinate of the Separator
         :param y: Y coordinate of the Separator
         :param height: The height of the Separator
-        :param fixed_points: fixed_points: Available points for the separators. The structure must
-                             be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+        :param fixed_points: Available points for the separators. The structure must be
+                            [
+                            (y_0, [(x_0, Ignored), (x_1, Ignored), ...]),
+                            (y_1, [(x_0, Ignored), (x_1, Ignored), ...]),
+                            ...
+                            ]
+        :param emitter: The QObject that will handle the signals that will emit the Separator.
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         """
         self.is_clicked = False
@@ -217,7 +225,7 @@ class Separator(QGraphicsLineItem):
         if self.is_on_the_border():
             self.set_bounding_rect()
 
-    def setPos(self, *args) -> None:
+    def setPos(self, *args: typing.Union[QPointF, float, float]) -> None:
         """
         Set position of the Separator. The requested position will be adjusted to the nearest position
         contained in fixed_points
@@ -309,7 +317,7 @@ class Separator(QGraphicsLineItem):
               widget: typing.Optional[QWidget] = ...) -> None:
         """
         Paints the separator using the information stored in self.fixed_points.
-        :param painter: The object to paint the rectangles in the _canvas
+        :param painter: The object to paint the rectangles in the canvas
         :param option: This parameter will be ignored
         :param widget: This parameter will be ignored
         """
@@ -365,7 +373,7 @@ class Separator(QGraphicsLineItem):
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         """
         Manages the behaviour of the Separator when the user release the object. In this case, the object changes its
-        bounding rounded_rect if self.border_left_pos or self.border_right_pos are active.
+        bounding rect if self.border_left_pos or self.border_right_pos are active.
         :param event: The object that indicates the type of event triggered. In this case is a QGraphicsSceneMouseEvent
         """
         self.is_clicked = True

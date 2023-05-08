@@ -159,6 +159,8 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
             self.actionSG.setEnabled(False)
             self.actionSG.setChecked(False)
 
+        self.actionClauses.setChecked(True)
+
         self.text.set_texts(lct_handler.get_super_clause_texts(), lct_handler.get_clause_texts())
         self.text.scroll_updated.connect(self.scrollArea.verticalScrollBar().setValue)
 

@@ -7,12 +7,8 @@ from PyQt5.QtWidgets import QWidget, QGraphicsItem, QGraphicsRectItem, QStyleOpt
 
 class RoundedRect(QGraphicsRectItem):
     """
-    This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his text_size and
-    the number of QGraphicsRectItem to fill the gap between the associated Separators.
-    Assuming the "|" are the separators and the "=" are the rectangles, this is more or less what it will look like:
-    |=====================================================================
-    ======================================================================
-    ====================================|
+    This class represents a QGraphicsRectItem with rounded corners. This class also has methods to set and obtain the
+    background color. When the width is 0, the class paints nothing.
     """
 
     def __init__(self, x: float | int, y: float | int, width: float | int, height: float | int, radius: float | int,
@@ -21,8 +17,8 @@ class RoundedRect(QGraphicsRectItem):
         Create RoundedRect object.
         :param x: The x-position of the rectangle
         :param y: The y-position of the rectangle
-        :param width: The width of this element. Is determined by the max text width.
-        :param height: The height of the rectangles.
+        :param width: The width of this element.
+        :param height: The height of the rectangle.
         :param radius: The radius of the rounded corners.
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         """
@@ -33,7 +29,7 @@ class RoundedRect(QGraphicsRectItem):
 
     def set_background_color(self, color: str) -> None:
         """
-        Set the rectangle background color
+        Set the rectangle background color.
         :param color: The color as string. Should be a valid HTML color.
         """
         self.setBrush(QColor(color))
@@ -41,7 +37,7 @@ class RoundedRect(QGraphicsRectItem):
 
     def get_background_color(self) -> str:
         """
-        Return the rectangle background color
+        Return the rectangle background color.
         :return: The color as string. Is a valid HTML color.
         """
         return self.brush().color()
@@ -55,7 +51,7 @@ class RoundedRect(QGraphicsRectItem):
 
     def set_pos_and_size(self, x: float | int, y: float | int, width: float | int, height: float | int):
         """
-        Set the position and the size of the rounded_rect.
+        Set the position and the size of the rounded rect.
         :param x: The x-position of the rectangle.
         :param y: The y-position of the rectangle.
         :param width: The width of this element.

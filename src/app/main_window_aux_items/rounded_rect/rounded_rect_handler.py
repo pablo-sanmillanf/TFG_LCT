@@ -1,5 +1,4 @@
 import typing
-from typing import List
 
 from ..separator.separator import Separator
 
@@ -12,12 +11,9 @@ from .rounded_rect import RoundedRect
 
 class RoundedRectHandler:
     """
-    This class represents a multiple QGraphicsRectItem with rounded corners. It adjusts his text_size and
-    the number of QGraphicsRectItem to fill the gap between the associated Separators.
-    Assuming the "|" are the separators and the "=" are the rectangles, this is more or less what it will look like:
-    |=====================================================================
-    ======================================================================
-    ====================================|
+    This class handles the position, the size and the background color of all the RoundedRect. All the RoundedRect
+    between two Separators are considered a group of RoundedRect and this class ensures that they always have the same
+    background color.
     """
     rects: list[RoundedRect]
     separators: list[list[Separator | int | QPointF]]
@@ -29,11 +25,14 @@ class RoundedRectHandler:
                  points: list[tuple[float | int, tuple[float | int, float | int]]], colors: dict[str, str],
                  parent: QGraphicsItem) -> None:
         """
-        Create MultilineRoundedRect object.
+        Create RoundedRectHandler object.
         :param height: The height of the rectangles
         :param radius: The radius of the rounded corners
-        :param points: The space between the border of a separator and
-        :param colors: The colors
+        :param points: A list of points to correctly set the position and the size of the rounded rect. Each element is
+                       a tuple of (Y-value, (X-left, X-Right)) where the x-value of the rounded rect is X-left and the
+                       width of the specific rounded rect is X-Right - X-left.
+        :param colors: The colors, as a dictionary with the specific value of associated Descriptor as the key, and the
+                       color itself as the value.
         :param parent: The QGraphicsItem parent of this Separator. Can't be None
         """
         self.height = height
@@ -52,14 +51,30 @@ class RoundedRectHandler:
 
     def add_separator_listeners(self, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any,
                                 removed_fn: typing.Any) -> None:
+        """
+        Set the separator listeners of the handler.
+        :param pos_changed_fn: This signal will be emitted when a separator is moved.
+        :param clicked_on_the_border_fn: This signal will be emitted when a separator is clicked when is on the border
+                                         of a line.
+        :param removed_fn: This signal will be emitted when a separator is removed.
+        """
         pos_changed_fn.connect(self.separator_position_changed)
         clicked_on_the_border_fn.connect(self.separator_clicked_on_the_border)
         removed_fn.connect(self.separator_removed)
 
     def add_descriptor_listeners(self, editable_text_changed_fn: typing.Any) -> None:
+        """
+        Set the separator listeners of the handler.
+        :param editable_text_changed_fn: This signal will be emitted when the text of a Descriptor is changed.
+        """
         editable_text_changed_fn.connect(self.editable_text_changed_slot)
 
     def set_height_and_radius(self, height: float, radius: float) -> None:
+        """
+        Set the height and radius of all the RoundedRect handled by this class.
+        :param height: The height of the rectangle.
+        :param radius: The radius of the rounded corners.
+        """
         self.height = height
         self.radius = radius
         for rect in self.rects:
@@ -68,8 +83,11 @@ class RoundedRectHandler:
 
     def set_points_for_new_text(self, points: list[tuple[float, tuple[float, float]]], color: str) -> None:
         """
-        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
-        resizing the window.
+        Set the position and the size for the RoundedRect when the text is new.
+        :param points: A list of points to correctly set the position and the size of the rounded rect. Each element is
+                       a tuple of (Y-value, (X-left, X-Right)) where the x-value of the rounded rect is X-left and the
+                       width of the specific rounded rect is X-Right - X-left.
+        :param color: The default color that will have all the RoundeRect.
         """
         if len(points) > len(self.rects):  # We need to create more rects
             i = 0
@@ -107,8 +125,12 @@ class RoundedRectHandler:
     def set_points(self, points: list[tuple[float, tuple[float, float]]], separator_points: list[QPointF],
                    new_text: bool) -> None:
         """
-        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
-        resizing the window.
+        Set the position and the size for the RoundedRect.
+        :param points: A list of points to correctly set the position and the size of the rounded rect. Each element is
+                       a tuple of (Y-value, (X-left, X-Right)) where the x-value of the rounded rect is X-left and the
+                       width of the specific rounded rect is X-Right - X-left.
+        :param separator_points: A list with the separator positions. If the text is new, this list should be empty.
+        :param new_text: A boolean that indicates if the text is new.
         """
 
         rects_colors_list = []
@@ -131,8 +153,12 @@ class RoundedRectHandler:
     def set_points_with_separators(self, points: list[tuple[float, tuple[float, float]]],
                                    separator_points: list[QPointF], colors_list: list[str]) -> None:
         """
-        Updates the points to place the rectangles when both separators have been moved at the same time, e.g. when
-        resizing the window.
+        Set the position and the size for the RoundedRect.
+        :param points: A list of points to correctly set the position and the size of the rounded rect. Each element is
+                       a tuple of (Y-value, (X-left, X-Right)) where the x-value of the rounded rect is X-left and the
+                       width of the specific rounded rect is X-Right - X-left.
+        :param separator_points: A list with the separator positions. If the text is new, this list should be empty.
+        :param colors_list: A list of background color for each group of RoundedRect.
         """
 
         if len(separator_points) + len(points) > len(self.rects):  # We need to create more descriptors
@@ -224,7 +250,12 @@ class RoundedRectHandler:
                 removed_rect = self.rects.pop()
                 self.parent.scene().removeItem(removed_rect)
 
-    def reset_colors(self):
+    def reset_colors(self) -> None:
+        """
+        Reset the background color to the default one. This function doesn't change the background color itself but
+        reset the current color managed by this class and in the next update, the color will change to the default one.
+        :return:
+        """
         for i in range(len(self.color_indexes)):
             self.color_indexes[i] = 0
 
@@ -241,6 +272,11 @@ class RoundedRectHandler:
             self.update_background_color_rects_group(i, self.color_indexes[i + 1])
 
     def update_background_color_rects_group(self, separator_index: int, color_index):
+        """
+        Set the background color for all the rounded rect in a RoundedRect group.
+        :param separator_index: The index of the separator before the first RoundedRect of the group
+        :param color_index: The index of the color in the self.colors dictionary.
+        """
         # Adapt bounds
         if separator_index == -1:
             start = 0
@@ -257,11 +293,22 @@ class RoundedRectHandler:
             self.rects[i].set_background_color(list(self.colors.values())[color_index])
 
     def find_separator(self, separator: Separator) -> int:
+        """
+        Find the index of the given separator in self.separators.
+        :param separator: The separator to look for.
+        :return: The index of the separator.
+        """
         for i in range(len(self.separators)):
             if self.separators[i][0] is separator:
                 return i
 
-    def add_separator(self, separator: Separator, point: QPointF):
+    def add_separator(self, separator: Separator, point: QPointF) -> None:
+        """
+        Add a separator to the list of separators and create a new RoundedRect to use in the newly created group of
+        RoundedRects.
+        :param separator: The created separator.
+        :param point: The last position of the new created separator.
+        """
         if len(self.separators) == 0:
             self.separators.append([separator, self.insert_rect(point), point])
 
@@ -292,7 +339,13 @@ class RoundedRectHandler:
             self.color_indexes.append(0)
             self.update_background_color_rects_group(len(self.separators) - 1, 0)
 
-    def insert_rect(self, point: QPointF):
+    def insert_rect(self, point: QPointF) -> int:
+        """
+        Insert a new RoundedRect when a separator is created in the self.descriptors structure and return the index of
+        the previous Separator.
+        :param point: The position of the newly created separator.
+        :return: The index of the separator before the RoundedRect.
+        """
         for i in range(len(self.rects)):
             if (point.y() < self.rects[i].pos().y() or
                     (point.y() == self.rects[i].pos().y() and point.x() < self.rects[i].pos().x())):
@@ -331,6 +384,13 @@ class RoundedRectHandler:
         return len(self.rects) - 2
 
     def update_downwards(self, separator_index: int, init_index: int, point: QPointF) -> int:
+        """
+        Update the position and te size of a RoundedRect group when a Separator is moved downwards.
+        :param separator_index: Index of the updated separator.
+        :param init_index: Index of the first RoundedRect of the group.
+        :param point: The current position of the updated Separator.
+        :return: The index of the new first RoundedRect in this RoundedRect group.
+        """
         for i in range(init_index, len(self.rects)):
             if point.y() > self.rects[i].pos().y():
                 self.rects[i].set_pos_and_size(
@@ -358,6 +418,13 @@ class RoundedRectHandler:
         raise RuntimeError("DOWNWARDS FINISH WITHOUT RETURNING")
 
     def update_upwards(self, separator_index: int, init_index: int, point: QPointF) -> int:
+        """
+        Update the position and te size of a RoundedRect group when a Separator is moved upwards.
+        :param separator_index: Index of the updated separator.
+        :param init_index: Index of the first RoundedRect of the group.
+        :param point: The current position of the updated Separator.
+        :return: The index of the new first RoundedRect in this RoundedRect group.
+        """
         for i in range(init_index, -1, -1):
             if point.y() < self.rects[i].pos().y():
                 self.rects[i + 1].set_pos_and_size(
@@ -392,7 +459,7 @@ class RoundedRectHandler:
 
     def separator_position_changed(self, moved_separator: QGraphicsItem, point: QPointF) -> None:
         """
-        Updates the rectangle positions and length according to the new position of moved_separator. This function
+        Updates the rectangle positions and size according to the new position of moved_separator. This function
         should be called every time a Separator has moved.
         :param moved_separator: The separator that has moved.
         :param point: The position of the separator.
@@ -412,7 +479,50 @@ class RoundedRectHandler:
                 self.separators[sep_index][1] = self.update_downwards(sep_index, self.separators[sep_index][1], point)
             self.separators[sep_index][2] = point
 
-    def separator_removed(self, separator: Separator):
+    def separator_clicked_on_the_border(self, moved_separator: QGraphicsItem, cursor_point: QPointF,
+                                        right_point: QPointF, left_point: QPointF) -> None:
+        """
+        This function update RoundedRects positions and size when a Separator that is on the border is clicked because
+        when the separator is on the border, a copy of it appears at the end of the previous line (if it is on the left
+        border) or at the beginning of the next line (if it is on the right border) and both copies are also selectable.
+
+        :param moved_separator: The separator that has moved.
+        :param cursor_point: The position of the cursor when the separator was clicked.
+        :param right_point: The right position of the separator.
+        :param left_point: The left position of the separator.
+        """
+        sep_index = self.find_separator(moved_separator)
+
+        if sep_index is None:
+            self.add_separator(moved_separator, right_point)
+        else:
+            # If the user released the separator in the right border and now the user is clicking in the left border
+            # if self.separators[sep_index][2] == right_point and \
+            #        (cursor_point - right_point).manhattanLength() > (cursor_point - left_point).manhattanLength():
+            # Nothing is done because of the way function "update_downwards" is designed.
+
+            # If the user released the separator in the left border and now the user is clicking in the right border
+            if self.separators[sep_index][2] == left_point and \
+                    (cursor_point - left_point).manhattanLength() > (cursor_point - right_point).manhattanLength():
+                # Auxiliary variable to add clarity
+                ind = self.separators[sep_index][1]
+
+                self.rects[ind].set_pos_and_size(
+                    self.rects[ind - 1].pos().x() + self.rects[ind - 1].rect().width(),
+                    self.rects[ind - 1].pos().y(),
+                    0,
+                    self.height
+                )
+
+                self.rects[ind].set_background_color(list(self.colors.values())[self.color_indexes[sep_index + 1]])
+
+                self.separators[sep_index][1] -= 1
+
+    def separator_removed(self, separator: Separator) -> None:
+        """
+        Updates the number, position and size of the RoundedRects when a Separator is removed.
+        :param separator: The removed Separator.
+        """
         # Get indexes
         sep_index = self.find_separator(separator)
         rect_index = self.separators[sep_index][1]
@@ -446,39 +556,10 @@ class RoundedRectHandler:
 
         self.parent.scene().removeItem(removed_rect)
 
-    def separator_clicked_on_the_border(self, moved_separator: QGraphicsItem, cursor_point: QPointF,
-                                        right_point: QPointF, left_point: QPointF) -> None:
-        sep_index = self.find_separator(moved_separator)
-
-        if sep_index is None:
-            self.add_separator(moved_separator, right_point)
-        else:
-            # If the user released the separator in the right border and now the user is clicking in the left border
-            # if self.separators[sep_index][2] == right_point and \
-            #        (cursor_point - right_point).manhattanLength() > (cursor_point - left_point).manhattanLength():
-            # Nothing is done because of the way function "update_downwards" is designed.
-
-            # If the user released the separator in the left border and now the user is clicking in the right border
-            if self.separators[sep_index][2] == left_point and \
-                    (cursor_point - left_point).manhattanLength() > (cursor_point - right_point).manhattanLength():
-                # Auxiliary variable to add clarity
-                ind = self.separators[sep_index][1]
-
-                self.rects[ind].set_pos_and_size(
-                    self.rects[ind - 1].pos().x() + self.rects[ind - 1].rect().width(),
-                    self.rects[ind - 1].pos().y(),
-                    0,
-                    self.height
-                )
-
-                self.rects[ind].set_background_color(list(self.colors.values())[self.color_indexes[sep_index + 1]])
-
-                self.separators[sep_index][1] -= 1
-
     def editable_text_changed_slot(self, separator_index: int, editable_text_list: list[str]) -> None:
         """
-        Change the background color of the rounded_rect depending on the text values of editable_text_list.
-        :param separator_index:
+        Change the background color of a RoundedRect group depending on the text values of editable_text_list.
+        :param separator_index: The index of the separator before the RoundedRect group.
         :param editable_text_list: A list with the editable descriptor text parts.
         """
         index = 0

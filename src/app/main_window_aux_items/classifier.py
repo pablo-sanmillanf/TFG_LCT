@@ -14,6 +14,12 @@ from collections import Counter
 
 
 def most_common(lst: list[str]) -> str:
+    """
+    Find the most common item in the list of strings. If there is a stalemate, the first most common element will be
+    returned.
+    :param lst: The list of strings.
+    :return: The most common element.
+    """
     data = Counter(lst)
     return data.most_common(1)[0][0]
 
@@ -25,6 +31,8 @@ def create_colors_dict(default_text: str, color_list: list[str], default_descrip
     itself and as a value, a list containing the values of the different editable parts of the descriptor text.
     :param default_text: The text that is placed in the descriptors as default.
     :param color_list: The list with the colors.
+    :param default_descriptor_value: The default editable part of the descriptor.
+    :param allowed_descriptor_values: The allowed editable values of the descriptor.
     :return: The dictionary.
     """
     editable_texts_number = len(default_text.split(default_descriptor_value)) - 1
@@ -49,7 +57,13 @@ def create_colors_dict(default_text: str, color_list: list[str], default_descrip
     return colors
 
 
-def obtain_limit_points(points):
+def obtain_limit_points(points: list[tuple[float, list[list[float | str | bool]]]]
+                        ) -> list[tuple[float, tuple[float, float]]]:
+    """
+    Obtain the limit x-values with its y-values from each lines from the structure that returns the MainText object.
+    :param points: The points obtained from MainText object.
+    :return: The limit points.
+    """
     return [(i[0], (i[1][0][0], i[1][-1][0])) for i in points]
 
 
@@ -57,7 +71,7 @@ def obtain_separator_points(complete_points: list[tuple[float, list[list[float |
                             ) -> list[tuple[float, list[tuple[float, bool]]]]:
     """
     Extract from the complex structure that returns MainText object, the list of points with this structure:
-    [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+    [(y_0, [(x_0, Ignored), (x_1, Ignored), ...]), (y_1, [(x_0, Ignored), (x_1, Ignored), ...]), ...]
     :return: The list with the points
     """
     return [(i[0], [(e[0], e[2]) for e in i[1]]) for i in complete_points]
@@ -69,7 +83,8 @@ def get_repos_sep_points(text_list: list[str],
     Reposition the separators to fit the new text format. The positions that the separators will occupy will be
     such that the groups of words that form these separators will be the same.
     :param text_list: A list with the groups of words made by the separators.
-    :param complete_point_list: A list with the groups of words made by the separators.
+    :param complete_point_list: The list of all available points with its associated word.
+    :return: The list of new positions for the Separators.
     """
     text_list_index = 0
     separator_points = [QPointF(complete_point_list[0][1][0][0], complete_point_list[0][0])]
@@ -101,11 +116,13 @@ def get_repos_sep_points_with_super_sep(sep_text_list: list[str], super_sep_text
                                         complete_point_list: list[tuple[float, list[list[float | str | bool]]]]
                                         ) -> list[tuple[QPointF, bool]]:
     """
-    Reposition the separators to fit the new text format. The positions that the separators will occupy will be
-    such that the groups of words that form these separators will be the same.
-    :param sep_text_list: A list with the groups of words made by the separators.
-    :param super_sep_text_list: A list with the groups of words made by the separators.
-    :param complete_point_list: A list with the groups of words made by the separators.
+    Find the position of the separators that make those text lists. Also, indicates if a Separator is a super Separator
+    based on super_sep_text_list.
+    :param sep_text_list: The list with the groups of words made by the separators.
+    :param super_sep_text_list: The list with the groups of words made by the super separators.
+    :param complete_point_list: The list of all available points with its associated word.
+    :return: The list of new positions for the Separators with a boolean per element that indicates if the Separator is
+    a super Separator.
     """
     sep_text_list_index = 0
     super_sep_text_list_index = 0
@@ -153,18 +170,24 @@ class ClassifierEmitter(QObject):
 
 class Classifier:
     """
-    This class controls all the behaviour of the QGraphicsItems associated with the graphical text
-    classification. That is, the rectangles and its descriptors_handler and the separators between them.
+    This class controls all the behaviour of the QGraphicsItems associated with the graphical text classification. That
+    is, the rectangles and its descriptors and the separators between them. If any of the elements controlled by this
+    object changes its position or value, a signal will be emitted indicating it.
     """
 
     def __init__(self, text: str, text_width: float, text_size: float, default_descriptor_string: str,
                  default_descriptor_value: str, allowed_descriptor_values: list[str],
                  rect_colors: list[str], parent: QGraphicsItem) -> None:
         """
-        Create TextClassifier object. Only one object form this class should be created
+        Create Classifier object. Only one object form this class should be created
+        :param text: The text to be analyzed.
         :param text_width: The maximum width of this element. Is determined by the max text width.
-        :param text_size: The height that the rectangles and the separators will have. Should be
-                            greater than text height.
+        :param text_size: The point text size. All the elements will adapt their size to this value to maintain always
+                          the same proportion.
+        :param default_descriptor_string: The default complete text that will appear in the descriptors.
+        :param default_descriptor_value: The default value of editable parts of the descriptors.
+        :param allowed_descriptor_values: The allowed values that can be the editable parts of the descriptors.
+        :param rect_colors: The list of all the available background RoundedRect colors.
         :param parent: The QGraphicsItem parent of this element. Can't be None
         """
         self.default_descriptor_value = default_descriptor_value
@@ -225,6 +248,10 @@ class Classifier:
         self.descriptors_handler.emitter.editable_text_changed.connect(self.descriptor_changed)
 
     def get_text(self) -> str:
+        """
+        Obtain the plain text that is being analyzed.
+        :return: The plain text.
+        """
         return self.text.get_text()
 
     def set_colors(self, colors: list[str]) -> None:
@@ -240,12 +267,12 @@ class Classifier:
 
     def set_default_descriptor(self, default_descriptor: str, colors: list[str]) -> None:
         """
-        Set the default descriptor for all the descriptors. Should contain one or more "~" characters. The list of
-        colors will be the colors that the rounded rects will have depending on the value of the descriptor. The length
-        of this list should be the same as the possible combinations of the descriptor text plus one (the default one).
-        Also, the colors list should be of any HTML valid color.
+        Set the default descriptor for all the descriptors. Should contain one or more "default_descriptor_value"
+        characters. The list of colors will be the colors that the rounded rects will have depending on the value of the
+        descriptor. The length of this list should be the same as the possible combinations of the descriptor text plus
+        one (the default one). Also, the colors list should be of any HTML valid color.
         :param default_descriptor: The default string that will appear in the descriptor. Should contain one or more
-                                   "~" characters.
+                                   "default_descriptor_value" characters.
         :param colors: List of all available colors
         """
         self.descriptors_handler.set_default_text(default_descriptor)
@@ -270,12 +297,11 @@ class Classifier:
 
     def split(self, x: float, y: float) -> bool:
         """
-        Splits the nearest rectangle to the given coordinates in two, placing a separator where
-        the split has been made.
+        Splits the nearest rectangle to the given coordinates in two, placing a separator where the split has been made.
         :param x: The x coordinate
         :param y: The y coordinate
-        :return: True if success, False if error. There can be a mistake if the coordinates
-                 are out of bounds or if there is no more space to place a separator
+        :return: True if success, False if error. There can be a mistake if the coordinates are out of bounds or if
+        there is no more space to place a separator
         """
         if self.sep_handler.add_separator(x, y, False):
             self.emitter.classifier_has_changed.emit()
@@ -287,8 +313,8 @@ class Classifier:
         Remove a separator and join the two remaining rectangles.
         :param x: The x coordinate
         :param y: The y coordinate
-        :return: True if success, False if error. There can be a mistake if the coordinates
-                 are out of bounds or if in the given coordinates there is no separator
+        :return: True if success, False if error. There can be a mistake if the coordinates are out of bounds or if in
+        the given coordinates there is no separator
         """
         if self.sep_handler.delete_separator(x, y):
             self.emitter.classifier_has_changed.emit()
@@ -297,11 +323,11 @@ class Classifier:
 
     def promote_separator(self, x: float, y: float) -> bool:
         """
-        Remove a separator and join the two remaining rectangles.
+        Promote the Separator in the given position to a super Separator.
         :param x: The x coordinate
         :param y: The y coordinate
-        :return: True if success, False if error. There can be a mistake if the coordinates
-                 are out of bounds or if in the given coordinates there is no separator
+        :return: True if success, False if error. There can be a mistake if the coordinates are out of bounds, if the
+        separator is already a super Separator or if in the given coordinates there is no separator.
         """
         if self.sep_handler.promote_separator(x, y, "yellow"):
             self.emitter.classifier_has_changed.emit()
@@ -310,11 +336,11 @@ class Classifier:
 
     def demote_separator(self, x: float, y: float) -> bool:
         """
-        Remove a separator and join the two remaining rectangles.
+        Demote the super Separator in the given position to a Separator.
         :param x: The x coordinate
         :param y: The y coordinate
-        :return: True if success, False if error. There can be a mistake if the coordinates
-                 are out of bounds or if in the given coordinates there is no separator
+        :return: True if success, False if error. There can be a mistake if the coordinates are out of bounds, if the
+        separator is already a normal Separator or if in the given coordinates there is no separator.
         """
         if self.sep_handler.demote_separator(x, y):
             self.emitter.classifier_has_changed.emit()
@@ -323,10 +349,10 @@ class Classifier:
 
     def is_super_separator(self, x: float, y: float) -> bool:
         """
-        Remove a separator and join the two remaining rectangles.
+        Checks if the Separator in the given position is a super Separator.
         :param x: The x coordinate
         :param y: The y coordinate
-        :return: True if success, False if error. There can be a mistake if the coordinates
+        :return: True if is a super Separator, False otherwise. There can be a mistake if the coordinates
                  are out of bounds or if in the given coordinates there is no separator
         """
         return self.sep_handler.is_super_separator(x, y)
@@ -346,7 +372,7 @@ class Classifier:
 
     def get_text_item_height(self) -> float:
         """
-        This function return the number of pixels that will occupy vertically the text item
+        This function return the number of pixels that will occupy vertically the text item.
         :return: The number of pixels that will occupy the text item
         """
         return self.text.boundingRect().height()
@@ -386,9 +412,11 @@ class Classifier:
 
     def get_text_analyzed(self) -> list[tuple[list[tuple[str, str]], str]]:
         """
-        Gets the subgroups of words that form the separators within the text and its descriptor tag.
-        :return: A list of tuples with the text classified and analyzed. The first tuple element is the text and the
-                 second is the descriptor value.
+        Gets the subgroups of words that form the separators within the text and its descriptor tag. Also, obtain the
+        tag for all the super separator groups.
+        :return: A list of tuples with the text classified and analyzed. The first tuple element is a list with all the
+        clauses between two super Separators analyzed and the second element of the tuple is the descriptor value of
+        this super clause.
         """
         text = ""
         result = []
@@ -431,7 +459,7 @@ class Classifier:
 
     def set_text(self, text) -> None:
         """
-        Set the text to be analyzed.
+        Set the text to be analyzed as a plain text.
         :param text: The text that will appear.
         """
         self.emitter.classifier_has_changed.emit()
@@ -458,7 +486,7 @@ class Classifier:
     def set_text_size(self, text_size: float | int) -> None:
         """
         Set the text size. Also, the height of the separators and the rects and the text size of the descriptors is
-        changed.
+        changed to maintain the proportion.
         :param text_size: The text size as a number.
         """
         self.emitter.classifier_has_changed.emit()
@@ -490,8 +518,18 @@ class Classifier:
         self.sep_handler.set_separator_points(separator_points)
 
     def set_text_analyzed(self, sep_text_list: list[str], super_sep_text_list: list[str], default_descriptor: [str],
-                          colors: list[str], labels: list[str], values: list[list[str]]):
+                          colors: list[str], labels: list[str], values: list[list[str]]) -> None:
+        """
+        Set the text to be analyzed as an already analyzed text.
 
+        :param sep_text_list: A list with all clauses.
+        :param super_sep_text_list: A list with all super clauses.
+        :param default_descriptor: The default complete text that will appear in the descriptors.
+        :param colors: The list of all the available background RoundedRect colors.
+        :param labels: The list of all the non-editable parts of the descriptor. In the case of Semantics should be "SD"
+                       and/or "SD".
+        :param values: A list with all the editable parts for each group of descriptors.
+        """
         self.set_text(" ".join(sep_text_list))
 
         complete_point_list = self.text.get_complete_points()
@@ -511,6 +549,10 @@ class Classifier:
         self.descriptors_handler.set_texts(labels, values)
 
     def set_width(self, width: float) -> None:
+        """
+        Set the width of the text. All the separators will be repositioned to get an expected result.
+        :param width: The text width.
+        """
         # Save text_list from the original text_size to reposition all the separators
         text_list_previous_size = self.get_text_classified()
 
@@ -531,7 +573,16 @@ class Classifier:
         self.sep_handler.set_separator_points(separator_points)
 
     def separator_is_released(self, separator: Any) -> None:
+        """
+        Called when a separator is released. Emits a signal to notify a change in the classifier.
+        :param separator: The separator that has been released. Non-relevant.
+        """
         self.emitter.classifier_has_changed.emit()
 
     def descriptor_changed(self, separator_index: int, editable_text_list: list[str]) -> None:
+        """
+        Called when the text of a descriptor has changed. Emits a signal to notify a change in the classifier.
+        :param separator_index: Non-relevant.
+        :param editable_text_list: Non-relevant.
+        """
         self.emitter.classifier_has_changed.emit()

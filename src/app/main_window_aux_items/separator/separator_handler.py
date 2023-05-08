@@ -10,7 +10,8 @@ SUPER_SEPARATOR_FACTOR = 1.5
 
 class SeparatorHandler:
     """
-    This class controls all the behaviour of the Separators (insertion, deletion, updates, movement, etc.).
+    This class controls all the behaviour of the Separators (insertion, deletion, updates, movement, etc.). Also,
+    manges the creation and elimination of the super Separators.
     """
     pen: QPen
     separators: list[list[Separator | bool]]
@@ -20,8 +21,12 @@ class SeparatorHandler:
         """
         Create SeparatorHandler object. Only one object from this class should be created
         :param line_height: The height that the separators will have.
-        :param fixed_points: Available points for the separators. The structure must
-                             be [(y_0, [x_0, x_1, ...]), (y_1, [x_0, x_1, ...]), ...]
+        :param fixed_points: Available points for the separators. The structure must be
+                            [
+                            (y_0, [(x_0, Ignored), (x_1, Ignored), ...]),
+                            (y_1, [(x_0, Ignored), (x_1, Ignored), ...]),
+                            ...
+                            ]
         :param parent: The QGraphicsItem parent of the Separators. Can't be None
         """
         self.height = line_height
@@ -46,7 +51,8 @@ class SeparatorHandler:
 
     def set_separator_width(self, width: float) -> None:
         """
-        Apply the given pen to all the separators
+        Set the width to all the Separators. If there is a super Separator, the width is multiplied by
+        SUPER_SEPARATOR_FACTOR.
         :param width: the width
         """
         self.pen.setWidthF(width)
@@ -59,6 +65,10 @@ class SeparatorHandler:
             separator[0].setPen(pen)
 
     def set_separator_height(self, height: float) -> None:
+        """
+        Set the height to all the Separators.
+        :param height: the height
+        """
         self.height = height
         for separator in self.separators:
             separator[0].set_height(height)
@@ -89,7 +99,7 @@ class SeparatorHandler:
 
     def get_super_separator_points(self) -> list[QPointF]:
         """
-        Return a list with the coordinates of all separators.
+        Return a list with the coordinates of all the super separators.
         :return: The list of coordinates
         """
         return [self.separators[i][0].pos() for i in range(1, len(self.separators) - 1) if self.separators[i][1]]
@@ -180,7 +190,14 @@ class SeparatorHandler:
 
     def add_limit_separators(self, first_limit_x: float, first_limit_y: float, last_limit_x: float, last_limit_y: float,
                              color: str) -> None:
-
+        """
+        This function add the limit separators to the canvas. Those separators are super Separators.
+        :param first_limit_x: The x value of the initial Separator limit.
+        :param first_limit_y: The y value of the initial Separator limit.
+        :param last_limit_x: The x value of the last Separator limit.
+        :param last_limit_y: The y value of the last Separator limit.
+        :param color: Color of the super Separators.
+        """
         self.add_separator(first_limit_x, first_limit_y, True)
         self.add_separator(last_limit_x, last_limit_y, True)
         self.promote_separator(last_limit_x, last_limit_y, color)
@@ -275,7 +292,7 @@ class SeparatorHandler:
 
     def promote_separator(self, x: float, y: float, color: str) -> bool:
         """
-        Remove a separator.
+        Promote a separator to a super Separator.
         :param x: The x coordinate
         :param y: The y coordinate
         :param color: The color of super separator
@@ -305,7 +322,7 @@ class SeparatorHandler:
 
     def demote_separator(self, x: float, y: float) -> bool:
         """
-        Remove a separator.
+        Demote a super Separator to a normal separator.
         :param x: The x coordinate
         :param y: The y coordinate
         :return: True if success, False if error. There can be an error if the coordinates are out of bounds or if in
@@ -326,7 +343,7 @@ class SeparatorHandler:
 
     def is_super_separator(self, x: float, y: float) -> bool:
         """
-        Remove a separator.
+        Check if in the given coordinates there is a super Separator.
         :param x: The x coordinate
         :param y: The y coordinate
         :return: True if success, False if error. There can be an error if the coordinates are out of bounds or if in
@@ -338,9 +355,9 @@ class SeparatorHandler:
 
         return self.separators[sep_index][1]
 
-    def set_fixed_points_for_new_separator(self, index: int) -> list[tuple[float, list[float]]]:
+    def set_fixed_points_for_new_separator(self, index: int) -> list[tuple[float, list[tuple[float, bool]]]]:
         """
-        Set the fixed points for the new created separator
+        Set the fixed points for a new created separator.
         :param index: Index of the element after which the new separator is to be inserted
         :return: The fixed_points structure for the new separator
         """
@@ -354,7 +371,7 @@ class SeparatorHandler:
     def set_fixed_points(self,
                          start_x: float, start_y: float,
                          end_x: float, end_y: float
-                         ) -> list[tuple[float, list[float]]]:
+                         ) -> list[tuple[float, list[tuple[float, bool]]]]:
         """
         Obtain, from self.fixed_points the subgroup of points that are between start point and end point.
         The format of structure returned is the same as self.fixed_points.
@@ -383,7 +400,7 @@ class SeparatorHandler:
 
     def update_fixed_points_separator(self, index: int) -> None:
         """
-        Update the fixed_points of the separator for a given ind separator.
+        Update the fixed_points of the separator for a given index separator.
         :param index: Index of the separator
         """
         if (len(self.separators) - 2) >= index >= 1:
