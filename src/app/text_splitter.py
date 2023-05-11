@@ -2,6 +2,9 @@ import nltk.tokenize.punkt as pkt
 
 
 class CustomLanguageVars(pkt.PunktLanguageVars):
+    """
+    This custom class splits the sentences and don't remove the "\n" characters.
+    """
 
     _period_context_fmt = r"""
         \S*                          # some word material
@@ -15,8 +18,16 @@ class CustomLanguageVars(pkt.PunktLanguageVars):
 
 
 class SentenceSplitter:
-    custom_tknzr = pkt.PunktSentenceTokenizer(lang_vars=CustomLanguageVars())
+    """
+    This class is used to split the text in sentences.
+    """
+    _custom_tknzr = pkt.PunktSentenceTokenizer(lang_vars=CustomLanguageVars())
 
     # tokenizer = nltk.data.load('file:punkt/english.pickle')
     def split_text(self, text: str) -> list[str]:
-        return self.custom_tknzr.tokenize(text)
+        """
+        Split the text in sentences.
+        :param text: The text.
+        :return: A list with the split sentences.
+        """
+        return self._custom_tknzr.tokenize(text)

@@ -21,29 +21,39 @@ except ImportError:
 
 
 class StartWindow(QMainWindow, Ui_StartWindow):
-    def __init__(self, *args, **kwargs):
-        super(StartWindow, self).__init__(*args, **kwargs)
+    """
+    This class is used to select the default directory for the project. If the directory has not been used previously,
+    this class will prepare it to be used by the MainWindow class.
+    """
+    def __init__(self) -> None:
+        """
+        Class constructor.
+        """
+        super(StartWindow, self).__init__()
         self._conf_file_path = None
         self._app_window = None
         self.setupUi(self)
-        self.set_styles()
+        self._set_styles()
 
         self.setWindowIcon(QtGui.QIcon(':/icon/logo'))
 
-        self.settings = QSettings("LCT", "Semantics Analyzer")
+        self._settings = QSettings("LCT", "Semantics Analyzer")
 
-        self.default_location = self.settings.value(
+        self._default_location = self._settings.value(
             "workspace/root_dir",
             QStandardPaths.standardLocations(QStandardPaths.DocumentsLocation)[0]
         )
 
-        self.pathText.setText(self.default_location)
+        self.pathText.setText(self._default_location)
 
-        self.searchButton.clicked.connect(self.select_directory_dialog)
-        self.buttonBox.accepted.connect(self.accept_slot)
-        self.buttonBox.rejected.connect(self.reject_slot)
+        self.searchButton.clicked.connect(self._select_directory_dialog)
+        self.buttonBox.accepted.connect(self._accept_slot)
+        self.buttonBox.rejected.connect(self._reject_slot)
 
-    def set_styles(self):
+    def _set_styles(self) -> None:
+        """
+        Apply custom styles to the widgets in the window.
+        """
         self.pathText.setStyleSheet(
             "QLineEdit {"
             "    font-size: 13px;"
@@ -69,9 +79,14 @@ class StartWindow(QMainWindow, Ui_StartWindow):
             "}"
         )
 
-    def select_directory_dialog(self, s: bool) -> None:
+    def _select_directory_dialog(self, s: bool) -> None:
+        """
+        Triggered when the user wants to select a directory to the project. Opens a new dialog to find the desired
+        location for the project.
+        :param s: Button state. Non-relevant.
+        """
         if not QDir(self.pathText.text()).exists():
-            location = self.default_location
+            location = self._default_location
         else:
             location = self.pathText.text()
         directory = QFileDialog().getExistingDirectory(
@@ -83,13 +98,18 @@ class StartWindow(QMainWindow, Ui_StartWindow):
         if directory != "":
             self.pathText.setText(directory)
 
-    def accept_slot(self) -> None:
+    def _accept_slot(self) -> None:
+        """
+        Triggered when the user has selected a valid directory to the project and wants to start the analysis. If the
+        directory is a valid one, closes the StartWindow and opens the MainWindow to start the analysis. If the
+        directory is not valid, an error dialog will be shown pointing that.
+        """
         root_dir = self.pathText.text()
         if root_dir == "" or not QDir(root_dir).exists():
             QMessageBox.critical(self, "Directory Error", "This directory doesn't exists", QMessageBox.Ok)
-            self.pathText.setText(self.default_location)
+            self.pathText.setText(self._default_location)
         else:
-            self.settings.setValue("workspace/root_dir", root_dir)
+            self._settings.setValue("workspace/root_dir", root_dir)
             self.close()
 
             conf_file = None
@@ -111,10 +131,16 @@ class StartWindow(QMainWindow, Ui_StartWindow):
             self._app_window = MainWindow(self.pathText.text(), conf_file)
             self._app_window.show()
 
-    def reject_slot(self) -> None:
+    def _reject_slot(self) -> None:
+        """
+        Triggered when the user wants to close the application.
+        """
         self.close()
 
-    def save_conf(self):
+    def save_conf(self) -> None:
+        """
+        If the configuration has been changed, saves it to replace the previous one.
+        """
         if self._app_window is not None and self._app_window.conf_data is not None:
             manage_file(self._conf_file_path, "w", self._app_window.conf_data)
 

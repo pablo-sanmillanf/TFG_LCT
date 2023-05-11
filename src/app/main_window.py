@@ -23,6 +23,15 @@ ALLOWED_DESCRIPTOR_VALUES = ["++", "+", "-", "--"]
 
 
 def manage_file(file: str, operation: str, data: str = None) -> str:
+    """
+    Manage the open and close of the file passed as parameter and read/write from/on it depending on the operation.
+    If the operation is read ("r"), the data parameter should be None. If the operation is write ("w"), the data
+    parameter is the data that will be written in the file.
+    :param file: The file where read/write from/on.
+    :param operation: The operation to the file. Should be "r" or "w"
+    :param data: If the operation is "w", the data to write in the file. None, otherwise.
+    :return: If the operation is "r", the data read from the file. None, otherwise.
+    """
     result = None
     f = None
     try:
@@ -37,32 +46,42 @@ def manage_file(file: str, operation: str, data: str = None) -> str:
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self, root_directory: str = "./", conf_file: str = None, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
+    """
+    This class represents the main window of the application, where the text analysis is made. Also handles the actions
+    from the bar menu and trigger the plotter window.
+    """
+    def __init__(self, root_directory: str = "./", conf_info: str = None) -> None:
+        """
+        Object creator. Should be only one of those objects.
+        :param root_directory: The directory set as default to find and save all the files.
+        :param conf_info: A json string with all relevant information to configure the current project, such as the text
+                          size, and the background colors of the RoundedRect.
+        """
+        super(MainWindow, self).__init__()
         self.setupUi(self)
         self.setWindowIcon(QtGui.QIcon(':/icon/logo'))
 
-        self.root_directory = root_directory
+        self._root_directory = root_directory
 
-        self.current_file = ""
+        self._current_file = ""
 
-        self.lct_handler = LCTHandler("Semantics", [SD_VALUES, SG_VALUES])
+        self._lct_handler = LCTHandler("Semantics", [SD_VALUES, SG_VALUES])
 
-        self.graph_window = GraphWindow(root_directory + "/graph/")
-        if conf_file is not None:
+        self._graph_window = GraphWindow(root_directory + "/graph/")
+        if conf_info is not None:
             try:
-                self.conf = json.loads(conf_file)
+                self._conf = json.loads(conf_info)
             except:
                 file = QFile(":/conf/defconf")
                 file.open(QFile.ReadOnly)
-                self.conf = json.loads(QTextStream(file.readAll()).readAll())
+                self._conf = json.loads(QTextStream(file.readAll()).readAll())
         else:
             file = QFile(":/conf/defconf")
             file.open(QFile.ReadOnly)
-            self.conf = json.loads(QTextStream(file.readAll()).readAll())
+            self._conf = json.loads(QTextStream(file.readAll()).readAll())
 
-        self.conf_has_changed = False
-        self.not_saved = False
+        self._conf_has_changed = False
+        self._not_saved = False
 
         self.classifierView.setup(
             10,
@@ -72,107 +91,120 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "This is an example text. If you want to start editing a file select \"File\"->\"Open...\" and browse to "
             "desired file.\nTo set a division in the text, right-click and select \"Split\". To undo a division in the "
             "text, right-click and select \"Join\" near the splitter.",
-            self.conf["text_size"],
+            self._conf["text_size"],
             DEFAULT_TEXT_SD_SG,
             DEFAULT_DESCRIPTOR_VALUE,
             ALLOWED_DESCRIPTOR_VALUES,
-            list(self.conf["colors"]["together"].values())
+            list(self._conf["colors"]["together"].values())
         )
-        self.classifierView.classifier.emitter.classifier_has_changed.connect(self.classifier_has_changed)
+        self.classifierView.classifier.emitter.classifier_has_changed.connect(self._classifier_has_changed)
 
-        self.actionNew.triggered.connect(self.new_file_dialog)
-        self.actionOpen.triggered.connect(self.open_file_dialog)
-        self.actionSave.triggered.connect(self.save_file_dialog)
-        self.actionSave_as.triggered.connect(self.save_as_file_dialog)
-        self.actionText_size.triggered.connect(self.text_size_dialog)
-        self.actionRects_colors.triggered.connect(self.rects_colors_dialog)
-        self.actionSD.triggered.connect(lambda checked: self.target_action(DEFAULT_TEXT_SD))
-        self.actionSG.triggered.connect(lambda checked: self.target_action(DEFAULT_TEXT_SG))
-        self.actionSD_SG.triggered.connect(lambda checked: self.target_action(DEFAULT_TEXT_SD_SG))
+        self.actionNew.triggered.connect(self._new_file_dialog)
+        self.actionOpen.triggered.connect(self._open_file_dialog)
+        self.actionSave.triggered.connect(self._save_file_dialog)
+        self.actionSave_as.triggered.connect(self._save_as_file_dialog)
+        self.actionText_size.triggered.connect(self._text_size_dialog)
+        self.actionRects_colors.triggered.connect(self._rects_colors_dialog)
+        self.actionSD.triggered.connect(lambda checked: self._target_action(DEFAULT_TEXT_SD))
+        self.actionSG.triggered.connect(lambda checked: self._target_action(DEFAULT_TEXT_SG))
+        self.actionSD_SG.triggered.connect(lambda checked: self._target_action(DEFAULT_TEXT_SD_SG))
         self.actiongroupTarget.setExclusive(True)
-        self.actionRun_Plotter.triggered.connect(self.run_graph_window)
-        self.actionSplit_in_sentences.triggered.connect(self.split_in_sentences_action)
+        self.actionRun_Plotter.triggered.connect(self._run_graph_window)
+        self.actionSplit_in_sentences.triggered.connect(self._split_in_sentences_action)
 
         self.conf_data = None
 
-    def classifier_has_changed(self):
-        self.not_saved = True
+    def _classifier_has_changed(self) -> None:
+        """
+        Triggered when something has changed in the classifier. Is used to know if there are unsaved changes.
+        """
+        self._not_saved = True
 
-    def new_file_dialog(self, s: bool) -> None:
+    def _new_file_dialog(self, s: bool) -> None:
+        """
+        Triggered when the user wants to create a new analysis from a text file. Opens a new dialog to find the desired
+        text file and if it has valid content, is loaded to the classifier with the default descriptor values.
+        :param s: Button state. Non-relevant.
+        """
         file, file_type = QFileDialog().getOpenFileName(
             self,
             "Create new file from text file to analyze",
-            self.root_directory,
+            self._root_directory,
             "Text files (*.txt)"
         )
         if file != "":
             text = manage_file(file, "r")
             if text is None or text == "":
                 QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
-                self.new_file_dialog(True)
+                self._new_file_dialog(True)
             else:
-                self.current_file = ""
+                self._current_file = ""
                 self.classifierView.set_text(text)
 
-    def open_file_dialog(self, s: bool) -> None:
+    def _open_file_dialog(self, s: bool) -> None:
+        """
+        Triggered when the user wants to open an existing analysis from a .lct file. Opens a new dialog to find the
+        desired .lct file and if it has valid content, is loaded to the classifier.
+        :param s: Button state. Non-relevant.
+        """
         file, file_type = QFileDialog().getOpenFileName(
             self,
             "Open file to analyze",
-            self.root_directory + "/analysis",
+            self._root_directory + "/analysis",
             "LCT Files (*.lct)"
         )
         if file != "":
             text = manage_file(file, "r")
             if text is None or text == "":
                 QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
-                self.open_file_dialog(True)
+                self._open_file_dialog(True)
             else:
-                if not self.lct_handler.upload_from_xml_string(text, True):
+                if not self._lct_handler.upload_from_xml_string(text, True):
                     QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
-                    self.open_file_dialog(True)
+                    self._open_file_dialog(True)
                 else:
 
-                    raw_labels = self.lct_handler.get_raw_labels()
+                    raw_labels = self._lct_handler.get_raw_labels()
                     if raw_labels[0] in DEFAULT_TEXT_SG:
-                        self.current_file = file
+                        self._current_file = file
 
                         self.classifierView.set_text_analyzed(
-                            self.lct_handler.get_clause_texts(),
-                            self.lct_handler.get_super_clause_texts(),
+                            self._lct_handler.get_clause_texts(),
+                            self._lct_handler.get_super_clause_texts(),
                             DEFAULT_TEXT_SG,
-                            list(self.conf["colors"]["alone"].values()),
+                            list(self._conf["colors"]["alone"].values()),
                             raw_labels,
-                            self.lct_handler.get_clause_tags()
+                            self._lct_handler.get_clause_tags()
                         )
                         self.actionSG.setChecked(True)
-                        self.not_saved = False
+                        self._not_saved = False
                     elif raw_labels[0] in DEFAULT_TEXT_SD:
                         if len(raw_labels) == 1:
-                            self.current_file = file
+                            self._current_file = file
 
                             self.classifierView.set_text_analyzed(
-                                self.lct_handler.get_clause_texts(),
-                                self.lct_handler.get_super_clause_texts(),
+                                self._lct_handler.get_clause_texts(),
+                                self._lct_handler.get_super_clause_texts(),
                                 DEFAULT_TEXT_SD,
-                                list(self.conf["colors"]["alone"].values()),
+                                list(self._conf["colors"]["alone"].values()),
                                 raw_labels,
-                                self.lct_handler.get_clause_tags()
+                                self._lct_handler.get_clause_tags()
                             )
                             self.actionSD.setChecked(True)
-                            self.not_saved = False
+                            self._not_saved = False
                         elif len(raw_labels) == 2 and raw_labels[1] in DEFAULT_TEXT_SG:
-                            self.current_file = file
+                            self._current_file = file
 
                             self.classifierView.set_text_analyzed(
-                                self.lct_handler.get_clause_texts(),
-                                self.lct_handler.get_super_clause_texts(),
+                                self._lct_handler.get_clause_texts(),
+                                self._lct_handler.get_super_clause_texts(),
                                 DEFAULT_TEXT_SD_SG,
-                                list(self.conf["colors"]["together"].values()),
+                                list(self._conf["colors"]["together"].values()),
                                 raw_labels,
-                                self.lct_handler.get_clause_tags()
+                                self._lct_handler.get_clause_tags()
                             )
                             self.actionSD_SG.setChecked(True)
-                            self.not_saved = False
+                            self._not_saved = False
                         else:
                             QMessageBox.critical(
                                 self,
@@ -180,8 +212,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 "The selected file has not valid content",
                                 QMessageBox.Ok
                             )
-                            self.lct_handler.unmount()
-                            self.open_file_dialog(True)
+                            self._lct_handler.unmount()
+                            self._open_file_dialog(True)
                     else:
                         QMessageBox.critical(
                             self,
@@ -189,19 +221,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             "The selected file has not valid content",
                             QMessageBox.Ok
                         )
-                        self.lct_handler.unmount()
-                        self.open_file_dialog(True)
+                        self._lct_handler.unmount()
+                        self._open_file_dialog(True)
 
-    def save_file_dialog(self, s: bool) -> bool:
-        if self.current_file == "":
-            return self.save_as_file_dialog(s)
+    def _save_file_dialog(self, s: bool) -> bool:
+        """
+        Triggered when the user wants to save an existing analysis into an existing .lct file. If the analysis is not
+        completed, an error dialog will be shown pointing that. If the .lct file doesn't exist yet, opens a new dialog
+        to find the desired location and name for the .lct file.
+        :param s: Button state. Non-relevant.
+        :return: True if the file has been saved, False otherwise.
+        """
+        if self._current_file == "":
+            return self._save_as_file_dialog(s)
         else:
-            if self.lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
-                manage_file(self.current_file, "w", self.lct_handler.to_string())
+            if self._lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
+                manage_file(self._current_file, "w", self._lct_handler.to_string())
                 QMessageBox.information(
-                    self, "File Saved", "File saved in \"" + self.current_file + "\"", QMessageBox.Ok
+                    self, "File Saved", "File saved in \"" + self._current_file + "\"", QMessageBox.Ok
                 )
-                self.not_saved = False
+                self._not_saved = False
                 return True
             else:
                 QMessageBox.critical(
@@ -209,18 +248,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 )
                 return False
 
-    def save_as_file_dialog(self, s: bool) -> bool:
-        if self.lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
+    def _save_as_file_dialog(self, s: bool) -> bool:
+        """
+        Triggered when the user wants to save an existing analysis into a new .lct file. Opens a new dialog to find the
+        desired location and name for the .lct file. If the analysis is not completed, an error dialog will be shown
+        pointing that.
+        :param s: Button state. Non-relevant.
+        :return: True if the file has been saved, False otherwise.
+        """
+        if self._lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
             file, file_type = QFileDialog().getSaveFileName(
                 self,
                 "Save file",
-                self.root_directory + "/analysis",
+                self._root_directory + "/analysis",
                 "LCT Files (*.lct)"
             )
             if file != "":
-                self.current_file = file
-                manage_file(file, "w", self.lct_handler.to_string())
-                self.not_saved = False
+                self._current_file = file
+                manage_file(file, "w", self._lct_handler.to_string())
+                self._not_saved = False
                 return True
         else:
             QMessageBox.critical(
@@ -228,7 +274,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         return False
 
-    def text_size_dialog(self, s: bool) -> None:
+    def _text_size_dialog(self, s: bool) -> None:
+        """
+        Triggered when the user wants to change the text size of the text in the classifier. Opens a new dialog to
+        select the desired point size of the text.
+        :param s: Button state. Non-relevant.
+        """
         value, ok = QInputDialog().getInt(
             self,
             "Change text size",
@@ -241,34 +292,48 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if ok:
             self.classifierView.set_text_size(value)
-            self.conf["text_size"] = value
-            self.conf_has_changed = True
+            self._conf["text_size"] = value
+            self._conf_has_changed = True
 
-    def rects_colors_dialog(self, s: bool) -> None:
-        dlg = ColorsDialog(self.conf["colors"], self)
+    def _rects_colors_dialog(self, s: bool) -> None:
+        """
+        Triggered when the user wants to change the background color of the rects in the classifier. Opens a new
+        ColorsDialog to allow the user, change the desired background colors.
+        :param s: Button state. Non-relevant.
+        """
+        dlg = ColorsDialog(self._conf["colors"], self)
         dlg.exec()
 
         if dlg.has_changed:
-            self.conf["colors"] = dlg.colors
+            self._conf["colors"] = dlg.colors
             if self.classifierView.get_default_descriptor() == DEFAULT_TEXT_SD_SG:
-                self.classifierView.set_colors(list(self.conf["colors"]["together"].values()))
+                self.classifierView.set_colors(list(self._conf["colors"]["together"].values()))
             else:
-                self.classifierView.set_colors(list(self.conf["colors"]["alone"].values()))
-            self.conf_has_changed = True
+                self.classifierView.set_colors(list(self._conf["colors"]["alone"].values()))
+            self._conf_has_changed = True
 
-    def target_action(self, text: str) -> None:
+    def _target_action(self, text: str) -> None:
+        """
+        Triggered when the user wants to change the target in the classifier. Can be, SD, SG or SD and SG.
+        :param text: The desired target. Can be DEFAULT_TEXT_SD_SG, DEFAULT_TEXT_SD or DEFAULT_TEXT_SG.
+        """
         if text != self.classifierView.get_default_descriptor():
             if text == DEFAULT_TEXT_SD_SG:
-                self.lct_handler.set_labels([SD_VALUES, SG_VALUES])
-                self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["together"].values()))
+                self._lct_handler.set_labels([SD_VALUES, SG_VALUES])
+                self.classifierView.set_default_descriptor(text, list(self._conf["colors"]["together"].values()))
             elif text == DEFAULT_TEXT_SD:
-                self.lct_handler.set_labels([SD_VALUES])
-                self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["alone"].values()))
+                self._lct_handler.set_labels([SD_VALUES])
+                self.classifierView.set_default_descriptor(text, list(self._conf["colors"]["alone"].values()))
             elif text == DEFAULT_TEXT_SG:
-                self.lct_handler.set_labels([SG_VALUES])
-                self.classifierView.set_default_descriptor(text, list(self.conf["colors"]["alone"].values()))
+                self._lct_handler.set_labels([SG_VALUES])
+                self.classifierView.set_default_descriptor(text, list(self._conf["colors"]["alone"].values()))
 
-    def split_in_sentences_action(self, s: bool):
+    def _split_in_sentences_action(self, s: bool) -> None:
+        """
+        Triggered when the user wants to split the text in the classifier in sentences. This functionality removes all
+        the previous classifications.
+        :param s: Button state. Non-relevant.
+        """
         text = self.classifierView.get_text()
         split_text = SentenceSplitter().split_text(text)
 
@@ -277,7 +342,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 split_text,
                 [text],
                 DEFAULT_TEXT_SD,
-                list(self.conf["colors"]["alone"].values()),
+                list(self._conf["colors"]["alone"].values()),
                 ["SD"],
                 [[DEFAULT_DESCRIPTOR_VALUE] for _ in range(len(split_text))]
             )
@@ -286,7 +351,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 split_text,
                 [text],
                 DEFAULT_TEXT_SG,
-                list(self.conf["colors"]["alone"].values()),
+                list(self._conf["colors"]["alone"].values()),
                 ["SG"],
                 [[DEFAULT_DESCRIPTOR_VALUE] for _ in range(len(split_text))]
             )
@@ -295,23 +360,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 split_text,
                 [text],
                 DEFAULT_TEXT_SD_SG,
-                list(self.conf["colors"]["together"].values()),
+                list(self._conf["colors"]["together"].values()),
                 ["SD", "SG"],
                 [[DEFAULT_DESCRIPTOR_VALUE, DEFAULT_DESCRIPTOR_VALUE] for _ in range(len(split_text))]
             )
 
-    def run_graph_window(self, s: bool) -> None:
-        if self.lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
-            self.graph_window.update_graphs(self.lct_handler)
-            self.graph_window.show()
+    def _run_graph_window(self, s: bool) -> None:
+        """
+        Triggered when the user wants to open the graph window to plot the analysis results. If the analysis is not
+        completed, an error dialog will be shown pointing that.
+        :param s: Button state. Non-relevant.
+        """
+        if self._lct_handler.upload_from_data(self.classifierView.get_text_analyzed()):
+            self._graph_window.update_graphs(self._lct_handler)
+            self._graph_window.show()
         else:
             QMessageBox.critical(
                 self, "Error", "The analysis is not completed (All '~' must be replaced)", QMessageBox.Ok
             )
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        """
+        This function handles the close event. If there are unsaved changes in the analysis, a dialog will be shown
+        asking the user to save it. Also, if the user has changed the default configuration of the project (the text
+        size and/or the background color of the RoundedRect) a dialog will be shown asking the user to save it.
+        :param a0: The close event to handle.
+        """
         close = False
-        if self.not_saved:
+        if self._not_saved:
             button = QMessageBox.question(
                 self,
                 "Save file",
@@ -320,7 +396,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             if button == QMessageBox.Save:
                 save = True
-                while save and not self.save_file_dialog(True):
+                while save and not self._save_file_dialog(True):
                     button = QMessageBox.question(
                         self,
                         "Save file",
@@ -337,7 +413,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             elif button == QMessageBox.Cancel:
                 a0.ignore()
                 return
-        if self.conf_has_changed:
+        if self._conf_has_changed:
             button = QMessageBox.question(
                 self,
                 "Save settings",
@@ -345,7 +421,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel
             )
             if button == QMessageBox.Save:
-                self.conf_data = json.dumps(self.conf)
+                self.conf_data = json.dumps(self._conf)
                 close = True
             elif button == QMessageBox.Discard:
                 close = True
@@ -353,6 +429,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 a0.ignore()
                 return
 
-        if close or not (self.conf_has_changed and self.not_saved):
+        if close or not (self._conf_has_changed and self._not_saved):
             super().closeEvent(a0)
-            self.graph_window.close()
+            self._graph_window.close()

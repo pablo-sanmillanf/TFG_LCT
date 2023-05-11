@@ -527,7 +527,7 @@ class Classifier:
         :param default_descriptor: The default complete text that will appear in the descriptors.
         :param colors: The list of all the available background RoundedRect colors.
         :param labels: The list of all the non-editable parts of the descriptor. In the case of Semantics should be "SD"
-                       and/or "SD".
+                       and/or "SG".
         :param values: A list with all the editable parts for each group of descriptors.
         """
         self.set_text(" ".join(sep_text_list))
