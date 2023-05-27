@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>490</width>
+    <height>420</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Semantics Analyzer</string>
+  </property>
+  <widget class="QWidget" name="_centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="ClassifierView" name="_classifierView"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="_menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>490</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="_menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="_actionNew"/>
+    <addaction name="_actionOpen"/>
+    <addaction name="_actionSave"/>
+    <addaction name="_actionSave_as"/>
+   </widget>
+   <widget class="QMenu" name="_menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <widget class="QMenu" name="_menuTarget">
+     <property name="title">
+      <string>Target</string>
+     </property>
+     <addaction name="_actionSD"/>
+     <addaction name="_actionSG"/>
+     <addaction name="_actionSD_SG"/>
+    </widget>
+    <addaction name="_actionText_size"/>
+    <addaction name="_actionRects_colors"/>
+    <addaction name="separator"/>
+    <addaction name="_menuTarget"/>
+   </widget>
+   <widget class="QMenu" name="_menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="_actionSplit_in_sentences"/>
+   </widget>
+   <widget class="QMenu" name="_menuWindow">
+    <property name="title">
+     <string>Window</string>
+    </property>
+    <addaction name="_actionRun_Plotter"/>
+   </widget>
+   <widget class="QMenu" name="_menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
+   <addaction name="_menuFile"/>
+   <addaction name="_menuEdit"/>
+   <addaction name="_menuTools"/>
+   <addaction name="_menuWindow"/>
+   <addaction name="_menuHelp"/>
+  </widget>
+  <action name="_actionNew">
+   <property name="text">
+    <string>New...</string>
+   </property>
+  </action>
+  <action name="_actionOpen">
+   <property name="text">
+    <string>Open...</string>
+   </property>
+  </action>
+  <action name="_actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="_actionSave_as">
+   <property name="text">
+    <string>Save as...</string>
+   </property>
+  </action>
+  <action name="_actionText_size">
+   <property name="text">
+    <string>Text size</string>
+   </property>
+  </action>
+  <action name="_actionRects_colors">
+   <property name="text">
+    <string>Rects colors</string>
+   </property>
+  </action>
+  <action name="_actionRun_Plotter">
+   <property name="text">
+    <string>Run Plotter</string>
+   </property>
+  </action>
+  <action name="_actionSplit_in_sentences">
+   <property name="text">
+    <string>Split in sentences</string>
+   </property>
+  </action>
+  <actiongroup name="_actiongroupTarget">
+   <action name="_actionSG">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>SG</string>
+    </property>
+   </action>
+   <action name="_actionSD">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>SD</string>
+    </property>
+   </action>
+   <action name="_actionSD_SG">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>SD/SG</string>
+    </property>
+   </action>
+  </actiongroup>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ClassifierView</class>
+   <extends>QGraphicsView</extends>
+   <header>.classifier_view</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

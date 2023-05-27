@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ColorsDialog</class>
+ <widget class="QDialog" name="ColorsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>480</width>
+    <height>340</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Rectangles Colors</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="_tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="_aloneTab">
+      <attribute name="title">
+       <string>SG or SD alone</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QFormLayout" name="_formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="_alone_default_label">
+           <property name="text">
+            <string>Default color:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QPushButton" name="_alone_default_button">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="_alone_d_plusplus_label">
+           <property name="text">
+            <string>SD++ or SG--:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="_alone_d_plusplus_button">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="_alone_d_plus_label">
+           <property name="text">
+            <string>SD+ or SG-:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QPushButton" name="_alone_d_plus_button">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="_alone_d_minus_label">
+           <property name="text">
+            <string>SD- or SG+:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QPushButton" name="_alone_d_minus_button">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="_alone_d_minusminus_label">
+           <property name="text">
+            <string>SD-- or SG++:  </string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QPushButton" name="_alone_d_minusminus_button">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="_togetherTab">
+      <attribute name="title">
+       <string>SG and SD together</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QGridLayout" name="_gridLayout_2">
+         <item row="1" column="0">
+          <widget class="QLabel" name="_together_default_label">
+           <property name="text">
+            <string>Default color:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="_together_default_button">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <layout class="QGridLayout" name="_gridLayout">
+           <item row="0" column="0">
+            <widget class="QLabel" name="_together_d_plusplus_g_minusminus_label">
+             <property name="text">
+              <string>SD++;SG--:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="_together_d_plusplus_g_minusminus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="_together_d_minus_g_minusminus_label">
+             <property name="text">
+              <string>SD-;SG--:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="_together_d_minus_g_minusminus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="_together_d_plusplus_g_minus_label">
+             <property name="text">
+              <string>SD++;SG-:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="_together_d_plusplus_g_minus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="_together_d_minus_g_minus_label">
+             <property name="text">
+              <string>SD-;SG-:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QPushButton" name="_together_d_minus_g_minus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="_together_d_plusplus_g_plus_label">
+             <property name="text">
+              <string>SD++;SG+:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="_together_d_plusplus_g_plus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="_together_d_minus_g_plus_label">
+             <property name="text">
+              <string>SD-;SG+:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QPushButton" name="_together_d_minus_g_plus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="_together_d_plusplus_g_plusplus_label">
+             <property name="text">
+              <string>SD++;SG++:  </string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QPushButton" name="_together_d_plusplus_g_plusplus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QLabel" name="_together_d_minus_g_plusplus_label">
+             <property name="text">
+              <string>SD-;SG++:  </string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QPushButton" name="_together_d_minus_g_plusplus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="_together_d_plus_g_minusminus_label">
+             <property name="text">
+              <string>SD+;SG--:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QPushButton" name="_together_d_plus_g_minusminus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QLabel" name="_together_d_minusminus_g_minusminus_label">
+             <property name="text">
+              <string>SD--;SG--:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3">
+            <widget class="QPushButton" name="_together_d_minusminus_g_minusminus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="_together_d_plus_g_minus_label">
+             <property name="text">
+              <string>SD+;SG-:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QPushButton" name="_together_d_plus_g_minus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2">
+            <widget class="QLabel" name="_together_d_minusminus_g_minus_label">
+             <property name="text">
+              <string>SD--;SG-:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="3">
+            <widget class="QPushButton" name="_together_d_minusminus_g_minus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="_together_d_plus_g_plus_label">
+             <property name="text">
+              <string>SD+;SG+:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="QPushButton" name="_together_d_plus_g_plus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="2">
+            <widget class="QLabel" name="_together_d_minusminus_g_plus_label">
+             <property name="text">
+              <string>SD--;SG+:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="3">
+            <widget class="QPushButton" name="_together_d_minusminus_g_plus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="_together_d_plus_g_plusplus_label">
+             <property name="text">
+              <string>SD+;SG++:  </string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QPushButton" name="_together_d_plus_g_plusplus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="2">
+            <widget class="QLabel" name="_together_d_minusminus_g_plusplus_label">
+             <property name="text">
+              <string>SD--;SG++:  </string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="3">
+            <widget class="QPushButton" name="_together_d_minusminus_g_plusplus_button">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>_tabWidget</tabstop>
+  <tabstop>_alone_default_button</tabstop>
+  <tabstop>_alone_d_plusplus_button</tabstop>
+  <tabstop>_alone_d_plus_button</tabstop>
+  <tabstop>_alone_d_minus_button</tabstop>
+  <tabstop>_alone_d_minusminus_button</tabstop>
+  <tabstop>_together_d_plusplus_g_minusminus_button</tabstop>
+  <tabstop>_together_d_plusplus_g_minus_button</tabstop>
+  <tabstop>_together_d_plusplus_g_plus_button</tabstop>
+  <tabstop>_together_d_plusplus_g_plusplus_button</tabstop>
+  <tabstop>_together_d_plus_g_minusminus_button</tabstop>
+  <tabstop>_together_d_plus_g_minus_button</tabstop>
+  <tabstop>_together_d_plus_g_plus_button</tabstop>
+  <tabstop>_together_d_plus_g_plusplus_button</tabstop>
+  <tabstop>_together_d_minus_g_minusminus_button</tabstop>
+  <tabstop>_together_d_minus_g_minus_button</tabstop>
+  <tabstop>_together_d_minus_g_plus_button</tabstop>
+  <tabstop>_together_d_minus_g_plusplus_button</tabstop>
+  <tabstop>_together_d_minusminus_g_minusminus_button</tabstop>
+  <tabstop>_together_d_minusminus_g_minus_button</tabstop>
+  <tabstop>_together_d_minusminus_g_plus_button</tabstop>
+  <tabstop>_together_d_minusminus_g_plusplus_button</tabstop>
+  <tabstop>_together_default_button</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
