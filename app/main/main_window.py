@@ -65,7 +65,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._current_file = ""
 
-        self._lct_handler = LCTHandler("Semantics", [SD_VALUES, SG_VALUES])
+        self._lct_handler = LCTHandler("Semantics", [SD_VALUES, SG_VALUES], DEFAULT_DESCRIPTOR_VALUE)
 
         self._graph_window = GraphWindow(root_directory + "/graph/")
         if conf_info is not None:
@@ -215,7 +215,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 "The selected file has not valid content",
                                 QMessageBox.Ok
                             )
-                            self._lct_handler.unmount()
                             self._open_file_dialog(True)
                     else:
                         QMessageBox.critical(
@@ -224,7 +223,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             "The selected file has not valid content",
                             QMessageBox.Ok
                         )
-                        self._lct_handler.unmount()
                         self._open_file_dialog(True)
 
     def _save_file_dialog(self, s: bool) -> bool:
@@ -238,7 +236,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self._current_file == "":
             return self._save_as_file_dialog(s)
         else:
-            if self._lct_handler.upload_from_data(self._classifierView.get_text_analyzed()):
+            if self._lct_handler.upload_from_data(self._classifierView.get_text_analyzed())[0]:
                 manage_file(self._current_file, "w", self._lct_handler.to_string())
                 QMessageBox.information(
                     self, "File Saved", "File saved in \"" + self._current_file + "\"", QMessageBox.Ok
@@ -247,7 +245,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return True
             else:
                 QMessageBox.critical(
-                    self, "Error", "The analysis is not completed (All '~' must be replaced)", QMessageBox.Ok
+                    self, "Error", "A problem with the data", QMessageBox.Ok
                 )
                 return False
 
@@ -259,7 +257,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         :param s: Button state. Non-relevant.
         :return: True if the file has been saved, False otherwise.
         """
-        if self._lct_handler.upload_from_data(self._classifierView.get_text_analyzed()):
+        if self._lct_handler.upload_from_data(self._classifierView.get_text_analyzed())[0]:
             file, file_type = QFileDialog().getSaveFileName(
                 self,
                 "Save file",
@@ -273,7 +271,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return True
         else:
             QMessageBox.critical(
-                self, "Error", "The analysis is not completed (All '~' must be replaced)", QMessageBox.Ok
+                self, "Error", "A problem with the data", QMessageBox.Ok
             )
         return False
 
@@ -374,7 +372,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         completed, an error dialog will be shown pointing that.
         :param s: Button state. Non-relevant.
         """
-        if self._lct_handler.upload_from_data(self._classifierView.get_text_analyzed()):
+        if self._lct_handler.upload_from_data(self._classifierView.get_text_analyzed())[1]:
             self._graph_window.update_graphs(self._lct_handler)
             self._graph_window.show()
         else:

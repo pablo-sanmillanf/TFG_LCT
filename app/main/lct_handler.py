@@ -24,14 +24,17 @@ class LCTHandler:
     format that the ClassifierView class can understand.
     """
 
-    def __init__(self, dimension: str, labels: list[list[str]]) -> None:
+    def __init__(self, dimension: str, labels: list[list[str]], default_value: str) -> None:
         """
         LCTHandler object creator.
         :param dimension: A string that indicates the LCT dimension analyzed. In the first version should be "Semantics"
         :param labels: A list of lists. Each element is a list with all the allowed values for each tag. If SD and SG
         are been analyzed, this should be [["SD--", "SD-", "SD+", "SD++"],["SG++", "SG+", "SG-", "SG--"]]
+        :param default_value: This value will be the one that a non-valid label should have
         """
         self._dimension = dimension
+
+        self._def_value = default_value
 
         self._clause_groups = []
         self._clause_tags = []
@@ -43,6 +46,7 @@ class LCTHandler:
         self._set_pattern(labels)
 
         self._is_valid = False
+        self._is_completed = False
 
     def _set_pattern(self, labels: list[list[str]]) -> None:
         """
@@ -50,10 +54,15 @@ class LCTHandler:
         :param labels: A list of lists. Each element is a list with all the allowed values for each tag. If SD and SG
         are been analyzed, this should be [["SD--", "SD-", "SD+", "SD++"],["SG++", "SG+", "SG-", "SG--"]]
         """
-        self._pattern = ""
+        pattern_groups = []
         for label in labels:
-            self._pattern += (obtain_pattern(label.copy()) + ".*")
-        self._pattern = self._pattern[:-2]
+            pattern_groups.append(obtain_pattern(label.copy()))
+        self._pattern = ".*".join(pattern_groups)
+
+        raw_labels = self._get_raw_labels()
+        self._extended_pattern = ".*".join(
+            [pattern_groups[i][:-1] + "|" + raw_labels[i] + self._def_value + ")" for i in range(len(pattern_groups))]
+        )
 
     def set_labels(self, labels: list[list[str]]) -> None:
         """
@@ -64,7 +73,7 @@ class LCTHandler:
         self._labels = labels
         self._set_pattern(labels)
 
-    def upload_from_data(self, data: list[tuple[list[tuple[str, str]], str]]) -> bool:
+    def upload_from_data(self, data: list[tuple[list[tuple[str, str]], str]]) -> tuple[bool, bool]:
         """
         Upload the data obtained from the ClassifierView object into the XML Document. If the data is not valid, False
         will be returned.
@@ -84,10 +93,17 @@ class LCTHandler:
             sc_text_item = ""
 
             sc_matches = re.findall(self._pattern, super_clause[1])
-            if len(self._labels) > 1:
+            if len(self._labels) > 1 and len(sc_matches) != 0:
                 sc_matches = sc_matches[0]
             if len(sc_matches) != len(self._labels):
-                return False
+                self._is_completed = False
+                sc_matches = re.findall(self._extended_pattern, super_clause[1])
+                if len(self._labels) > 1 and len(sc_matches) != 0:
+                    sc_matches = sc_matches[0]
+                if len(sc_matches) != len(self._labels):
+                    return False, False
+            else:
+                self._is_completed = True
 
             self._super_clause_tags.append(list(sc_matches))
 
@@ -95,10 +111,17 @@ class LCTHandler:
                 sc_text_item += (clause[0] + " ")
 
                 c_matches = re.findall(self._pattern, clause[1])
-                if len(self._labels) > 1:
+                if len(self._labels) > 1 and len(c_matches) != 0:
                     c_matches = c_matches[0]
                 if len(c_matches) != len(self._labels):
-                    return False
+                    self._is_completed = False
+                    c_matches = re.findall(self._extended_pattern, clause[1])
+                    if len(self._labels) > 1 and len(c_matches) != 0:
+                        c_matches = c_matches[0]
+                    if len(c_matches) != len(self._labels):
+                        return False, False
+                else:
+                    self._is_completed = True
 
                 self._clause_tags.append(list(c_matches))
                 self._clause_texts.append(clause[0])
@@ -108,7 +131,7 @@ class LCTHandler:
             self._super_clause_texts.append(sc_text_item[:-1])
 
         self._is_valid = True
-        return self._is_valid
+        return self._is_valid, self._is_completed
 
     def upload_from_xml_string(self, xml_string: str, check: bool) -> bool:
         """
@@ -118,10 +141,10 @@ class LCTHandler:
         :param check: Indicates if the function has to check the validity of the data.
         :return: True if the input data was a valid one, False otherwise.
         """
-        self._is_valid = self._upload_from_xml_string_valid_not_checked(xml_string, check)
+        self._is_valid, self._is_completed = self._upload_from_xml_string_valid_not_checked(xml_string, check)
         return self._is_valid
 
-    def _upload_from_xml_string_valid_not_checked(self, xml_string: str, check: bool) -> bool:
+    def _upload_from_xml_string_valid_not_checked(self, xml_string: str, check: bool) -> tuple[bool, bool]:
         """
         Upload the data obtained from a .lct file into the XML Document. If the data is not valid, False will be
         returned.
@@ -134,29 +157,29 @@ class LCTHandler:
         # Start of document
         reader.readNext()
         if check and not reader.isStartDocument():
-            return False
+            return False, False
 
         # Start of element "lct"
         reader.readNext()
         if check and (not reader.isStartElement() or reader.name() != "lct" or
                       not reader.attributes().hasAttribute("version")):
-            return False
+            return False, False
 
         # Start of element "dimension"
         reader.readNextStartElement()
         if check and reader.name() != "dimension":
-            return False
+            return False, False
         self._dimension = reader.readElementText()
 
         # Start of element "targets"
         reader.readNextStartElement()
         if check and reader.name() != "targets":
-            return False
+            return False, False
 
         self._labels.clear()
         while reader.readNextStartElement() or reader.name() != "targets":
             if check and reader.name() != "target":
-                return False
+                return False, False
             self._labels.append(reader.readElementText().split())
 
         self._set_pattern(self._labels)
@@ -164,7 +187,7 @@ class LCTHandler:
         # Start of element "analysis"
         reader.readNextStartElement()
         if check and reader.name() != "analysis":
-            return False
+            return False, False
 
         self._clause_groups.clear()
         self._clause_tags.clear()
@@ -176,21 +199,28 @@ class LCTHandler:
         self._clause_groups.append(clause_nbr)
         raw_labels = self._get_raw_labels()
 
+        is_completed = True
+
         while reader.readNextStartElement() or reader.name() != "analysis":
             attr = reader.attributes()
             sc_tag_values = [((i + attr.value(i)) if attr.value(i) != "" else "") for i in raw_labels]
             if check and (reader.name() != "superClause" or "" in sc_tag_values):
-                return False
+                return False, False
+
+            if self._def_value in "".join(sc_tag_values):
+                is_completed = False
 
             self._super_clause_tags.append(sc_tag_values)
 
             sc_text_item = ""
-
             while reader.readNextStartElement() or reader.name() != "superClause":
                 attr = reader.attributes()
                 c_tag_values = [((i + attr.value(i)) if attr.value(i) != "" else "") for i in raw_labels]
                 if check and (reader.name() != "clause" or "" in c_tag_values):
-                    return False
+                    return False, False
+
+                if self._def_value in "".join(c_tag_values):
+                    is_completed = False
 
                 self._clause_tags.append(c_tag_values)
 
@@ -203,13 +233,13 @@ class LCTHandler:
 
         # End of element "lct"
         if check and (reader.readNextStartElement() is True or reader.name() != "lct"):
-            return False
+            return False, False
 
         # End of document
         if check and reader.readNext() != QXmlStreamReader.EndDocument:
-            return False
+            return False, False
 
-        return True
+        return True, is_completed
 
     def to_string(self) -> str:
         """
@@ -257,7 +287,11 @@ class LCTHandler:
             writer.writeEndElement()  # Close "lct" element
 
             writer.writeEndDocument()  # Close document
-            return QTextStream(result).readAll()
+
+            stream = QTextStream(result)
+            stream.setCodec(writer.codec())
+
+            return stream.readAll()
         return ""
 
     def get_dimension(self) -> str:
@@ -310,7 +344,7 @@ class LCTHandler:
         Return a list with the numerical values of each super clause. Each element is a list of values for each label.
         :return: The list of super clause values.
         """
-        if self._is_valid:
+        if self._is_valid and self._is_completed:
             result = [[self._labels[i].index(tag[i]) + 1 for i in range(len(tag))] for tag in self._super_clause_tags]
             return result
         return None
@@ -320,7 +354,7 @@ class LCTHandler:
         Return a list with the numerical values of each clause. Each element is a list of values for each label.
         :return: The list of clause values.
         """
-        if self._is_valid:
+        if self._is_valid and self._is_completed:
             result = [[self._labels[i].index(tag[i]) + 1 for i in range(len(tag))] for tag in self._clause_tags]
             return result
         return None
