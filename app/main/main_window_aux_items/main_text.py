@@ -158,7 +158,7 @@ class MainText(QGraphicsTextItem):
 
         return result
 
-    def _get_complete_points(self) -> list[tuple[float, list[list[float | str | bool]]]]:
+    def get_complete_points(self) -> list[tuple[float, list[list[float | str | bool]]]]:
         """
         Calculates the points of separation between the different words of the text. It returns a complex structure that
         is composed by a list of tuples. The first element of the tuple is the y-value for a specific line and the

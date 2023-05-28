@@ -155,6 +155,6 @@ if __name__ == "__main__":
         app.exec()
 
         sw.save_conf()
-    except Exception:
+    except:
         open("./error.txt", "w", encoding="utf8").write(traceback.format_exc())
         print(traceback.format_exc())

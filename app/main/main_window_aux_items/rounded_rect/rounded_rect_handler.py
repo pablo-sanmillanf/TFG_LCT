@@ -190,7 +190,7 @@ class RoundedRectHandler:
                 self._rects[rect_index].set_pos_and_size(x_pos, y_pos, width, self._height)
                 self._rects[rect_index].set_background_color(colors_list[sep_index])
 
-            for e in range(rect_index + 1, len(separator_points) + len(points)):
+            for rect_index in range(rect_index + 1, len(separator_points) + len(points)):
                 y_pos = points[points_index][0]
                 if sep_find:
                     x_pos = separator_points[sep_index].x()

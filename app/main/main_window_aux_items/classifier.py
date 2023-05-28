@@ -195,7 +195,7 @@ class Classifier:
 
         self._text = MainText(text, text_size, text_width, 300, parent)
 
-        complete_points = self._text._get_complete_points()
+        complete_points = self._text.get_complete_points()
         sep_points = obtain_separator_points(complete_points)
 
         # Set separators
@@ -278,7 +278,7 @@ class Classifier:
                                    "default_descriptor_value" characters.
         :param colors: List of all available colors
         """
-        self._descriptors_handler.set_default_text(default_descriptor)
+        self._descriptors_handler.set_default_text(default_descriptor, True)
         self._rects_handler.set_colors(create_colors_dict(
             default_descriptor, colors, self._default_descriptor_value, self._allowed_descriptor_values
         ))
@@ -392,7 +392,7 @@ class Classifier:
         # This ind will be used to access all the positions in separator_points
         sep_ind = 0
 
-        complete_point_list = self._text._get_complete_points()
+        complete_point_list = self._text.get_complete_points()
 
         for y_index in range(len(complete_point_list)):
             for x_index in range(len(complete_point_list[y_index][1])):
@@ -432,7 +432,7 @@ class Classifier:
         sep_ind = 0
         super_sep_ind = 0
 
-        complete_point_list = self._text._get_complete_points()
+        complete_point_list = self._text.get_complete_points()
 
         for y_index in range(len(complete_point_list)):
             for x_index in range(len(complete_point_list[y_index][1])):
@@ -468,7 +468,7 @@ class Classifier:
         self.emitter.classifier_has_changed.emit()
 
         self._text.set_text(text)
-        complete_points = self._text._get_complete_points()
+        complete_points = self._text.get_complete_points()
         sep_points = obtain_separator_points(complete_points)
 
         self._sep_handler.delete_all_separators()
@@ -508,7 +508,7 @@ class Classifier:
         self._descriptors_handler.set_y_offset_and_text_size(text_size * 2.4, text_size * 2 / 3)
 
         # Reposition separators to the new text size
-        complete_point_list = self._text._get_complete_points()
+        complete_point_list = self._text.get_complete_points()
 
         separator_points = get_repos_sep_points(text_list_previous_size, complete_point_list)
 
@@ -535,7 +535,7 @@ class Classifier:
         """
         self.set_text(" ".join(sep_text_list))
 
-        complete_point_list = self._text._get_complete_points()
+        complete_point_list = self._text.get_complete_points()
 
         separator_points = get_repos_sep_points_with_super_sep(sep_text_list, super_sep_text_list, complete_point_list)
 
@@ -548,7 +548,7 @@ class Classifier:
         self._rects_handler.set_colors(create_colors_dict(
             default_descriptor, colors, self._default_descriptor_value, self._allowed_descriptor_values
         ))
-        self._descriptors_handler.set_default_text(default_descriptor)
+        self._descriptors_handler.set_default_text(default_descriptor, False)
         self._descriptors_handler.set_texts(labels, values)
 
     def set_width(self, width: float) -> None:
@@ -563,7 +563,7 @@ class Classifier:
         self._text.set_width(width)
 
         # Reposition separators to the new text size
-        complete_point_list = self._text._get_complete_points()
+        complete_point_list = self._text.get_complete_points()
 
         separator_points = get_repos_sep_points(text_list_previous_size, complete_point_list)
 

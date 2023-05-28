@@ -132,13 +132,6 @@ class DescriptorHandler:
 
         self.set_text_size(text_size)
 
-    def set_default_text(self, default_text: str) -> None:
-        """
-        Changes the default text of the handler. This not change the default text of the Descriptors automatically.
-        :param default_text: The default text string.
-        """
-        self._default_text = default_text
-
     def get_default_text(self) -> str:
         """
         Returns the default text of the handler.
@@ -213,7 +206,9 @@ class DescriptorHandler:
         if new_text:
             self._separators.clear()
             descriptor_texts_list.append(
-                Descriptor(self._default_text, self._text_separator, self._allowed_strings, None, self._font).copy_text()
+                Descriptor(
+                    self._default_text, self._text_separator, self._allowed_strings, None, self._font
+                ).copy_text()
             )
         else:
             if len(separator_points) != len(self._separators):
@@ -270,10 +265,11 @@ class DescriptorHandler:
 
                 self._descriptors[desc_index][0].paste_text(descriptor_texts_list[sep_index])
                 self._set_descriptor_pos(desc_index)
-            for e in range(desc_index + 1, len(separator_points) + len(points)):
+            for desc_index in range(desc_index + 1, len(separator_points) + len(points)):
                 desc = Descriptor(
                     self._default_text, self._text_separator, self._allowed_strings, self._parent, self._font
                 )
+                y_value = points[points_index][0]
 
                 if sep_find:
                     left_x = separator_points[sep_index].x()
@@ -298,11 +294,10 @@ class DescriptorHandler:
                 desc.paste_text(descriptor_texts_list[sep_index])
 
                 # [Descriptor, Y_Value_Without_Offset, Left_X_Value, Right_X_Value]
-                self._descriptors.append([desc, points[points_index - 1][0], left_x, right_x])
+                self._descriptors.append([desc, y_value, left_x, right_x])
 
-                self._set_descriptor_pos(e)
+                self._set_descriptor_pos(desc_index)
                 desc.editable_text_changed.connect(self._text_changed)
-
         else:  # We need to delete part of existing descriptors
             desc_index = 0
             sep_index = 0
@@ -355,16 +350,18 @@ class DescriptorHandler:
         else:
             self._descriptors[ind][0].show()
 
-    def set_default_text(self, default_text: str) -> None:
+    def set_default_text(self, default_text: str, update_descriptors_text: bool) -> None:
         """
         Set the default text for all the descriptors.
         :param default_text: The default text that will appear in the descriptor.
+        :param update_descriptors_text: If True, all the descriptors texts will be replaced by the default text
         """
         self._default_text = default_text
-        for i in range(len(self._descriptors)):
-            self._descriptors[i][0].set_default_text(default_text)
+        if update_descriptors_text:
+            for i in range(len(self._descriptors)):
+                self._descriptors[i][0].set_default_text(default_text)
 
-            self._set_descriptor_pos(i)
+                self._set_descriptor_pos(i)
 
     def set_y_offset_and_text_size(self, y_offset: float, text_size: float) -> None:
         """
