@@ -1,6 +1,5 @@
 import re
-from xml.dom import minidom
-from xml.dom.minidom import Document
+from PyQt5.QtCore import QXmlStreamReader, QXmlStreamWriter, QByteArray, QTextStream
 
 # The chars "[" and "]" were not added to avoid problems in pattern conversion. Thus, those characters are not permitted
 # as a part of labels
@@ -24,7 +23,6 @@ class LCTHandler:
     This class is in charge of translate to/from the format of the .lct files that is base in an XML format from/to a
     format that the ClassifierView class can understand.
     """
-    _doc: Document
 
     def __init__(self, dimension: str, labels: list[list[str]]) -> None:
         """
@@ -33,20 +31,18 @@ class LCTHandler:
         :param labels: A list of lists. Each element is a list with all the allowed values for each tag. If SD and SG
         are been analyzed, this should be [["SD--", "SD-", "SD+", "SD++"],["SG++", "SG+", "SG-", "SG--"]]
         """
-        self._doc = minidom.Document()
         self._dimension = dimension
+
+        self._clause_groups = []
+        self._clause_tags = []
+        self._clause_texts = []
+        self._super_clause_tags = []
+        self._super_clause_texts = []
 
         self._labels = labels
         self._set_pattern(labels)
-        self._from_file = False
 
         self._is_valid = False
-
-    def unmount(self) -> None:
-        """
-        Remove all the information from the internal XML Document.
-        """
-        self._doc.unlink()
 
     def _set_pattern(self, labels: list[list[str]]) -> None:
         """
@@ -61,117 +57,68 @@ class LCTHandler:
 
     def set_labels(self, labels: list[list[str]]) -> None:
         """
-        Set the available labels for the clauses. This function also unmount all the previous XML Documents.
+        Set the available labels for the clauses.
         :param labels: A list of lists. Each element is a list with all the allowed values for each tag. If SD and SG
         are been analyzed, this should be [["SD--", "SD-", "SD+", "SD++"],["SG++", "SG+", "SG-", "SG--"]]
         """
         self._labels = labels
         self._set_pattern(labels)
-        self.unmount()
 
     def upload_from_data(self, data: list[tuple[list[tuple[str, str]], str]]) -> bool:
-        """
-        Upload the data obtained from the ClassifierView object into the XML Document. If the data is not valid, the
-        internal XML Document will be unmounted and False will be returned.
-        :param data: The structure obtained from the ClassifierView object.
-        :return: True if the input data was a valid one, False otherwise.
-        """
-        self._is_valid = self._upload_from_data_valid_not_checked(data)
-        if not self._is_valid:
-            self.unmount()
-        return self._is_valid
-
-    def _upload_from_data_valid_not_checked(self, data: list[tuple[list[tuple[str, str]], str]]) -> bool:
         """
         Upload the data obtained from the ClassifierView object into the XML Document. If the data is not valid, False
         will be returned.
         :param data: The structure obtained from the ClassifierView object.
         :return: True if the input data was a valid one, False otherwise.
         """
-        # Clear previous elements
-        self.unmount()
+        self._clause_groups.clear()
+        self._clause_tags.clear()
+        self._clause_texts.clear()
+        self._super_clause_tags.clear()
+        self._super_clause_texts.clear()
 
-        self._from_file = False
+        clause_nbr = 0
+        self._clause_groups.append(clause_nbr)
 
-        try:
-            # Root element
-            lct = self._doc.createElement("lct")
-            lct.setAttribute("version", "1.0")
-            self._doc.appendChild(lct)
+        for super_clause in data:
+            sc_text_item = ""
 
-            # Add dimension. Non-critical information, won't be checked
-            dim_node = self._doc.createElement("dimension")
-            lct.appendChild(dim_node)
-            dim_node.appendChild(self._doc.createTextNode(self._dimension))
+            sc_matches = re.findall(self._pattern, super_clause[1])
+            if len(self._labels) > 1:
+                sc_matches = sc_matches[0]
+            if len(sc_matches) != len(self._labels):
+                return False
 
-            # Add targets.
-            targets = self._doc.createElement("targets")
-            lct.appendChild(targets)
-            for label in self._labels:
-                target = self._doc.createElement('target')
-                targets.appendChild(target)
-                target.appendChild(self._doc.createTextNode(" ".join(label)))
+            self._super_clause_tags.append(list(sc_matches))
 
-            # Root data element
-            analysis = self._doc.createElement('analysis')
-            lct.appendChild(analysis)
+            for clause in super_clause[0]:
+                sc_text_item += (clause[0] + " ")
 
-            for super_clause in data:
-                super_clause_node = self._doc.createElement("superClause")
-                analysis.appendChild(super_clause_node)
-
-                sc_matches = re.findall(self._pattern, super_clause[1])
-
-                if len(sc_matches) == 0:
-                    return False
-
+                c_matches = re.findall(self._pattern, clause[1])
                 if len(self._labels) > 1:
-                    sc_matches = sc_matches[0]
-
-                if len(sc_matches) != len(self._labels):
+                    c_matches = c_matches[0]
+                if len(c_matches) != len(self._labels):
                     return False
 
-                sc_attr = ""
-                for i in range(len(sc_matches)):
-                    sc_attr += str(self._labels[i].index(sc_matches[i]) + 1)
-                super_clause_node.setAttribute('value', sc_attr)
+                self._clause_tags.append(list(c_matches))
+                self._clause_texts.append(clause[0])
+                clause_nbr += 1
 
-                for clause in super_clause[0]:
-                    clause_node = self._doc.createElement("clause")
-                    super_clause_node.appendChild(clause_node)
+            self._clause_groups.append(clause_nbr)
+            self._super_clause_texts.append(sc_text_item[:-1])
 
-                    c_matches = re.findall(self._pattern, clause[1])
-
-                    if len(c_matches) == 0:
-                        return False
-
-                    if len(self._labels) > 1:
-                        c_matches = c_matches[0]
-
-                    if len(c_matches) != len(self._labels):
-                        return False
-
-                    c_attr = ""
-                    for i in range(len(c_matches)):
-                        c_attr += str(self._labels[i].index(c_matches[i]) + 1)
-                    clause_node.setAttribute('value', c_attr)
-
-                    clause_node.appendChild(self._doc.createTextNode(clause[0]))
-        except ValueError:
-            return False
-        return True
+        self._is_valid = True
+        return self._is_valid
 
     def upload_from_xml_string(self, xml_string: str, check: bool) -> bool:
         """
-        Upload the data obtained from a .lct file into the XML Document. If the data is not valid, the internal XML
-        Document will be unmounted and False will be returned.
+        Upload the data obtained from a .lct file into the XML Document. If the data is not valid, False will be
+        returned.
         :param xml_string: The data from a .lct file.
         :param check: Indicates if the function has to check the validity of the data.
         :return: True if the input data was a valid one, False otherwise.
         """
         self._is_valid = self._upload_from_xml_string_valid_not_checked(xml_string, check)
-        if not self._is_valid:
-            self.unmount()
         return self._is_valid
 
     def _upload_from_xml_string_valid_not_checked(self, xml_string: str, check: bool) -> bool:
@@ -182,61 +129,86 @@ class LCTHandler:
         :param check: Indicates if the function has to check the validity of the data.
         :return: True if the input data was a valid one, False otherwise.
         """
-        new_doc = minidom.parseString(xml_string)
+        reader = QXmlStreamReader(xml_string)
 
-        if check:
-            aux = new_doc.childNodes
+        # Start of document
+        reader.readNext()
+        if check and not reader.isStartDocument():
+            return False
 
-            if len(aux) != 1:
-                return False
-            if aux[0].tagName != "lct":
-                return False
+        # Start of element "lct"
+        reader.readNext()
+        if check and (not reader.isStartElement() or reader.name() != "lct" or
+                      not reader.attributes().hasAttribute("version")):
+            return False
 
-            aux = [item for item in aux[0].childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
+        # Start of element "dimension"
+        reader.readNextStartElement()
+        if check and reader.name() != "dimension":
+            return False
+        self._dimension = reader.readElementText()
 
-            if aux[0].tagName != "dimension":
-                return False
+        # Start of element "targets"
+        reader.readNextStartElement()
+        if check and reader.name() != "targets":
+            return False
 
-            if aux[1].tagName != "targets":
-                return False
-
-            targets = [item for item in aux[1].childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-
-            if not all(item.tagName == "target" for item in targets):
-                return False
-
-            if aux[2].tagName != "analysis":
-                return False
-
-            aux = [item for item in aux[2].childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-
-            if not all(item.tagName == "superClause" for item in aux):
-                return False
-
-            for super_clause in aux:
-                if super_clause.tagName != "superClause":
-                    return False
-                if not super_clause.getAttribute("value").isnumeric():
-                    return False
-                for clause in [item for item in super_clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]:
-                    if clause.tagName != "clause":
-                        return False
-                    if not clause.getAttribute("value").isnumeric():
-                        return False
-                    if len([item for item in clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]) != 0:
-                        return False
-
-        target_list = [item for item in new_doc.firstChild.childNodes
-                       if item.nodeType == minidom.Node.ELEMENT_NODE][1].childNodes
         self._labels.clear()
-        for target in [item for item in target_list if item.nodeType == minidom.Node.ELEMENT_NODE]:
-            self._labels.append(target.firstChild.nodeValue.split())
+        while reader.readNextStartElement() or reader.name() != "targets":
+            if check and reader.name() != "target":
+                return False
+            self._labels.append(reader.readElementText().split())
 
         self._set_pattern(self._labels)
 
-        self._from_file = True
-        self.unmount()
-        self._doc = new_doc
+        # Start of element "analysis"
+        reader.readNextStartElement()
+        if check and reader.name() != "analysis":
+            return False
+
+        self._clause_groups.clear()
+        self._clause_tags.clear()
+        self._clause_texts.clear()
+        self._super_clause_tags.clear()
+        self._super_clause_texts.clear()
+
+        clause_nbr = 0
+        self._clause_groups.append(clause_nbr)
+        raw_labels = self._get_raw_labels()
+
+        while reader.readNextStartElement() or reader.name() != "analysis":
+            attr = reader.attributes()
+            sc_tag_values = [((i + attr.value(i)) if attr.value(i) != "" else "") for i in raw_labels]
+            if check and (reader.name() != "superClause" or "" in sc_tag_values):
+                return False
+
+            self._super_clause_tags.append(sc_tag_values)
+
+            sc_text_item = ""
+
+            while reader.readNextStartElement() or reader.name() != "superClause":
+                attr = reader.attributes()
+                c_tag_values = [((i + attr.value(i)) if attr.value(i) != "" else "") for i in raw_labels]
+                if check and (reader.name() != "clause" or "" in c_tag_values):
+                    return False
+
+                self._clause_tags.append(c_tag_values)
+
+                self._clause_texts.append(reader.readElementText())
+                sc_text_item += (self._clause_texts[-1] + " ")
+                clause_nbr += 1
+
+            self._clause_groups.append(clause_nbr)
+            self._super_clause_texts.append(sc_text_item[:-1])
+
+        # End of element "lct"
+        if check and (reader.readNextStartElement() is True or reader.name() != "lct"):
+            return False
+
+        # End of document
+        if check and reader.readNext() != QXmlStreamReader.EndDocument:
+            return False
+
         return True
 
     def to_string(self) -> str:
@@ -245,9 +217,47 @@ class LCTHandler:
         :return: The string with the format of a valid .lct file or an empty string if there was no valid XML Document.
         """
         if self._is_valid:
-            if self._from_file:
-                return self._doc.toxml()
-            return self._doc.toprettyxml(indent='   ')
+            result = QByteArray()
+            writer = QXmlStreamWriter(result)
+            writer.setAutoFormatting(True)
+            writer.writeStartDocument()
+
+            writer.writeStartElement("lct")
+            writer.writeAttribute("version", "1.0")
+            writer.writeTextElement("dimension", "Semantics")
+
+            raw_labels = self.get_raw_labels()
+
+            writer.writeStartElement("targets")
+            for label in self._labels:
+                writer.writeTextElement("target", " ".join(label))
+            writer.writeEndElement()  # Close "targets" element
+
+            writer.writeStartElement("analysis")
+            clause_group_index = 1
+            simplified_clause_tags = self.get_clause_tags()
+
+            for super_clause_tag in self.get_super_clause_tags():
+                writer.writeStartElement("superClause")
+                for i in range(len(super_clause_tag)):
+                    writer.writeAttribute(raw_labels[i], super_clause_tag[i])
+
+                for i in range(self._clause_groups[clause_group_index - 1], self._clause_groups[clause_group_index]):
+                    writer.writeStartElement("clause")
+                    for e in range(len(simplified_clause_tags[i])):
+                        writer.writeAttribute(raw_labels[e], simplified_clause_tags[i][e])
+                    writer.writeCharacters(self._clause_texts[i])
+                    writer.writeEndElement()  # Close "clause" element
+                clause_group_index += 1
+
+                writer.writeEndElement()  # Close "superClause" element
+
+            writer.writeEndElement()  # Close "analysis" element
+
+            writer.writeEndElement()  # Close "lct" element
+
+            writer.writeEndDocument()  # Close document
+            return QTextStream(result).readAll()
         return ""
 
     def get_dimension(self) -> str:
@@ -255,28 +265,35 @@ class LCTHandler:
         Obtain the dimension of the .lct file. In the first version of the class, it should be "Semantics".
         :return:The dimension as a string.
         """
-        try:
-            return self._doc.firstChild.getElementsByTagName("dimension")[0].firstChild.nodeValue
-        except AttributeError:
-            return ""
+        if self._is_valid:
+            return self._dimension
+        return None
 
     def get_raw_labels(self) -> list[str]:
+        """
+        Obtain a list with the raw labels if the data is valid. If the target is SD and SG, the resulting list will be
+        ["SD", "SG"]
+        :return: The list with the raw labels, None if is not valid
+        """
+        if self._is_valid:
+            return self._get_raw_labels()
+        return None
+
+    def _get_raw_labels(self) -> list[str]:
         """
         Obtain a list with the raw labels. If the target is SD and SG, the resulting list will be ["SD", "SG"]
         :return: The list with the raw labels.
         """
-        if self._is_valid:
-            result = []
-            index = 1
-            for label in self._labels:
+        result = []
+        index = 1
+        for label in self._labels:
+            first = label[0][:index]
+            while all(first == x[:index] for x in label):
+                index += 1
                 first = label[0][:index]
-                while all(first == x[:index] for x in label):
-                    index += 1
-                    first = label[0][:index]
-                result.append(first[:-1])
+            result.append(first[:-1])
 
-            return result
-        return None
+        return result
 
     def get_clause_labels(self) -> list[list[str]]:
         """
@@ -294,12 +311,7 @@ class LCTHandler:
         :return: The list of super clause values.
         """
         if self._is_valid:
-            result = []
-            data_list = self._doc.firstChild.getElementsByTagName("analysis")[0]
-            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-            for super_clause in data_list:
-                result.append([int(i) for i in super_clause.getAttribute("value")])
-
+            result = [[self._labels[i].index(tag[i]) + 1 for i in range(len(tag))] for tag in self._super_clause_tags]
             return result
         return None
 
@@ -309,15 +321,7 @@ class LCTHandler:
         :return: The list of clause values.
         """
         if self._is_valid:
-            result = []
-            data_list = self._doc.firstChild.getElementsByTagName("analysis")[0]
-            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-            for super_clause in data_list:
-                clauses = [item for item in super_clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-
-                for clause in clauses:
-                    result.append([int(i) for i in clause.getAttribute("value")])
-
+            result = [[self._labels[i].index(tag[i]) + 1 for i in range(len(tag))] for tag in self._clause_tags]
             return result
         return None
 
@@ -328,14 +332,8 @@ class LCTHandler:
         """
         if self._is_valid:
             simplified_labels = self.get_raw_labels()
-            result = []
-            data_list = self._doc.firstChild.getElementsByTagName("analysis")[0]
-            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-            for super_clause in data_list:
-                val = super_clause.getAttribute("value")
-                result.append([self._labels[i][int(val[i]) - 1][len(simplified_labels[i]):] for i in range(len(val))])
+            return [[tag[i][len(simplified_labels[i]):] for i in range(len(tag))] for tag in self._super_clause_tags]
 
-            return result
         return None
 
     def get_clause_tags(self) -> list[list[str]]:
@@ -344,18 +342,9 @@ class LCTHandler:
         :return: The list of clause tags.
         """
         if self._is_valid:
-            simp_labels = self.get_raw_labels()
-            result = []
-            data_list = self._doc.firstChild.getElementsByTagName("analysis")[0]
-            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-            for super_clause in data_list:
-                clauses = [item for item in super_clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-
-                for clause in clauses:
-                    val = clause.getAttribute("value")
-                    result.append([self._labels[i][int(val[i]) - 1][len(simp_labels[i]):] for i in range(len(val))])
-
-            return result
+            simplified_labels = self.get_raw_labels()
+            a = [[tag[i][len(simplified_labels[i]):] for i in range(len(tag))] for tag in self._clause_tags]
+            return [[tag[i][len(simplified_labels[i]):] for i in range(len(tag))] for tag in self._clause_tags]
         return None
 
     def get_super_clause_texts(self) -> list[str]:
@@ -364,17 +353,7 @@ class LCTHandler:
         :return: The list with the super clauses.
         """
         if self._is_valid:
-            result = []
-            data_list = self._doc.firstChild.getElementsByTagName("analysis")[0]
-            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-            for super_clause in data_list:
-                clauses = [item for item in super_clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-                aux = ""
-                for clause in clauses:
-                    aux += (clause.firstChild.nodeValue + " ")
-                result.append(aux[:-1])
-
-            return result
+            return self._super_clause_texts
         return None
 
     def get_clause_texts(self) -> list[str]:
@@ -383,14 +362,5 @@ class LCTHandler:
         :return: The list with the clauses.
         """
         if self._is_valid:
-            result = []
-            data_list = self._doc.firstChild.getElementsByTagName("analysis")[0]
-            data_list = [item for item in data_list.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-            for super_clause in data_list:
-                clauses = [item for item in super_clause.childNodes if item.nodeType == minidom.Node.ELEMENT_NODE]
-
-                for clause in clauses:
-                    result.append(clause.firstChild.nodeValue)
-
-            return result
+            return self._clause_texts
         return None
