@@ -75,7 +75,10 @@ class MainText(QGraphicsTextItem):
         Return the plain text of the element.
         :return: The plain text.
         """
-        return remove_text_format(self._text).replace(" <br> ", " \n ")
+        text = remove_text_format(self._text).replace(" <br> ", " \n ")
+        if text[-4:] == "<br>":
+            return text[:-4] + "\n"
+        return text
 
     def set_text(self, text: str) -> None:
         """
