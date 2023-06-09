@@ -5,4 +5,7 @@
     <qresource prefix="/icon">
         <file alias="logo">logo.ico</file>
     </qresource>
+    <qresource prefix="/xml_schema">
+        <file alias="xsd_v1_0">lct_v1_0.xsd</file>
+    </qresource>
 </RCC>

@@ -2,7 +2,7 @@ import os
 import sys
 import traceback
 
-from PyQt5 import QtGui
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QStandardPaths, QDir, QSettings, QFile, QTextStream
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QMessageBox
 
@@ -35,7 +35,7 @@ class StartWindow(QMainWindow, Ui_StartWindow):
         self.setupUi(self)
         self._set_styles()
 
-        self.setWindowIcon(QtGui.QIcon(':/icon/logo'))
+        self.setWindowIcon(QIcon(':/icon/logo'))
 
         self._settings = QSettings("LCT", "Semantics Analyzer")
 

@@ -1,8 +1,6 @@
 from PyQt5 import QtGui
 
-from PyQt5.QtWidgets import (
-    QGraphicsTextItem, QGraphicsItem,
-)
+from PyQt5.QtWidgets import QGraphicsTextItem, QGraphicsItem
 
 BREAK_LINE_CHARACTERS = ["}", "-", "|", "?", "!", "/"]
 

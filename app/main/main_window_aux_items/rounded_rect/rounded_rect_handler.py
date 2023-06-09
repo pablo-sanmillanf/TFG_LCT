@@ -3,9 +3,7 @@ import typing
 from ..separator.separator import Separator
 
 from PyQt5.QtCore import QPointF
-from PyQt5.QtWidgets import (
-    QGraphicsItem,
-)
+from PyQt5.QtWidgets import QGraphicsItem
 from .rounded_rect import RoundedRect
 
 
@@ -86,7 +84,7 @@ class RoundedRectHandler:
         :param points: A list of points to correctly set the position and the size of the rounded rect. Each element is
                        a tuple of (Y-value, (X-left, X-Right)) where the x-value of the rounded rect is X-left and the
                        width of the specific rounded rect is X-Right - X-left.
-        :param color: The default color that will have all the RoundeRect.
+        :param color: The default color that will have all the RoundedRect.
         """
         if len(points) > len(self._rects):  # We need to create more rects
             i = 0

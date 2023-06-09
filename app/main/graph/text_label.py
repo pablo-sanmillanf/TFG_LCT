@@ -1,6 +1,6 @@
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QTextDocument
-from PyQt5.QtWidgets import QLabel, QWidget, QSizePolicy
+from PyQt5.QtWidgets import QLabel, QWidget
 
 HIGHLIGHT_STYLE = "color:white;background-color:#1F51FF;"
 

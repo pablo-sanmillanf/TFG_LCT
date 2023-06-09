@@ -1,4 +1,5 @@
 import re
+import xmlschema
 from PyQt5.QtCore import QXmlStreamReader, QXmlStreamWriter, QByteArray, QTextStream
 
 # The chars "[" and "]" were not added to avoid problems in pattern conversion. Thus, those characters are not permitted
@@ -24,13 +25,14 @@ class LCTHandler:
     format that the ClassifierView class can understand.
     """
 
-    def __init__(self, dimension: str, labels: list[list[str]], default_value: str) -> None:
+    def __init__(self, dimension: str, labels: list[list[str]], default_value: str, xml_schema: str) -> None:
         """
         LCTHandler object creator.
         :param dimension: A string that indicates the LCT dimension analyzed. In the first version should be "Semantics"
         :param labels: A list of lists. Each element is a list with all the allowed values for each tag. If SD and SG
         are been analyzed, this should be [["SD--", "SD-", "SD+", "SD++"],["SG++", "SG+", "SG-", "SG--"]]
         :param default_value: This value will be the one that a non-valid label should have
+        :param xml_schema: The XML Schema to compare th XML files with.
         """
         self._dimension = dimension
 
@@ -47,6 +49,8 @@ class LCTHandler:
 
         self._is_valid = False
         self._is_completed = False
+
+        self._schema = xmlschema.XMLSchema(xml_schema)
 
     def _set_pattern(self, labels: list[list[str]]) -> None:
         """
@@ -152,42 +156,34 @@ class LCTHandler:
         :param check: Indicates if the function has to check the validity of the data.
         :return: True if the input data was a valid one, False otherwise.
         """
+        if check and not self._schema.is_valid(xml_string):
+            return False, False
+
         reader = QXmlStreamReader(xml_string)
 
         # Start of document
         reader.readNext()
-        if check and not reader.isStartDocument():
-            return False, False
 
         # Start of element "lct"
         reader.readNext()
-        if check and (not reader.isStartElement() or reader.name() != "lct" or
-                      not reader.attributes().hasAttribute("version")):
+        if reader.attributes().value("version") != "1.0":
             return False, False
 
         # Start of element "dimension"
         reader.readNextStartElement()
-        if check and reader.name() != "dimension":
-            return False, False
         self._dimension = reader.readElementText()
 
         # Start of element "targets"
         reader.readNextStartElement()
-        if check and reader.name() != "targets":
-            return False, False
 
         self._labels.clear()
         while reader.readNextStartElement() or reader.name() != "targets":
-            if check and reader.name() != "target":
-                return False, False
             self._labels.append(reader.readElementText().split())
 
         self._set_pattern(self._labels)
 
         # Start of element "analysis"
         reader.readNextStartElement()
-        if check and reader.name() != "analysis":
-            return False, False
 
         self._clause_groups.clear()
         self._clause_tags.clear()
@@ -231,14 +227,6 @@ class LCTHandler:
             self._clause_groups.append(clause_nbr)
             self._super_clause_texts.append(sc_text_item[:-1])
 
-        # End of element "lct"
-        if check and (reader.readNextStartElement() is True or reader.name() != "lct"):
-            return False, False
-
-        # End of document
-        if check and reader.readNext() != QXmlStreamReader.EndDocument:
-            return False, False
-
         return True, is_completed
 
     def to_string(self) -> str:
@@ -254,6 +242,9 @@ class LCTHandler:
 
             writer.writeStartElement("lct")
             writer.writeAttribute("version", "1.0")
+            writer.writeAttribute("xmlns", "http://www.example.org/semanticsLCT")
+            writer.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+            writer.writeAttribute("xsi:schemaLocation", "http://www.example.org/semanticsLCT lct.xsd")
             writer.writeTextElement("dimension", "Semantics")
 
             raw_labels = self.get_raw_labels()

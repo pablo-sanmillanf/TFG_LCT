@@ -1,6 +1,6 @@
 import json
 
-from PyQt5 import QtGui
+from PyQt5.QtGui import QIcon, QCloseEvent
 from PyQt5.QtCore import QFile, QTextStream
 from PyQt5.QtWidgets import (
     QMainWindow, QInputDialog, QMessageBox, QFileDialog
@@ -59,13 +59,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         super(MainWindow, self).__init__()
         self.setupUi(self)
-        self.setWindowIcon(QtGui.QIcon(':/icon/logo'))
+        self.setWindowIcon(QIcon(':/icon/logo'))
 
         self._root_directory = root_directory
 
         self._current_file = ""
 
-        self._lct_handler = LCTHandler("Semantics", [SD_VALUES, SG_VALUES], DEFAULT_DESCRIPTOR_VALUE)
+        file = QFile(":/xml_schema/xsd_v1_0")
+        file.open(QFile.ReadOnly)
+        self._lct_handler = LCTHandler(
+            "Semantics", [SD_VALUES, SG_VALUES], DEFAULT_DESCRIPTOR_VALUE, QTextStream(file.readAll()).readAll()
+        )
 
         self._graph_window = GraphWindow(root_directory + "/graph/")
         if conf_info is not None:
@@ -380,7 +384,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self, "Error", "The analysis is not completed (All '~' must be replaced)", QMessageBox.Ok
             )
 
-    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+    def closeEvent(self, a0: QCloseEvent) -> None:
         """
         This function handles the close event. If there are unsaved changes in the analysis, a dialog will be shown
         asking the user to save it. Also, if the user has changed the default configuration of the project (the text
