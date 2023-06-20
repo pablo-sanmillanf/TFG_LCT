@@ -1,9 +1,0 @@
-<RCC>
-    <qresource prefix="/icons">
-        <file alias="penguin.png">animal-penguin.png</file>
-        <file alias="monkey.png">animal-monkey.png</file>
-    </qresource>
-    <qresource prefix="/genericImages">
-        <file>grafica.png</file>
-    </qresource>
-</RCC>

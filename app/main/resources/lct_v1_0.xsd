@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- LCT FORMAT FILES XSD -->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="http://www.example.org/semanticsLCT" 
+  xmlns:tns="http://www.example.org/semanticsLCT"
+  elementFormDefault="qualified">
+  
+  <xsd:element name="lct" type="tns:lctType"/>
+  
+  <xsd:complexType name="lctType">
+    <xsd:sequence>
+      <xsd:element name="dimension" type="xsd:string"/>
+      <xsd:element name="targets" type="tns:targetsType"/>
+      <xsd:element name="analysis" type="tns:analysisType"/>
+    </xsd:sequence>
+    <xsd:attribute name="version" type="xsd:string" use="required"/>
+  </xsd:complexType>
+  
+  
+  <!-- Targets types -->
+  <xsd:complexType name="targetsType">
+    <xsd:sequence>
+      <xsd:element name="target" type="tns:targetType" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:simpleType name="targetType">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="SD-- SD- SD+ SD++"/>
+      <xsd:enumeration value="SG++ SG+ SG- SG--"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <!-- Analysis, Super Clauses and Clauses types -->
+  <xsd:complexType name="analysisType">
+    <xsd:sequence>
+      <xsd:element name="superClause" type="tns:superClauseType" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="superClauseType">
+    <xsd:sequence>
+      <xsd:element name="clause" type="tns:clauseType" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="SD" type="tns:clauseAttributesType"/>
+    <xsd:attribute name="SG" type="tns:clauseAttributesType"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="clauseType">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="SD" type="tns:clauseAttributesType"/>
+        <xsd:attribute name="SG" type="tns:clauseAttributesType"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  
+  <xsd:simpleType name="clauseAttributesType">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[+]{1,2}|-{1,2}|~"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+</xsd:schema>

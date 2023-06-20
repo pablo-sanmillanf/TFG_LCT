@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/common/icon">
+        <file alias="logo">logo.ico</file>
+    </qresource>
+    <qresource prefix="/main/conf">
+        <file alias="defconf">defaultconf.json</file>
+    </qresource>
+    <qresource prefix="/main/xml_schema">
+        <file alias="xsd_v1_0">lct_v1_0.xsd</file>
+    </qresource>
+    <qresource prefix="/graph/styles">
+        <file alias="slider">slider.css</file>
+    </qresource>
+</RCC>

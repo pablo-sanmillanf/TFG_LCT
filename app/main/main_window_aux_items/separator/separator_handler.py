@@ -12,11 +12,12 @@ class SeparatorHandler:
     This class controls all the behaviour of the Separators (insertion, deletion, updates, movement, etc.). Also,
     manges the creation and elimination of the super Separators.
     """
-    _pen: QPen
-    separators: list[list[Separator | bool]]
+    _regular_pen: QPen
+    _super_pen: QPen
+    separators: list[list[Separator | bool]]  # Element: [Separator_object, Is_super_separator]
 
     def __init__(self, line_height: float, fixed_points: list[tuple[float, list[tuple[float, bool]]]],
-                 parent: QGraphicsItem) -> None:
+                 regular_sep_color: str, super_sep_color: str, parent: QGraphicsItem) -> None:
         """
         Create SeparatorHandler object. Only one object from this class should be created
         :param line_height: The height that the separators will have.
@@ -26,13 +27,20 @@ class SeparatorHandler:
                             (y_1, [(x_0, Ignored), (x_1, Ignored), ...]),
                             ...
                             ]
+        :param regular_sep_color: A valid HTML color that will have the regular separators.
+        :param super_sep_color: A valid HTML color that will have the super separators.
         :param parent: The QGraphicsItem parent of the Separators. Can't be None
         """
         self._height = line_height
         self._fixed_points = fixed_points
         self._parent = parent
-        self._pen = None
         self.emitter = SeparatorEmitter()
+
+        self._regular_pen = Separator(0, 0, self._height, self._fixed_points, None, self._parent).pen()
+        self._super_pen = QPen(self._regular_pen)
+        self._regular_pen.setColor(QColor(regular_sep_color))
+        self._super_pen.setColor(QColor(super_sep_color))
+        self._super_pen.setWidthF(self._super_pen.widthF() * SUPER_SEPARATOR_FACTOR)
 
         # Set separators
         self.separators = []
@@ -45,14 +53,20 @@ class SeparatorHandler:
         """
         self._fixed_points = fixed_points
 
-    def set_separator_pen(self, pen: QPen) -> None:
+    def set_separator_colors(self, regular_sep_color: str, super_sep_color: str) -> None:
         """
-        Apply the given pen to all the separators
-        :param pen: the pen to be applied
+        Apply the colors to all the separators
+        :param regular_sep_color: A valid HTML color that will have the regular separators.
+        :param super_sep_color: A valid HTML color that will have the super separators.
         """
-        self._pen = pen
+        self._regular_pen.setColor(QColor(regular_sep_color))
+        self._super_pen.setColor(QColor(super_sep_color))
+
         for separator in self.separators:
-            separator[0].setPen(pen)
+            if separator[1]:
+                separator[0].setPen(self._super_pen)
+            else:
+                separator[0].setPen(self._regular_pen)
 
     def set_separator_width(self, width: float) -> None:
         """
@@ -60,14 +74,13 @@ class SeparatorHandler:
         SUPER_SEPARATOR_FACTOR.
         :param width: the width
         """
-        self._pen.setWidthF(width)
+        self._regular_pen.setWidthF(width)
+        self._super_pen.setWidthF(width * SUPER_SEPARATOR_FACTOR)
         for separator in self.separators:
-            pen = separator[0].pen()
             if separator[1]:
-                pen.setWidthF(width * SUPER_SEPARATOR_FACTOR)
+                separator[0].setPen(self._super_pen)
             else:
-                pen.setWidthF(width)
-            separator[0].setPen(pen)
+                separator[0].setPen(self._regular_pen)
 
     def set_separator_height(self, height: float) -> None:
         """
@@ -193,20 +206,19 @@ class SeparatorHandler:
                                 return line[1][i][0], line[0], index - 1
         return None, None, -1
 
-    def add_limit_separators(self, first_limit_x: float, first_limit_y: float, last_limit_x: float, last_limit_y: float,
-                             color: str) -> None:
+    def add_limit_separators(self, first_limit_x: float, first_limit_y: float,
+                             last_limit_x: float, last_limit_y: float) -> None:
         """
         This function add the limit separators to the canvas. Those separators are super Separators.
         :param first_limit_x: The x value of the initial Separator limit.
         :param first_limit_y: The y value of the initial Separator limit.
         :param last_limit_x: The x value of the last Separator limit.
         :param last_limit_y: The y value of the last Separator limit.
-        :param color: Color of the super Separators.
         """
         self.add_separator(first_limit_x, first_limit_y, True)
         self.add_separator(last_limit_x, last_limit_y, True)
-        self.promote_separator(last_limit_x, last_limit_y, color)
-        self.promote_separator(first_limit_x, first_limit_y, color)
+        self.promote_separator(last_limit_x, last_limit_y)
+        self.promote_separator(first_limit_x, first_limit_y)
 
     def add_separator(self, x: float, y: float, is_static: bool) -> bool:
         """
@@ -248,14 +260,12 @@ class SeparatorHandler:
                 self._parent
 
             )
+
+        new_separator.setPen(self._regular_pen)
+
         if is_static:
             new_separator.setFlags(new_separator.flags() & ~QGraphicsItem.ItemIsMovable)
             new_separator.setCursor(Qt.ArrowCursor)
-
-        if self._pen is not None:
-            new_separator.setPen(self._pen)
-        else:
-            self._pen = new_separator.pen()
 
         self.separators.insert(index + 1, [new_separator, False])
 
@@ -295,12 +305,11 @@ class SeparatorHandler:
             removed_separator = self.separators.pop()
             self._parent.scene().removeItem(removed_separator[0])
 
-    def promote_separator(self, x: float, y: float, color: str) -> bool:
+    def promote_separator(self, x: float, y: float) -> bool:
         """
         Promote a separator to a super Separator.
         :param x: The x coordinate
         :param y: The y coordinate
-        :param color: The color of super separator
         :return: True if success, False if error. There can be an error if the coordinates are out of bounds or if in
                  the given coordinates there is no separator
         """
@@ -313,15 +322,7 @@ class SeparatorHandler:
 
         self.separators[sep_index][1] = True
 
-        pen = self.separators[sep_index][0].pen()
-
-        # Set separator bigger
-        pen.setWidthF(pen.widthF() * SUPER_SEPARATOR_FACTOR)
-
-        # Change color
-        pen.setColor(QColor(color))
-
-        self.separators[sep_index][0].setPen(pen)
+        self.separators[sep_index][0].setPen(self._super_pen)
 
         return True
 
@@ -342,7 +343,7 @@ class SeparatorHandler:
 
         self.separators[sep_index][1] = False
 
-        self.separators[sep_index][0].setPen(self._pen)
+        self.separators[sep_index][0].setPen(self._regular_pen)
 
         return True
 

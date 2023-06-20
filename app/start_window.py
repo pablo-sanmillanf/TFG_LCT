@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QMessageBox
 from main.main_window import MainWindow, manage_file
 from startWindowQtCreator import Ui_StartWindow
 
-from main.main_resources import main_resources
+from main.resources import resources
 
 
 try:
@@ -35,7 +35,7 @@ class StartWindow(QMainWindow, Ui_StartWindow):
         self.setupUi(self)
         self._set_styles()
 
-        self.setWindowIcon(QIcon(':/icon/logo'))
+        self.setWindowIcon(QIcon(':/common/icon/logo'))
 
         self._settings = QSettings("LCT", "Semantics Analyzer")
 
@@ -112,15 +112,14 @@ class StartWindow(QMainWindow, Ui_StartWindow):
             self._settings.setValue("workspace/root_dir", root_dir)
             self.close()
 
-            conf_file = None
-
             QDir().mkdir(os.path.join(root_dir, 'conf'))  # If dir already exists, do nothing
 
             self._conf_file_path = os.path.join(root_dir, 'conf/conf.conf')
             if not QFile.exists(self._conf_file_path):
-                file = QFile(":/conf/defconf")
+                file = QFile(":/main/conf/defconf")
                 file.open(QFile.ReadOnly)
-                manage_file(self._conf_file_path, "w", QTextStream(file.readAll()).readAll())
+                conf_file = QTextStream(file.readAll()).readAll()
+                manage_file(self._conf_file_path, "w", conf_file)
             else:
                 conf_file = manage_file(self._conf_file_path, "r")
 

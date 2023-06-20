@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/styles">
-        <file alias="slider">slider.css</file>
-    </qresource>
-</RCC>

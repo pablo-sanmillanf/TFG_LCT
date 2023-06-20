@@ -31,7 +31,8 @@ class ClassifierView(QGraphicsView):
 
     def setup(self, x_padding: float | int, y_padding: float | int, min_width: float | int, min_height: float | int,
               text: str, text_size: float | int, default_descriptor: str, default_descriptor_value: str,
-              allowed_descriptor_values: list[str], colors: list[str]) -> None:
+              allowed_descriptor_values: list[str], colors: list[str], regular_sep_color: str,
+              super_sep_color: str) -> None:
         """
         Set up the object.
         :param x_padding: Pixels of horizontal padding for the text.
@@ -48,6 +49,8 @@ class ClassifierView(QGraphicsView):
         :param allowed_descriptor_values: The allowed values that can be the editable parts of the descriptors.
         :param colors: A list of colors that will be used by the rectangles as a background color depending on the
                        values of its Descriptors. Should be valid HTML colors.
+        :param regular_sep_color: A valid HTML color that will have the regular separators.
+        :param super_sep_color: A valid HTML color that will have the super separators.
         """
         self._scene = QGraphicsScene(0, 0, min_width, min_height)
 
@@ -70,6 +73,8 @@ class ClassifierView(QGraphicsView):
             default_descriptor_value,
             allowed_descriptor_values,
             colors,
+            regular_sep_color,
+            super_sep_color,
             self._items_parent
         )
 

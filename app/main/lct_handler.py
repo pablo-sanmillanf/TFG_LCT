@@ -38,13 +38,13 @@ class LCTHandler:
 
         self._def_value = default_value
 
-        self._clause_groups = []
-        self._clause_tags = []
-        self._clause_texts = []
-        self._super_clause_tags = []
-        self._super_clause_texts = []
+        self._clause_groups = []  # Store the super clause limits saving the clause limit index
+        self._clause_tags = []  # List with all the tags (Sd and/or SG) for all the clauses
+        self._clause_texts = []  # List with all the texts for all the clauses
+        self._super_clause_tags = []  # List with all the tags (Sd and/or SG) for all the super clauses
+        self._super_clause_texts = []  # List with all the texts for all the clauses
 
-        self._labels = labels
+        self._labels = labels  # List of available tags.
         self._set_pattern(labels)
 
         self._is_valid = False
@@ -93,6 +93,9 @@ class LCTHandler:
         clause_nbr = 0
         self._clause_groups.append(clause_nbr)
 
+        self._is_valid = False
+        self._is_completed = True
+
         for super_clause in data:
             sc_text_item = ""
 
@@ -106,8 +109,6 @@ class LCTHandler:
                     sc_matches = sc_matches[0]
                 if len(sc_matches) != len(self._labels):
                     return False, False
-            else:
-                self._is_completed = True
 
             self._super_clause_tags.append(list(sc_matches))
 
@@ -124,8 +125,6 @@ class LCTHandler:
                         c_matches = c_matches[0]
                     if len(c_matches) != len(self._labels):
                         return False, False
-                else:
-                    self._is_completed = True
 
                 self._clause_tags.append(list(c_matches))
                 self._clause_texts.append(clause[0])

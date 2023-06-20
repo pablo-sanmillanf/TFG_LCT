@@ -67,8 +67,8 @@
     </property>
     <addaction name="_actionRun_Plotter"/>
    </widget>
-   <widget class="QMenu" name="_menuHelp">
-    <property name="title">
+   <widget class="QAction" name="_menuHelp">
+    <property name="text">
      <string>Help</string>
     </property>
    </widget>

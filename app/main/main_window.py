@@ -1,7 +1,7 @@
 import json
 
-from PyQt5.QtGui import QIcon, QCloseEvent
-from PyQt5.QtCore import QFile, QTextStream
+from PyQt5.QtGui import QIcon, QCloseEvent, QDesktopServices
+from PyQt5.QtCore import QFile, QTextStream, QUrl
 from PyQt5.QtWidgets import (
     QMainWindow, QInputDialog, QMessageBox, QFileDialog
 )
@@ -11,7 +11,7 @@ from .lct_handler import LCTHandler
 from .dialogs.colors_dialog import ColorsDialog
 from .graph.graph_window import GraphWindow
 from .mainWindowQtCreator import Ui_MainWindow
-from .main_resources import main_resources
+from .resources import resources
 
 SD_VALUES = ["SD--", "SD-", "SD+", "SD++"]
 SG_VALUES = ["SG++", "SG+", "SG-", "SG--"]
@@ -20,6 +20,8 @@ DEFAULT_TEXT_SD = "SD~"
 DEFAULT_TEXT_SD_SG = "SD~;SG~"
 DEFAULT_DESCRIPTOR_VALUE = "~"
 ALLOWED_DESCRIPTOR_VALUES = ["++", "+", "-", "--"]
+
+HELP_URL = "https://github.com/pablo-sanmillanf/TFG_LCT"
 
 
 def manage_file(file: str, operation: str, data: str = None) -> str:
@@ -59,28 +61,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         super(MainWindow, self).__init__()
         self.setupUi(self)
-        self.setWindowIcon(QIcon(':/icon/logo'))
+        self.setWindowIcon(QIcon(':/common/icon/logo'))
 
         self._root_directory = root_directory
 
         self._current_file = ""
 
-        file = QFile(":/xml_schema/xsd_v1_0")
+        file = QFile(":/main/xml_schema/xsd_v1_0")
         file.open(QFile.ReadOnly)
         self._lct_handler = LCTHandler(
             "Semantics", [SD_VALUES, SG_VALUES], DEFAULT_DESCRIPTOR_VALUE, QTextStream(file.readAll()).readAll()
         )
 
-        self._graph_window = GraphWindow(root_directory + "/graph/")
+        self._graph_window = GraphWindow(root_directory + "/graph/", HELP_URL)
         if conf_info is not None:
             try:
                 self._conf = json.loads(conf_info)
             except:
-                file = QFile(":/conf/defconf")
+                file = QFile(":/main/conf/defconf")
                 file.open(QFile.ReadOnly)
                 self._conf = json.loads(QTextStream(file.readAll()).readAll())
         else:
-            file = QFile(":/conf/defconf")
+            file = QFile(":/main/conf/defconf")
             file.open(QFile.ReadOnly)
             data = QTextStream(file.readAll()).readAll()
             self._conf = json.loads(data)
@@ -96,14 +98,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "This is an example text. If you want to start editing a file select \"File\"->\"Open...\" and browse to "
             "desired file.\nTo set a division in the text, right-click and select \"Split\". To undo a division in the "
             "text, right-click and select \"Join\" near the splitter.",
-            self._conf["text_size"],
+            self._conf["textSize"],
             DEFAULT_TEXT_SD_SG,
             DEFAULT_DESCRIPTOR_VALUE,
             ALLOWED_DESCRIPTOR_VALUES,
-            list(self._conf["colors"]["together"].values())
+            list(self._conf["rectsColors"]["together"].values()),
+            self._conf["separatorColors"]["regularSeparator"],
+            self._conf["separatorColors"]["superSeparator"]
         )
         self._classifierView.classifier.emitter.classifier_has_changed.connect(self._classifier_has_changed)
 
+        self._menuHelp.triggered.connect(lambda checked: QDesktopServices.openUrl(QUrl(HELP_URL)))
         self._actionNew.triggered.connect(self._new_file_dialog)
         self._actionOpen.triggered.connect(self._open_file_dialog)
         self._actionSave.triggered.connect(self._save_file_dialog)
@@ -179,7 +184,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             self._lct_handler.get_clause_texts(),
                             self._lct_handler.get_super_clause_texts(),
                             DEFAULT_TEXT_SG,
-                            list(self._conf["colors"]["alone"].values()),
+                            list(self._conf["rectsColors"]["alone"].values()),
                             raw_labels,
                             self._lct_handler.get_clause_tags()
                         )
@@ -193,7 +198,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 self._lct_handler.get_clause_texts(),
                                 self._lct_handler.get_super_clause_texts(),
                                 DEFAULT_TEXT_SD,
-                                list(self._conf["colors"]["alone"].values()),
+                                list(self._conf["rectsColors"]["alone"].values()),
                                 raw_labels,
                                 self._lct_handler.get_clause_tags()
                             )
@@ -206,7 +211,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 self._lct_handler.get_clause_texts(),
                                 self._lct_handler.get_super_clause_texts(),
                                 DEFAULT_TEXT_SD_SG,
-                                list(self._conf["colors"]["together"].values()),
+                                list(self._conf["rectsColors"]["together"].values()),
                                 raw_labels,
                                 self._lct_handler.get_clause_tags()
                             )
@@ -297,7 +302,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if ok:
             self._classifierView.set_text_size(value)
-            self._conf["text_size"] = value
+            self._conf["textSize"] = value
             self._conf_has_changed = True
 
     def _rects_colors_dialog(self, s: bool) -> None:
@@ -306,15 +311,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ColorsDialog to allow the user, change the desired background colors.
         :param s: Button state. Non-relevant.
         """
-        dlg = ColorsDialog(self._conf["colors"], self)
+        dlg = ColorsDialog(self._conf["rectsColors"], self)
         dlg.exec()
 
         if dlg.has_changed:
-            self._conf["colors"] = dlg.colors
+            self._conf["rectsColors"] = dlg.colors
             if self._classifierView.get_default_descriptor() == DEFAULT_TEXT_SD_SG:
-                self._classifierView.set_colors(list(self._conf["colors"]["together"].values()))
+                self._classifierView.set_colors(list(self._conf["rectsColors"]["together"].values()))
             else:
-                self._classifierView.set_colors(list(self._conf["colors"]["alone"].values()))
+                self._classifierView.set_colors(list(self._conf["rectsColors"]["alone"].values()))
             self._conf_has_changed = True
 
     def _target_action(self, text: str) -> None:
@@ -325,13 +330,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if text != self._classifierView.get_default_descriptor():
             if text == DEFAULT_TEXT_SD_SG:
                 self._lct_handler.set_labels([SD_VALUES, SG_VALUES])
-                self._classifierView.set_default_descriptor(text, list(self._conf["colors"]["together"].values()))
+                self._classifierView.set_default_descriptor(text, list(self._conf["rectsColors"]["together"].values()))
             elif text == DEFAULT_TEXT_SD:
                 self._lct_handler.set_labels([SD_VALUES])
-                self._classifierView.set_default_descriptor(text, list(self._conf["colors"]["alone"].values()))
+                self._classifierView.set_default_descriptor(text, list(self._conf["rectsColors"]["alone"].values()))
             elif text == DEFAULT_TEXT_SG:
                 self._lct_handler.set_labels([SG_VALUES])
-                self._classifierView.set_default_descriptor(text, list(self._conf["colors"]["alone"].values()))
+                self._classifierView.set_default_descriptor(text, list(self._conf["rectsColors"]["alone"].values()))
 
     def _split_in_sentences_action(self, s: bool) -> None:
         """
@@ -347,7 +352,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 split_text,
                 [text],
                 DEFAULT_TEXT_SD,
-                list(self._conf["colors"]["alone"].values()),
+                list(self._conf["rectsColors"]["alone"].values()),
                 ["SD"],
                 [[DEFAULT_DESCRIPTOR_VALUE] for _ in range(len(split_text))]
             )
@@ -356,7 +361,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 split_text,
                 [text],
                 DEFAULT_TEXT_SG,
-                list(self._conf["colors"]["alone"].values()),
+                list(self._conf["rectsColors"]["alone"].values()),
                 ["SG"],
                 [[DEFAULT_DESCRIPTOR_VALUE] for _ in range(len(split_text))]
             )
@@ -365,7 +370,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 split_text,
                 [text],
                 DEFAULT_TEXT_SD_SG,
-                list(self._conf["colors"]["together"].values()),
+                list(self._conf["rectsColors"]["together"].values()),
                 ["SD", "SG"],
                 [[DEFAULT_DESCRIPTOR_VALUE, DEFAULT_DESCRIPTOR_VALUE] for _ in range(len(split_text))]
             )

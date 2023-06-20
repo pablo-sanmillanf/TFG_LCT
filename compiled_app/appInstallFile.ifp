@@ -1,0 +1,371 @@
+﻿
+[Header]
+ProjectFileVersion = 1.1
+[General]
+Program name = Semantics Analyzer
+Program version = 1.0
+Windows 2000 = 0
+Windows XP = 0
+Windows Server 2003 = 0
+Windows Vista = 0
+Windows Server 2008 = 0
+Windows 7 = 1
+Windows 8 = 1
+Windows 10 = 1
+Windows Server 2016 = 1
+DoNotCheckOS = 0
+Company name = TFG LCT
+Website = https://github.com/pablo-sanmillanf/TFG_LCT
+SFA = 0
+DFA = 0
+Comp = 1
+[Graphics]
+Wizard image = <main>
+Header image = <main>
+Show Label = 1
+VisualStylesEnabled = 1
+[Files]
+Installation path = <ProgramFiles>\<Company>\<AppName>\
+Autcip = 1
+[Uninstall]
+Vwau = 0
+Website = https://
+Include uninstaller = 1
+Uninstaller filename = Uninstall
+UseCustomDisplayIcon = 0
+CustomDisplayIcon = <InstallPath>\
+[Licence]
+Licence dialog = 0
+[Finish]
+Sart program = 1
+Reboot computer = 0
+Program = <InstallPath>\app.exe
+ProgramArguments = 
+[Shortcuts]
+Allowtc = 0
+Shortcut path = <Company>\<AppName>\
+[Serialoptions]
+Allows = 0
+Number = 1000
+Mask = #####-#####-#####-#####
+[SplashScreen]
+Image = 
+Sound = 
+Time = 2
+PlaySound = 0
+Allow = 0
+[Build]
+File = C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\installer.exe
+SetupIconPath = C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\logo.ico
+UninstallIconPath = C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\logo.ico
+CompressionMethod = 0
+CompressionLevel = 2
+[Updater]
+Allow = 0
+1 = <AppName>
+2 = <AppVersion>
+3 = http://
+4 = http://
+5 = http://
+6 = Update
+Language = 0
+RunProg = 
+RunProgs = 0
+Execdlls = 0
+[Languages]
+[Files/Dirs]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_asyncio.pyd
+62.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_bz2.pyd
+81.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_ctypes.pyd
+120.9 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_decimal.pyd
+245.9 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_elementtree.pyd
+123.9 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_hashlib.pyd
+62.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_lzma.pyd
+154.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_multiprocessing.pyd
+32.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_overlapped.pyd
+48.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_queue.pyd
+30.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_socket.pyd
+76.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_sqlite3.pyd
+115.9 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_ssl.pyd
+155.9 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_tkinter.pyd
+61.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_uuid.pyd
+23.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_zoneinfo.pyd
+42.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-console-l1-1-0.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-datetime-l1-1-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-debug-l1-1-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-errorhandling-l1-1-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-file-l1-1-0.dll
+16.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-file-l1-2-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-file-l2-1-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-handle-l1-1-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-heap-l1-1-0.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-interlocked-l1-1-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-libraryloader-l1-1-0.dll
+13.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-localization-l1-2-0.dll
+15.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-memory-l1-1-0.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-namedpipe-l1-1-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-processenvironment-l1-1-0.dll
+13.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-processthreads-l1-1-0.dll
+14.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-processthreads-l1-1-1.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-profile-l1-1-0.dll
+12.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-rtlsupport-l1-1-0.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-string-l1-1-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-synch-l1-1-0.dll
+14.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-synch-l1-2-0.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-sysinfo-l1-1-0.dll
+13.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-timezone-l1-1-0.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-core-util-l1-1-0.dll
+12.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-conio-l1-1-0.dll
+13.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-convert-l1-1-0.dll
+16.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-environment-l1-1-0.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-filesystem-l1-1-0.dll
+14.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-heap-l1-1-0.dll
+13.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-locale-l1-1-0.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-math-l1-1-0.dll
+21.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-private-l1-1-0.dll
+64.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-process-l1-1-0.dll
+13.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-runtime-l1-1-0.dll
+17.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-stdio-l1-1-0.dll
+18.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-string-l1-1-0.dll
+18.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-time-l1-1-0.dll
+15.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\api-ms-win-crt-utility-l1-1-0.dll
+13.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\app.exe
+17.9 MB
+exe
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\base_library.zip
+1.7 MB
+zip
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\libcrypto-1_1.dll
+3.3 MB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\libffi-8.dll
+34.2 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\libopenblas.FB5AE2TYXYH2IJRDKGDGQ3XBKLKTF43H.gfortran-win_amd64.dll
+34 MB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\libssl-1_1.dll
+686.3 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\pyexpat.pyd
+193.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\python3.dll
+64.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\python311.dll
+5.5 MB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\select.pyd
+28.4 KB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\sqlite3.dll
+1.4 MB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tcl86t.dll
+1.8 MB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tk86t.dll
+1.5 MB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\ucrtbase.dll
+994.9 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\unicodedata.pyd
+1.1 MB
+pyd
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\VCRUNTIME140.dll
+96.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\VCRUNTIME140_1.dll
+37.4 KB
+dll
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\contourpy\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\kiwisolver\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\matplotlib\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\nltk\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\nltk_data\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\numpy\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\pandas\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\PIL\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\PyQt5\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\pytz\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\regex\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\scipy\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\scipy.libs\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\setuptools-65.5.0.dist-info\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tcl\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tcl8\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tk\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\xmlschema\
+N/A
+[Folder]
+[Licence_Begin]
+114
+{\rtf1\ansi\ansicpg1252\deff0\deflang3082{\fonttbl{\f0\fnil\fcharset0 Arial;}}
+\viewkind4\uc1\pard\fs20\par
+}
+ [Licence_End]
+[Registry]
+[Variables]
+[SCs]
+Desktop
+Semantics Analyzer
+<InstallPath>\app.exe
+
+
+0
+Startmenu
+Semantics Analyzer
+<InstallPath>\app.exe
+
+
+0
+[IFP_End]
+[Serials]
+[Serials_End]
+[Commands]

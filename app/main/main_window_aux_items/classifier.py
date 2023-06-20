@@ -176,8 +176,8 @@ class Classifier:
     """
 
     def __init__(self, text: str, text_width: float, text_size: float, default_descriptor_string: str,
-                 default_descriptor_value: str, allowed_descriptor_values: list[str],
-                 rect_colors: list[str], parent: QGraphicsItem) -> None:
+                 default_descriptor_value: str, allowed_descriptor_values: list[str], rect_colors: list[str],
+                 regular_sep_color: str, super_sep_color: str, parent: QGraphicsItem) -> None:
         """
         Create Classifier object. Only one object form this class should be created
         :param text: The text to be analyzed.
@@ -188,6 +188,8 @@ class Classifier:
         :param default_descriptor_value: The default value of editable parts of the descriptors.
         :param allowed_descriptor_values: The allowed values that can be the editable parts of the descriptors.
         :param rect_colors: The list of all the available background RoundedRect colors.
+        :param regular_sep_color: A valid HTML color that will have the regular separators.
+        :param super_sep_color: A valid HTML color that will have the super separators.
         :param parent: The QGraphicsItem parent of this element. Can't be None
         """
         self._default_descriptor_value = default_descriptor_value
@@ -199,13 +201,12 @@ class Classifier:
         sep_points = obtain_separator_points(complete_points)
 
         # Set separators
-        self._sep_handler = SeparatorHandler(text_size * 2, sep_points, parent)
+        self._sep_handler = SeparatorHandler(text_size * 2, sep_points, regular_sep_color, super_sep_color, parent)
         self._sep_handler.add_limit_separators(
             sep_points[0][1][0][0],
             sep_points[0][0],
             sep_points[-1][1][-1][0],
             sep_points[-1][0],
-            "yellow"
         )
 
         # Set separator width according to text size
@@ -332,7 +333,7 @@ class Classifier:
         :return: True if success, False if error. There can be a mistake if the coordinates are out of bounds, if the
         separator is already a super Separator or if in the given coordinates there is no separator.
         """
-        if self._sep_handler.promote_separator(x, y, "yellow"):
+        if self._sep_handler.promote_separator(x, y):
             self.emitter.classifier_has_changed.emit()
             return True
         return False
@@ -478,7 +479,6 @@ class Classifier:
             sep_points[0][0],
             sep_points[-1][1][-1][0],
             sep_points[-1][0],
-            "yellow"
         )
 
         limit_points = obtain_limit_points(complete_points)

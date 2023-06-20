@@ -1,5 +1,6 @@
 import numpy as np
-from PyQt5.QtCore import QFile, QTextStream
+from PyQt5.QtCore import QFile, QTextStream, QUrl
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import (
     QInputDialog, QFileDialog
 )
@@ -8,8 +9,7 @@ from ..lct_handler import LCTHandler
 from .graphWindowQtCreator import Ui_GraphWindow
 from PyQt5 import QtWidgets, QtGui
 
-from .graph_resources import graph_resources
-from ..main_resources import main_resources
+from ..resources import resources
 
 TEXT_SG = "SG"
 TEXT_SD = "SD"
@@ -22,20 +22,19 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
     is needed.
     """
 
-    def __init__(self, relative_path: str, visible_points: int = 10, *args, **kwargs) -> None:
+    def __init__(self, relative_path: str, help_url: str, visible_points: int = 10, *args, **kwargs) -> None:
         """
         Object creation.
         :param relative_path: Path that will be taken as root directory for this module.
+        :param help_url: URL to the Help menu
         :param visible_points: Visible x-points in the graph.
-        :param args:
-        :param kwargs:
         """
         super(GraphWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
         self._relative_path = relative_path
         self._apply_styles()
 
-        self.setWindowIcon(QtGui.QIcon(':/icon/logo'))
+        self.setWindowIcon(QtGui.QIcon(':/common/icon/logo'))
 
         self._visible_points = visible_points
 
@@ -45,6 +44,8 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
         self._super_clause_data = None
         self._clause_labels = None
         self._mplWidget.point_clicked.connect(self._text.text_selected)
+
+        self._menuHelp.triggered.connect(lambda checked: QDesktopServices.openUrl(QUrl(help_url)))
 
         self._actiongroupTarget.setExclusive(True)
         self._actionClauses.triggered.connect(lambda x: self._change_target_action(True))
@@ -168,7 +169,7 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
         """
         Apply CSS styles to the widgets in the window.
         """
-        file = QFile(":/styles/slider")
+        file = QFile(":/graph/styles/slider")
         file.open(QFile.ReadOnly)
         self._slider.setStyleSheet(QTextStream(file.readAll()).readAll())
         self._mplWidget.setStyleSheet("QWidget { border: 0; background: white; margin: 0;}")

@@ -20,7 +20,7 @@ def _exponentialSearchDescriptors(exp_list: list[list[Descriptor | float | float
     if exp_list[0][0].pos() == wanted_pos:
         return 0
     exp_index = 1
-    while exp_index < len(exp_list) and (exp_list[exp_index][0].pos().y() <= wanted_pos.y() or
+    while exp_index < len(exp_list) and (exp_list[exp_index][0].pos().y() < wanted_pos.y() or
                                          (exp_list[exp_index][0].pos().y() == wanted_pos.y() and
                                           exp_list[exp_index][0].pos().x() <= wanted_pos.x())):
         exp_index = exp_index * 2
@@ -405,7 +405,7 @@ class DescriptorHandler:
             labels[i] = ";" + labels[i]
         labels.append("")
         for i in range(len(self._separators)):
-            self._descriptors[self._separators[i][1]][0].set_text(labels, values[i])
+            self._descriptors[self._separators[i][1]][0].set_text(labels.copy(), values[i])
         self._descriptors[-1][0].set_text(labels, values[-1])
 
     def get_descriptor_values(self) -> list[str]:

@@ -2,7 +2,7 @@ from PyQt5 import QtGui
 
 from PyQt5.QtWidgets import QGraphicsTextItem, QGraphicsItem
 
-BREAK_LINE_CHARACTERS = ["}", "-", "|", "?", "!", "/"]
+BREAK_LINE_CHARACTERS = ["}", "-", "|", "?", "!", "/", "—"]
 
 
 def apply_text_format(text: str) -> str:
