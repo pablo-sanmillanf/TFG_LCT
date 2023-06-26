@@ -41,8 +41,44 @@ def _exponentialSearchDescriptors(exp_list: list[list[Descriptor | float | float
                 last = mid - 1
             else:
                 first = mid + 1
-    return bin_index + int(exp_index / 2)
+    if first > last:
+        return last + int(exp_index / 2)
+    else:
+        return bin_index + int(exp_index / 2)
 
+
+def _exponentialSearchDescriptorsLimitPoints(exp_list: list[list[Descriptor | float | float | float]],
+                                             wanted_pos: QPointF) -> int:
+    """
+    Finds the descriptor that has the position wanted_pos using an exponential search.
+    :param exp_list: The list of all descriptors to search for. Each element has more data but the only relevant element
+    is the first.
+    :param wanted_pos: The desire position as a QPointF.
+    :return: The index in the list where the desired Descriptor is.
+    """
+    exp_index = 1
+    while exp_index < len(exp_list) and ((exp_list[exp_index][1] < wanted_pos.y() or
+                                         (exp_list[exp_index][1] == wanted_pos.y() and
+                                          exp_list[exp_index][2] < wanted_pos.x()))):
+        exp_index = exp_index * 2
+
+    bin_list = exp_list[int(exp_index / 2):min(exp_index, len(exp_list))]
+
+    # Perform binary list
+    first = 0
+    last = len(bin_list) - 1
+    bin_index = -1
+    while (first <= last) and (bin_index == -1):
+        mid = (first + last) // 2
+        if bin_list[mid][1] == wanted_pos.y() and bin_list[mid][2] <= wanted_pos.x() < bin_list[mid][3]:
+            bin_index = mid
+        else:
+            if (bin_list[mid][1] > wanted_pos.y()) or \
+                    (bin_list[mid][1] == wanted_pos.y() and bin_list[mid][2] > wanted_pos.x()):
+                last = mid - 1
+            else:
+                first = mid + 1
+    return bin_index + int(exp_index / 2)
 
 def _exponentialSearchSeparators(exp_list: list[list[Separator | int | QPointF]], wanted_index: int) -> int:
     """
@@ -113,6 +149,7 @@ class DescriptorHandler:
         self._default_text = default_text
         self._text_separator = text_separator
         self._allowed_strings = allowed_strings
+        self._last_created_descriptor_group = 0
 
         if font is None:
             self._font = QGraphicsTextItem().font()
@@ -139,7 +176,7 @@ class DescriptorHandler:
         """
         return self._default_text
 
-    def add_separator_listeners(self, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any,
+    def add_separator_listeners(self, created: typing.Any, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any,
                                 removed_fn: typing.Any) -> None:
         """
         Set the separator listeners of the handler.
@@ -148,6 +185,7 @@ class DescriptorHandler:
                                          of a line.
         :param removed_fn: This signal will be emitted when a separator is removed.
         """
+        created.connect(self._separator_created)
         pos_changed_fn.connect(self._separator_position_changed)
         clicked_on_the_border_fn.connect(self._separator_clicked_on_the_border)
         removed_fn.connect(self._separator_removed)
@@ -394,6 +432,9 @@ class DescriptorHandler:
 
             self._set_descriptor_pos(i)
 
+    def update_last_created_descriptor_group(self):
+        self._descriptors[self._last_created_descriptor_group][0].emit_text_changed(False)
+
     def set_texts(self, labels: list[str], values: list[list[str]]) -> None:
         """
         Set the texts for all the group of Descriptors.
@@ -437,33 +478,37 @@ class DescriptorHandler:
         :param point: The last position of the new created separator.
         """
         index_before = self._insert_descriptor(point)
+        self._last_created_descriptor_group = index_before + 1
 
         if len(self._separators) == 0:
             self._separators.append([separator, index_before, point])
 
             # Update text for the new group of descriptors
-            self._descriptors[index_before + 1][0].emit_text_changed(False)
+            # self._descriptors[index_before + 1][0].emit_text_changed(False)
         else:
-            for i in range(len(self._separators)):
-                if (point.y() < self._separators[i][0].pos().y() or
+            for i in reversed(range(len(self._separators))):
+                if (point.y() > self._separators[i][0].pos().y() or
                         (point.y() == self._separators[i][0].pos().y() and
-                         point.x() < self._separators[i][0].pos().x())):
+                         point.x() > self._separators[i][0].pos().x())):
                     # [Separator, Last_index_before, Last_position]
-                    self._separators.insert(i, [separator, index_before, point])
+                    self._separators.insert(i + 1, [separator, index_before, point])
 
                     # Update "Last_index_before" for the separators after this separator
-                    for e in range(i + 1, len(self._separators)):
+                    for e in range(i + 2, len(self._separators)):
                         self._separators[e][1] += 1
 
                     # Update text for the new group of descriptors
-                    self._descriptors[index_before + 1][0].emit_text_changed(False)
+                    # self._descriptors[index_before + 1][0].emit_text_changed(False)
                     return
 
             # If the separator is inserted after the last separator
-            self._separators.append([separator, index_before, point])
+            self._separators.insert(0, [separator, index_before, point])
+            for e in range(1, len(self._separators)):
+                self._separators[e][1] += 1
 
             # Update text for the new group of descriptors
-            self._descriptors[index_before + 1][0].emit_text_changed(False)
+            self._last_created_descriptor_group = index_before + 1
+            # self._descriptors[index_before + 1][0].emit_text_changed(False)
 
     def _insert_descriptor(self, point: QPointF) -> int:
         """
@@ -472,43 +517,26 @@ class DescriptorHandler:
         :param point: The position of the newly created separator.
         :return: The index of the separator before the Descriptor.
         """
-        for i in range(len(self._descriptors)):
-            if (point.y() < self._descriptors[i][1] or
-                    (point.y() == self._descriptors[i][1] and point.x() < self._descriptors[i][2])):
-                self._descriptors.insert(
-                    i,
-                    [
-                        Descriptor(
-                            self._default_text, self._text_separator, self._allowed_strings, self._parent, self._font
-                        ),
-                        point.y(),
-                        point.x(),
-                        self._descriptors[i - 1][3]
-                    ]
-                )
-                self._set_descriptor_pos(i)
-                self._descriptors[i][0].editable_text_changed.connect(self._text_changed)
 
-                self._descriptors[i - 1][3] = point.x()
-                self._set_descriptor_pos(i - 1)
-
-                return i - 1
-
-        self._descriptors.append(
+        index = _exponentialSearchDescriptorsLimitPoints(self._descriptors, point) + 1
+        self._descriptors.insert(
+            index,
             [
-                Descriptor(self._default_text, self._text_separator, self._allowed_strings, self._parent, self._font),
+                Descriptor(
+                    self._default_text, self._text_separator, self._allowed_strings, self._parent, self._font
+                ),
                 point.y(),
                 point.x(),
-                self._descriptors[-1][3]
+                self._descriptors[index - 1][3]
             ]
         )
-        self._set_descriptor_pos(-1)
-        self._descriptors[-1][0].editable_text_changed.connect(self._text_changed)
+        self._set_descriptor_pos(index)
+        self._descriptors[index][0].editable_text_changed.connect(self._text_changed)
 
-        self._descriptors[-2][3] = point.x()
-        self._set_descriptor_pos(-2)
+        self._descriptors[index - 1][3] = point.x()
+        self._set_descriptor_pos(index - 1)
 
-        return len(self._descriptors) - 2
+        return index - 1
 
     def _update_downwards(self, index: int, point: QPointF) -> int:
         """
@@ -560,6 +588,15 @@ class DescriptorHandler:
                 self._set_descriptor_pos(i)
                 return i
         raise RuntimeError("UPWARDS FINISH WITHOUT RETURNING")
+
+    def _separator_created(self, moved_separator: QGraphicsItem, point: QPointF) -> None:
+        """
+        Updates the rectangle positions and size according to the new position of moved_separator. This function
+        should be called every time a Separator has moved.
+        :param moved_separator: The separator that has moved.
+        :param point: The position of the separator.
+        """
+        self._add_separator(moved_separator, point)
 
     def _separator_position_changed(self, moved_separator: QGraphicsItem, point: QPointF) -> None:
         """

@@ -28,6 +28,7 @@ def find_nearest_point(candidate_points: list[float] | tuple[float] | list[tuple
 
 
 class SeparatorEmitter(QObject):
+    created = pyqtSignal(QGraphicsLineItem, QPointF)
     pos_changed = pyqtSignal(QGraphicsLineItem, QPointF)
     released = pyqtSignal(QGraphicsLineItem)
     clicked_on_the_border = pyqtSignal(QGraphicsLineItem, QPointF, QPointF, QPointF)
@@ -76,6 +77,7 @@ class Separator(QGraphicsLineItem):
         self._border_right_pos = False
         self._size = QRectF(0, 0, 0, 0)
         self._height = height
+        self.first_time = True
 
         self.setFlags(QGraphicsItem.ItemIsMovable |
                       QGraphicsItem.ItemIgnoresParentOpacity |
@@ -172,6 +174,14 @@ class Separator(QGraphicsLineItem):
         if self._emitter is not None:
             self._emitter.pos_changed.emit(self, self.pos())
 
+    def _emit_created(self) -> None:
+        """
+        This function is used to notify the position of the Separator. It's an internal function. If the use of this
+        function is needed externally, should be called when the Separator is not moving.
+        """
+        if self._emitter is not None:
+            self._emitter.created.emit(self, self.pos())
+
     def _emit_clicked_on_the_border(self, cursor_pos: QPointF) -> None:
         """
         This function is used to notify the position of the Separator and the cursor when the Separator is clicked on
@@ -240,25 +250,23 @@ class Separator(QGraphicsLineItem):
         :param args: The position, structured as a QPointF or a list with two elements (x and y)
         """
         self._pos_set = True
-        if len(args) == 1 and isinstance(args[0], (QtCore.QPointF, QtCore.QPoint)):
+        if len(args) == 1:
             req_x = args[0].x()
             req_y = args[0].y()
-        elif len(args) == 2 and all(isinstance(x, (float, int)) for x in args):
+        else:
             req_x = args[0]
             req_y = args[1]
-        else:
-            raise TypeError('TypeError in setPos() function')
 
         y_list_values = self._get_y_values()
         y_value = find_nearest_point(y_list_values, req_y)
 
         x_list_values = self._get_x_values_with_complete_info(y_value)
         x_value = find_nearest_point(x_list_values, req_x)
-        super().setPos(x_value, y_value)
 
         x_index = [i[0] for i in x_list_values].index(x_value)
         y_index = y_list_values.index(y_value)
 
+        super().setPos(x_value, y_value)
         if not self._is_clicked and x_index == 0 and y_index > 0:
             self._border_left_pos = True
             self._border_right_pos = False
@@ -375,7 +383,11 @@ class Separator(QGraphicsLineItem):
                 else:
                     self._pos_set = False
             elif change == QGraphicsItem.ItemPositionHasChanged:
-                self._emit_pos_changed()
+                if self.first_time:
+                    self.first_time = False
+                    self._emit_created()
+                else:
+                    self._emit_pos_changed()
         return super().itemChange(change, value)
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:

@@ -60,7 +60,6 @@ class StartWindow(QMainWindow, Ui_StartWindow):
             "    border: 2px solid gray;"
             "    border-radius: 10px;"
             "    padding: 0 8px;"
-            # "    background: yellow;"
             "    selection-background-color: darkgray;"
             "}"
         )
@@ -116,9 +115,7 @@ class StartWindow(QMainWindow, Ui_StartWindow):
 
             self._conf_file_path = os.path.join(root_dir, 'conf/conf.conf')
             if not QFile.exists(self._conf_file_path):
-                file = QFile(":/main/conf/defconf")
-                file.open(QFile.ReadOnly)
-                conf_file = QTextStream(file.readAll()).readAll()
+                conf_file = manage_file(":/main/conf/defconf", "r")
                 manage_file(self._conf_file_path, "w", conf_file)
             else:
                 conf_file = manage_file(self._conf_file_path, "r")

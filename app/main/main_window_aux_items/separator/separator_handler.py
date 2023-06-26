@@ -3,6 +3,7 @@ from PyQt5.QtGui import QPen, QColor
 from PyQt5.QtWidgets import QGraphicsItem
 
 from .separator import Separator, find_nearest_point, SeparatorEmitter
+from datetime import datetime
 
 SUPER_SEPARATOR_FACTOR = 1.5
 
@@ -36,7 +37,14 @@ class SeparatorHandler:
         self._parent = parent
         self.emitter = SeparatorEmitter()
 
-        self._regular_pen = Separator(0, 0, self._height, self._fixed_points, None, self._parent).pen()
+        self._regular_pen = Separator(
+            self._fixed_points[0][1][0][0],
+            self._fixed_points[0][0],
+            self._height,
+            self._fixed_points,
+            None,
+            self._parent
+        ).pen()
         self._super_pen = QPen(self._regular_pen)
         self._regular_pen.setColor(QColor(regular_sep_color))
         self._super_pen.setColor(QColor(super_sep_color))
@@ -219,6 +227,38 @@ class SeparatorHandler:
         self.add_separator(last_limit_x, last_limit_y, True)
         self.promote_separator(last_limit_x, last_limit_y)
         self.promote_separator(first_limit_x, first_limit_y)
+
+    def add_separators_without_checking(self, points: list[tuple[QPointF, bool]]) -> None:
+        """
+        Add a separator in the nearest valid position. The two first added separators should be the bottom and upper
+        limits for all the rest of the separator.
+        :param x: The x coordinate
+        :param y: The y coordinate
+        :return: The created separator if success, None if error. There can be an error if the coordinates
+                 are out of bounds or if there is no more space to place a separator
+        """
+
+        for point in points:
+            # Create needed new elements
+            new_separator = Separator(
+                point[0].x(), point[0].y(), self._height, self._fixed_points, self.emitter, self._parent
+            )
+            self.separators.insert(-1, [new_separator, point[1]])
+            if point[1]:
+                new_separator.setPen(self._super_pen)
+            else:
+                new_separator.setPen(self._regular_pen)
+        print("Separators created ", datetime.now())
+
+        for i in range(1, len(self.separators) - 1):
+            self.separators[i][0].set_fixed_points(
+                self._set_fixed_points_subgroup(
+                    self.separators[i - 1][0].complete_pos(True).x(),
+                    self.separators[i - 1][0].complete_pos(True).y(),
+                    self.separators[i + 1][0].complete_pos(False).x(),
+                    self.separators[i + 1][0].complete_pos(False).y()
+                )
+            )
 
     def add_separator(self, x: float, y: float, is_static: bool) -> bool:
         """

@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QPoint, QTimerEvent
+from PyQt5.QtCore import Qt, QPoint, QTimerEvent, QSemaphore
 from PyQt5.QtGui import QPainter, QCursor
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsLineItem, QWidget, QMenu, QAction, QApplication
 
@@ -10,6 +10,7 @@ class ClassifierView(QGraphicsView):
     """
     This class controls all the behaviour of the QGraphicsItems, the QGraphicsView and the QGraphicsScene.
     """
+    _time = 1
     _promote_separator_action: QAction
     _demote_separator_action: QAction
     _split_action: QAction
@@ -28,6 +29,7 @@ class ClassifierView(QGraphicsView):
         self._items_parent = None
         self._context_menu_pos = None
         self._global_pos_y_offset = None
+        self._semaphore = QSemaphore()
 
     def setup(self, x_padding: float | int, y_padding: float | int, min_width: float | int, min_height: float | int,
               text: str, text_size: float | int, default_descriptor: str, default_descriptor_value: str,
@@ -188,6 +190,16 @@ class ClassifierView(QGraphicsView):
         Set the text to be analyzed.
         :param text: The text that will appear.
         """
+        app = QApplication.instance()
+
+        app.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+        if not self.verticalScrollBar().isVisible():
+            self._time = 0
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+
+            self._semaphore.acquire()
+
         self.classifier.set_text(text)
 
         # Set text size
@@ -197,6 +209,9 @@ class ClassifierView(QGraphicsView):
             self.size().width(),
             self._items_parent.pos().y() + self.classifier.get_text_item_height()
         )
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self._time = 500
+        app.restoreOverrideCursor()
 
     def set_text_size(self, text_size: float | int) -> None:
         """
@@ -239,6 +254,13 @@ class ClassifierView(QGraphicsView):
 
         app.setOverrideCursor(QCursor(Qt.WaitCursor))
 
+        if not self.verticalScrollBar().isVisible():
+            self._time = 0
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+
+            self._semaphore.acquire()
+
+        # Set text width
         self.classifier.set_text_analyzed(
             sep_text_list,
             super_sep_text_list,
@@ -254,7 +276,8 @@ class ClassifierView(QGraphicsView):
             self.size().width(),
             self._items_parent.pos().y() + self.classifier.get_text_item_height()
         )
-
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self._time = 500
         app.restoreOverrideCursor()
 
     def get_text_analyzed(self) -> list[tuple[list[tuple[str, str]], str]]:
@@ -316,7 +339,12 @@ class ClassifierView(QGraphicsView):
                 self.killTimer(self._timerId)
                 self._timerId = 0
 
-            self._timerId = self.startTimer(500)
+            if self._time == 0:
+                self.classifier.set_width(self._real_width)
+                if self._semaphore.available() == 0:
+                    self._semaphore.release()
+            else:
+                self._timerId = self.startTimer(self._time)
 
     def timerEvent(self, a0: 'QTimerEvent') -> None:
         """

@@ -9,7 +9,7 @@ class CustomLanguageVars(nltk.tokenize.punkt.PunktLanguageVars):
     _period_context_fmt = r"""
         \S*                          # some word material
         %(SentEndChars)s             # a potential sentence ending
-        \s*                       #  <-- This is what has to be changed to preserve \n chars
+        \s+                       #  <-- This is what has to be changed to preserve \n chars and white spaces
         (?=(?P<after_tok>
             %(NonWord)s              # either other punctuation
             |

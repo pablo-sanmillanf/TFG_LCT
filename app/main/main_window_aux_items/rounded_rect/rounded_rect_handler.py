@@ -7,6 +7,45 @@ from PyQt5.QtWidgets import QGraphicsItem
 from .rounded_rect import RoundedRect
 
 
+def _exponentialSearchRects(exp_list: list[RoundedRect], wanted_pos: QPointF) -> int:
+    """
+    Finds the descriptor that has the position wanted_pos using an exponential search.
+    :param exp_list: The list of all descriptors to search for. Each element has more data but the only relevant element
+    is the first.
+    :param wanted_pos: The desire position as a QPointF.
+    :return: The index in the list where the desired Descriptor is.
+    """
+    if exp_list[0].pos() == wanted_pos:
+        return 0
+    exp_index = 1
+    while exp_index < len(exp_list) and (exp_list[exp_index].pos().y() < wanted_pos.y() or
+                                         (exp_list[exp_index].pos().y() == wanted_pos.y() and
+                                          exp_list[exp_index].pos().x() <= wanted_pos.x())):
+        exp_index = exp_index * 2
+
+    bin_list = exp_list[int(exp_index / 2):min(exp_index, len(exp_list))]
+
+    # Perform binary list
+    first = 0
+    last = len(bin_list) - 1
+    bin_index = -1
+    while (first <= last) and (bin_index == -1):
+        mid = (first + last) // 2
+        if bin_list[mid].pos().y() == wanted_pos.y() and (
+                bin_list[mid].pos().x() <= wanted_pos.x() < bin_list[mid].pos().x() + bin_list[mid].rect().width()):
+            bin_index = mid
+        else:
+            if (wanted_pos.y() < bin_list[mid].pos().y()) or \
+                    (wanted_pos.y() == bin_list[mid].pos().y() and wanted_pos.x() < bin_list[mid].pos().x()):
+                last = mid - 1
+            else:
+                first = mid + 1
+    if first > last:
+        return last + int(exp_index / 2)
+    else:
+        return bin_index + int(exp_index / 2)
+
+
 class RoundedRectHandler:
     """
     This class handles the position, the size and the background color of all the RoundedRect. All the RoundedRect
@@ -36,6 +75,7 @@ class RoundedRectHandler:
         self._radius = radius
         self._parent = parent
         self._rects: list[RoundedRect] = []
+        self._last_created_separator_index = 0
 
         for line in points:
             self._rects.append(RoundedRect(line[1][0], line[0], line[1][1] - line[1][0], height, radius, parent))
@@ -46,7 +86,7 @@ class RoundedRectHandler:
         self._colors = colors
         self._editable_text_changed_slot(-1, [])
 
-    def add_separator_listeners(self, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any,
+    def add_separator_listeners(self, created: typing.Any, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any,
                                 removed_fn: typing.Any) -> None:
         """
         Set the separator listeners of the handler.
@@ -55,6 +95,7 @@ class RoundedRectHandler:
                                          of a line.
         :param removed_fn: This signal will be emitted when a separator is removed.
         """
+        created.connect(self._separator_created)
         pos_changed_fn.connect(self._separator_position_changed)
         clicked_on_the_border_fn.connect(self._separator_clicked_on_the_border)
         removed_fn.connect(self._separator_removed)
@@ -268,6 +309,11 @@ class RoundedRectHandler:
         for i in range(len(self._separators)):
             self._update_background_color_rects_group(i, self._color_indexes[i + 1])
 
+    def update_last_created_rects_group(self):
+        self._update_background_color_rects_group(
+            self._last_created_separator_index, self._color_indexes[self._last_created_separator_index + 1]
+        )
+
     def _update_background_color_rects_group(self, separator_index: int, color_index):
         """
         Set the background color for all the rounded rect in a RoundedRect group.
@@ -313,28 +359,31 @@ class RoundedRectHandler:
             self._color_indexes.append(0)
             self._update_background_color_rects_group(0, 0)
         else:
-            for i in range(len(self._separators)):
-                if (point.y() < self._separators[i][0].pos().y() or
+            for i in reversed(range(len(self._separators))):
+                if (point.y() > self._separators[i][0].pos().y() or
                         (point.y() == self._separators[i][0].pos().y() and
-                         point.x() < self._separators[i][0].pos().x())):
+                         point.x() > self._separators[i][0].pos().x())):
                     # [Separator, Last_index_before, Last_position]
-                    self._separators.insert(i, [separator, self._insert_rect(point), point])
+                    self._separators.insert(i + 1, [separator, self._insert_rect(point), point])
 
                     # Update "Last_index_before" for the separators after this separator
-                    for e in range(i + 1, len(self._separators)):
+                    for e in range(i + 2, len(self._separators)):
                         self._separators[e][1] += 1
 
                     # Add new color init_index entry for the new rects group
-                    self._color_indexes.insert(i + 1, 0)
-                    self._update_background_color_rects_group(i, 0)
+                    self._color_indexes.insert(i + 2, 0)
+                    self._last_created_separator_index = i + 1
                     return
 
             # If the separator is inserted after the last separator
-            self._separators.append([separator, self._insert_rect(point), point])
+            self._separators.insert(0, [separator, self._insert_rect(point), point])
+            for e in range(1, len(self._separators)):
+                self._separators[e][1] += 1
 
             # Add new color init_index entry for the new rects group
-            self._color_indexes.append(0)
-            self._update_background_color_rects_group(len(self._separators) - 1, 0)
+            self._color_indexes.insert(1, 0)
+            self._last_created_separator_index = 0
+            # self._update_background_color_rects_group(0, 0)
 
     def _insert_rect(self, point: QPointF) -> int:
         """
@@ -343,42 +392,23 @@ class RoundedRectHandler:
         :param point: The position of the newly created separator.
         :return: The index of the separator before the RoundedRect.
         """
-        for i in range(len(self._rects)):
-            if (point.y() < self._rects[i].pos().y() or
-                    (point.y() == self._rects[i].pos().y() and point.x() < self._rects[i].pos().x())):
-                self._rects.insert(i, RoundedRect(
-                    point.x(),
-                    point.y(),
-                    self._rects[i - 1].rect().width() + self._rects[i - 1].pos().x() - point.x(),
-                    self._height,
-                    self._radius,
-                    self._parent
-                ))
-
-                self._rects[i - 1].set_pos_and_size(
-                    self._rects[i - 1].pos().x(),
-                    self._rects[i - 1].pos().y(),
-                    point.x() - self._rects[i - 1].pos().x(),
-                    self._height
-                )
-                return i - 1
-
-        self._rects.append(RoundedRect(
+        index = _exponentialSearchRects(self._rects, point) + 1
+        self._rects.insert(index, RoundedRect(
             point.x(),
             point.y(),
-            self._rects[-1].rect().width() + self._rects[-1].pos().x() - point.x(),
+            self._rects[index - 1].rect().width() + self._rects[index - 1].pos().x() - point.x(),
             self._height,
             self._radius,
             self._parent
         ))
 
-        self._rects[-2].set_pos_and_size(
-            self._rects[-2].pos().x(),
-            self._rects[-2].pos().y(),
-            point.x() - self._rects[-2].pos().x(),
+        self._rects[index - 1].set_pos_and_size(
+            self._rects[index - 1].pos().x(),
+            self._rects[index - 1].pos().y(),
+            point.x() - self._rects[index - 1].pos().x(),
             self._height
         )
-        return len(self._rects) - 2
+        return index - 1
 
     def _update_downwards(self, separator_index: int, init_index: int, point: QPointF) -> int:
         """
@@ -457,6 +487,15 @@ class RoundedRectHandler:
                 )
                 return i
         raise RuntimeError("UPWARDS FINISH WITHOUT RETURNING")
+
+    def _separator_created(self, moved_separator: QGraphicsItem, point: QPointF) -> None:
+        """
+        Updates the rectangle positions and size according to the new position of moved_separator. This function
+        should be called every time a Separator has moved.
+        :param moved_separator: The separator that has moved.
+        :param point: The position of the separator.
+        """
+        self._add_separator(moved_separator, point)
 
     def _separator_position_changed(self, moved_separator: QGraphicsItem, point: QPointF) -> None:
         """

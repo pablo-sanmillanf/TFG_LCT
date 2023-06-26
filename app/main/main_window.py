@@ -1,7 +1,7 @@
 import json
 
 from PyQt5.QtGui import QIcon, QCloseEvent, QDesktopServices
-from PyQt5.QtCore import QFile, QTextStream, QUrl
+from PyQt5.QtCore import QFile, QTextStream, QUrl, QIODevice, QTextCodec
 from PyQt5.QtWidgets import (
     QMainWindow, QInputDialog, QMessageBox, QFileDialog
 )
@@ -34,15 +34,23 @@ def manage_file(file: str, operation: str, data: str = None) -> str:
     :param data: If the operation is "w", the data to write in the file. None, otherwise.
     :return: If the operation is "r", the data read from the file. None, otherwise.
     """
-    result = None
-    f = None
-    try:
-        f = open(file, operation, encoding="utf8")
-        if operation == "r":
-            result = f.read()
-        elif operation == "w":
-            f.write(data)
-    finally:
+    result = ""
+
+    if operation == "r":
+        f = QFile(file)
+        if not f.open(QIODevice.ReadOnly | QIODevice.Text):
+            return ""
+        stream = QTextStream(f)
+        stream.setCodec(QTextCodec.codecForName("UTF-8"))
+        while not stream.atEnd():
+            result += stream.readLine() + "\n"
+        f.close()
+    elif operation == "w":
+        f = QFile(file)
+        if not f.open(QIODevice.WriteOnly | QIODevice.Text):
+            return ""
+        out = QTextStream(f)
+        out << data
         f.close()
     return result
 
@@ -67,10 +75,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._current_file = ""
 
-        file = QFile(":/main/xml_schema/xsd_v1_0")
-        file.open(QFile.ReadOnly)
         self._lct_handler = LCTHandler(
-            "Semantics", [SD_VALUES, SG_VALUES], DEFAULT_DESCRIPTOR_VALUE, QTextStream(file.readAll()).readAll()
+            "Semantics",
+            [SD_VALUES, SG_VALUES],
+            DEFAULT_DESCRIPTOR_VALUE,
+            manage_file(":/main/xml_schema/xsd_v1_0", "r")
         )
 
         self._graph_window = GraphWindow(root_directory + "/graph/", HELP_URL)
@@ -78,14 +87,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             try:
                 self._conf = json.loads(conf_info)
             except:
-                file = QFile(":/main/conf/defconf")
-                file.open(QFile.ReadOnly)
-                self._conf = json.loads(QTextStream(file.readAll()).readAll())
+                self._conf = json.loads(manage_file(":/main/conf/defconf", "r"))
         else:
-            file = QFile(":/main/conf/defconf")
-            file.open(QFile.ReadOnly)
-            data = QTextStream(file.readAll()).readAll()
-            self._conf = json.loads(data)
+            self._conf = json.loads(manage_file(":/main/conf/defconf", "r"))
 
         self._conf_has_changed = False
         self._not_saved = False
@@ -146,7 +150,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         if file != "":
             text = manage_file(file, "r")
-            if text is None or text == "":
+
+            # Clean text
+            while text[0] == " " or text[0] == "\n":
+                text = text[1:]
+            while text[-1] == " " or text[-1] == "\n":
+                text = text[:-1]
+            if text == "":
                 QMessageBox.critical(self, "File Error", "The selected file has not valid content", QMessageBox.Ok)
                 self._new_file_dialog(True)
             else:

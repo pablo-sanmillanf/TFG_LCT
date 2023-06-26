@@ -1,11 +1,10 @@
 from PyQt5 import QtGui
+from PyQt5.QtCore import QTextBoundaryFinder
 
 from PyQt5.QtWidgets import QGraphicsTextItem, QGraphicsItem
 
-BREAK_LINE_CHARACTERS = ["}", "-", "|", "?", "!", "/", "—"]
 
-
-def apply_text_format(text: str) -> str:
+def _apply_text_format(text: str) -> str:
     """
     This function format the text to adapt it to the required format by class MainText.
     More specifically, replace the "\n" with "<br>", remove duplicate spaces and change special HTML characters with
@@ -20,7 +19,7 @@ def apply_text_format(text: str) -> str:
     return " ".join(text.replace("\n", " <br> ").split())
 
 
-def remove_text_format(text: str) -> str:
+def _remove_text_format(text: str) -> str:
     """
     This function remove the HTML format from the text to obtain plain text.
     :param text: The text to be formatted.
@@ -31,6 +30,18 @@ def remove_text_format(text: str) -> str:
     text = text.replace("&gt;", ">")
     text = text.replace("&lt;", "<")
     return text
+
+
+def _find_boundaries_word(word: str):
+    finder = QTextBoundaryFinder(QTextBoundaryFinder.Line, word)
+    result = []
+    index = 0
+    while index != -1:
+        index = finder.toNextBoundary()
+        result.append(index)
+    result.pop()
+    result.pop()
+    return result
 
 
 class MainText(QGraphicsTextItem):
@@ -73,7 +84,7 @@ class MainText(QGraphicsTextItem):
         Return the plain text of the element.
         :return: The plain text.
         """
-        text = remove_text_format(self._text).replace(" <br> ", " \n ")
+        text = _remove_text_format(self._text).replace(" <br> ", " \n ").replace(" <br> ", " \n ")
         if text[-4:] == "<br>":
             return text[:-4] + "\n"
         return text
@@ -84,7 +95,7 @@ class MainText(QGraphicsTextItem):
         HTML engine.
         :param text: The text
         """
-        self._text = apply_text_format(text)
+        self._text = _apply_text_format(text)
         self._set_text(self._text)
 
     def _set_text(self, text: str) -> None:
@@ -117,7 +128,7 @@ class MainText(QGraphicsTextItem):
         """
         This function calculates the width of all the words passed as parameter.
         :param text_list: A list of words.
-        :return: A list. For each element, the first sub-element is the word width, the second the word and the last, a
+        :return: A list. For each element, the first sub-element is the word width, the second, the word and the last, a
                  boolean that indicates if the word is part of a word with one or more BREAK_LINE_CHARACTERS.
         """
         # Obtain the offsets to correctly place the separators
@@ -133,22 +144,15 @@ class MainText(QGraphicsTextItem):
                 result.append((-1, "\n", False))  # Break line
             else:
                 aux_text.setHtml(word)
-                if len([e for e in BREAK_LINE_CHARACTERS if e in word]) == 0:
+                positions = _find_boundaries_word(word)
+                if len(positions) == 0:
                     result.append((aux_text.boundingRect().width() - 2 * padding, word, False))
                 else:
-                    positions = []
-
-                    for e in BREAK_LINE_CHARACTERS:
-                        pos = word.find(e)
-                        if pos != -1:
-                            positions.append(pos)
-
-                    positions.sort()
                     start_pos = 0
 
                     for i in range(len(positions)):
-                        sub_word = word[start_pos:positions[i] + 1]
-                        start_pos = positions[i] + 1
+                        sub_word = word[start_pos:positions[i]]
+                        start_pos = positions[i]
 
                         aux_text.setHtml(sub_word)
                         result.append((aux_text.boundingRect().width() - 2 * padding, sub_word, True))
@@ -178,17 +182,19 @@ class MainText(QGraphicsTextItem):
         words_start_index = 0
         words_width = 2 * horizontal_padding
         skip = False
+        i = 0
 
         for i in range(len(self._words_width) - 1):
             if skip:
                 if self._words_width[i][0] == -1:  # Another break line
                     line_index += 1
+                    points[-1][1][-1][1] += "\n "
                 else:
                     skip = False
                     words_width += self._words_width[i][0] + space
                     words_start_index = i
+                    points[-1][1][-1][1] += "\n"
 
-                points[-1][1][-1][1] += "\n"
                 continue
             elif self._words_width[i][0] == -1:  # Break line
 
@@ -227,6 +233,9 @@ class MainText(QGraphicsTextItem):
                     line_index += 1
                     words_width = 2 * horizontal_padding + self._words_width[i][0] + space
                     words_start_index = i
+        if skip:
+            words_start_index = i + 1
+            points[-1][1][-1][1] += "\n"
 
         if self._words_width[len(self._words_width) - 2][2]:
             words_width += self._words_width[len(self._words_width) - 1][0]
@@ -280,8 +289,8 @@ class MainText(QGraphicsTextItem):
         x_values_with_words = [
             [
                 line_width,
-                remove_text_format(self._words_width[start_index][1]),
-                self._words_width[max(0, start_index - 1)][2]
+                _remove_text_format(self._words_width[start_index][1]),
+                (self._words_width[start_index - 1][2] if (start_index > 1) else False)
             ]
         ]
         line_width += padding / 2 - half_space
@@ -300,7 +309,7 @@ class MainText(QGraphicsTextItem):
                 line_width += (self._words_width[i][0] + 2 * half_space)
 
             x_values_with_words.append(
-                [line_width, remove_text_format(self._words_width[i + 1][1]), self._words_width[i][2]]
+                [line_width, _remove_text_format(self._words_width[i + 1][1]), self._words_width[i][2]]
             )
 
         if self._words_width[end_index - 1][2]:

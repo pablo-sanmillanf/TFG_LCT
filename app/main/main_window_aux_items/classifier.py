@@ -11,7 +11,7 @@ from .separator.separator_handler import SeparatorHandler
 from .rounded_rect.rounded_rect_handler import RoundedRectHandler
 
 from collections import Counter
-
+from datetime import datetime
 
 def most_common(lst: list[str]) -> str:
     """
@@ -126,7 +126,7 @@ def get_repos_sep_points_with_super_sep(sep_text_list: list[str], super_sep_text
     """
     sep_text_list_index = 0
     super_sep_text_list_index = 0
-    separator_points = [(QPointF(complete_point_list[0][1][0][0], complete_point_list[0][0]), False)]
+    separator_points = []
     sep_aux_text = ""
     super_sep_aux_text = ""
 
@@ -144,8 +144,7 @@ def get_repos_sep_points_with_super_sep(sep_text_list: list[str], super_sep_text
                     super_sep_aux_text += sep_aux_text[:-len(complete_point_list[y_index][1][x_index][1]) - 1]
                     sep_aux_text = " " + complete_point_list[y_index][1][x_index][1]
 
-                    if (super_sep_aux_text[1:] + sep_aux_text) not \
-                            in super_sep_text_list[super_sep_text_list_index]:
+                    if (super_sep_aux_text[1:] + sep_aux_text) not in super_sep_text_list[super_sep_text_list_index]:
                         super_sep_aux_text = ""
                         super_sep_text_list_index += 1
                         separator_points.append(
@@ -157,10 +156,6 @@ def get_repos_sep_points_with_super_sep(sep_text_list: list[str], super_sep_text
                             (QPointF(complete_point_list[y_index][1][x_index][0], complete_point_list[y_index][0]),
                              False)
                         )
-    # Add last element
-    separator_points.append(
-        (QPointF(complete_point_list[-1][1][-1][0], complete_point_list[-1][0]), False)
-    )
     return separator_points
 
 
@@ -222,6 +217,7 @@ class Classifier:
             parent
         )
         self._rects_handler.add_separator_listeners(
+            self._sep_handler.emitter.created,
             self._sep_handler.emitter.pos_changed,
             self._sep_handler.emitter.clicked_on_the_border,
             self._sep_handler.emitter.removed
@@ -237,6 +233,7 @@ class Classifier:
             parent
         )
         self._descriptors_handler.add_separator_listeners(
+            self._sep_handler.emitter.created,
             self._sep_handler.emitter.pos_changed,
             self._sep_handler.emitter.clicked_on_the_border,
             self._sep_handler.emitter.removed
@@ -308,6 +305,8 @@ class Classifier:
         there is no more space to place a separator
         """
         if self._sep_handler.add_separator(x, y, False):
+            self._rects_handler.update_last_created_rects_group()
+            self._descriptors_handler.update_last_created_descriptor_group()
             self.emitter.classifier_has_changed.emit()
             return True
         return False
@@ -533,16 +532,32 @@ class Classifier:
                        and/or "SG".
         :param values: A list with all the editable parts for each group of descriptors.
         """
-        self.set_text(" ".join(sep_text_list))
+        a = datetime.now()
+        print("Start ", a)
 
+        self.emitter.classifier_has_changed.emit()
+
+        self._text.set_text(" ".join(sep_text_list))
         complete_point_list = self._text.get_complete_points()
+        fixed_points = obtain_separator_points(complete_point_list)
+
+        self._sep_handler.delete_all_separators()
+        self._sep_handler.set_fixed_points(fixed_points)
+        self._sep_handler.add_limit_separators(
+            fixed_points[0][1][0][0],
+            fixed_points[0][0],
+            fixed_points[-1][1][-1][0],
+            fixed_points[-1][0],
+        )
+
+        limit_points = obtain_limit_points(complete_point_list)
+
+        self._rects_handler.set_points(limit_points, [], True)
+        self._descriptors_handler.set_points(limit_points, [], True)
 
         separator_points = get_repos_sep_points_with_super_sep(sep_text_list, super_sep_text_list, complete_point_list)
 
-        for i in range(1, len(separator_points) - 1):
-            self.split(separator_points[i][0].x(), separator_points[i][0].y())
-            if separator_points[i][1]:
-                self.promote_separator(separator_points[i][0].x(), separator_points[i][0].y())
+        self._sep_handler.add_separators_without_checking(separator_points)
 
         self._rects_handler.reset_colors()
         self._rects_handler.set_colors(create_colors_dict(
@@ -550,6 +565,7 @@ class Classifier:
         ))
         self._descriptors_handler.set_default_text(default_descriptor, False)
         self._descriptors_handler.set_texts(labels, values)
+        print("End ", datetime.now() - a)
 
     def set_width(self, width: float) -> None:
         """

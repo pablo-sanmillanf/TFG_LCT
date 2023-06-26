@@ -55,7 +55,7 @@ Time = 2
 PlaySound = 0
 Allow = 0
 [Build]
-File = C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\installer.exe
+File = C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\windowsInstaller.exe
 SetupIconPath = C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\logo.ico
 UninstallIconPath = C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\logo.ico
 CompressionMethod = 0
