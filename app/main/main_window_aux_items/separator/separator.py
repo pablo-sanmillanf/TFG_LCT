@@ -28,10 +28,19 @@ def find_nearest_point(candidate_points: list[float] | tuple[float] | list[tuple
 
 
 class SeparatorEmitter(QObject):
+    # (Separator_created, Point_of_separator)
     created = pyqtSignal(QGraphicsLineItem, QPointF)
+
+    # (Separator_moved, Point_of_separator)
     pos_changed = pyqtSignal(QGraphicsLineItem, QPointF)
+
+    # (Separator_released)
     released = pyqtSignal(QGraphicsLineItem)
+
+    # (Separator_clicked, Cursor_point, Right_point_of_separator, Left_point_of_separator)
     clicked_on_the_border = pyqtSignal(QGraphicsLineItem, QPointF, QPointF, QPointF)
+
+    # (Separator_removed)
     removed = pyqtSignal(QGraphicsLineItem)
 
 

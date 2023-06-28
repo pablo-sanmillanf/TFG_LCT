@@ -59,7 +59,7 @@ def _exponentialSearchDescriptorsLimitPoints(exp_list: list[list[Descriptor | fl
     exp_index = 1
     while exp_index < len(exp_list) and ((exp_list[exp_index][1] < wanted_pos.y() or
                                          (exp_list[exp_index][1] == wanted_pos.y() and
-                                          exp_list[exp_index][2] < wanted_pos.x()))):
+                                          exp_list[exp_index][2] <= wanted_pos.x()))):
         exp_index = exp_index * 2
 
     bin_list = exp_list[int(exp_index / 2):min(exp_index, len(exp_list))]
@@ -70,7 +70,7 @@ def _exponentialSearchDescriptorsLimitPoints(exp_list: list[list[Descriptor | fl
     bin_index = -1
     while (first <= last) and (bin_index == -1):
         mid = (first + last) // 2
-        if bin_list[mid][1] == wanted_pos.y() and bin_list[mid][2] <= wanted_pos.x() < bin_list[mid][3]:
+        if bin_list[mid][1] == wanted_pos.y() and bin_list[mid][2] <= wanted_pos.x() <= bin_list[mid][3]:
             bin_index = mid
         else:
             if (bin_list[mid][1] > wanted_pos.y()) or \
@@ -607,20 +607,17 @@ class DescriptorHandler:
         """
         sep_index = self._find_separator(moved_separator)
 
-        if sep_index is None:
-            self._add_separator(moved_separator, point)
-        else:
-            if (point.y() < self._separators[sep_index][2].y() or
-                    (point.y() == self._separators[sep_index][2].y() and
-                     point.x() < self._separators[sep_index][2].x())):  # Separator moved upwards
-                self._separators[sep_index][1] = self._update_upwards(self._separators[sep_index][1], point)
+        if (point.y() < self._separators[sep_index][2].y() or
+                (point.y() == self._separators[sep_index][2].y() and
+                 point.x() < self._separators[sep_index][2].x())):  # Separator moved upwards
+            self._separators[sep_index][1] = self._update_upwards(self._separators[sep_index][1], point)
 
-            elif (point.y() > self._separators[sep_index][2].y() or
-                  (point.y() == self._separators[sep_index][2].y() and
-                   point.x() > self._separators[sep_index][2].x())):  # Separator moved downwards
-                self._separators[sep_index][1] = self._update_downwards(self._separators[sep_index][1], point)
+        elif (point.y() > self._separators[sep_index][2].y() or
+              (point.y() == self._separators[sep_index][2].y() and
+               point.x() > self._separators[sep_index][2].x())):  # Separator moved downwards
+            self._separators[sep_index][1] = self._update_downwards(self._separators[sep_index][1], point)
 
-            self._separators[sep_index][2] = point
+        self._separators[sep_index][2] = point
 
     def _separator_clicked_on_the_border(self, moved_separator: QGraphicsItem, cursor_point: QPointF,
                                          right_point: QPointF, left_point: QPointF) -> None:
@@ -636,29 +633,26 @@ class DescriptorHandler:
         """
         sep_index = self._find_separator(moved_separator)
 
-        if sep_index is None:
-            self._add_separator(moved_separator, right_point)
-        else:
-            # If the user released the separator in the right border and now the user is clicking in the left border
-            # if self.separators[sep_index][2] == right_point and \
-            #        (cursor_point - right_point).manhattanLength() > (cursor_point - left_point).manhattanLength():
-            # Nothing is done because of the way function "update_downwards" is designed.
+        # If the user released the separator in the right border and now the user is clicking in the left border
+        # if self.separators[sep_index][2] == right_point and \
+        #        (cursor_point - right_point).manhattanLength() > (cursor_point - left_point).manhattanLength():
+        # Nothing is done because of the way function "update_downwards" is designed.
 
-            # If the user released the separator in the left border and now the user is clicking in the right border
-            if self._separators[sep_index][2] == left_point and \
-                    (cursor_point - left_point).manhattanLength() > (cursor_point - right_point).manhattanLength():
-                # Auxiliary variable to add clarity
-                ind = self._separators[sep_index][1]
+        # If the user released the separator in the left border and now the user is clicking in the right border
+        if self._separators[sep_index][2] == left_point and \
+                (cursor_point - left_point).manhattanLength() > (cursor_point - right_point).manhattanLength():
+            # Auxiliary variable to add clarity
+            ind = self._separators[sep_index][1]
 
-                self._descriptors[ind][1] = self._descriptors[ind - 1][1]
-                self._descriptors[ind][2] = self._descriptors[ind - 1][3]
-                self._descriptors[ind][3] = self._descriptors[ind - 1][3]
-                self._set_descriptor_pos(ind)
+            self._descriptors[ind][1] = self._descriptors[ind - 1][1]
+            self._descriptors[ind][2] = self._descriptors[ind - 1][3]
+            self._descriptors[ind][3] = self._descriptors[ind - 1][3]
+            self._set_descriptor_pos(ind)
 
-                self._separators[sep_index][1] -= 1
+            self._separators[sep_index][1] -= 1
 
-                # Update text for this group of descriptors
-                self._descriptors[ind + 1][0].emit_text_changed(False)
+            # Update text for this group of descriptors
+            self._descriptors[ind + 1][0].emit_text_changed(False)
 
     def _separator_removed(self, separator: Separator) -> None:
         """

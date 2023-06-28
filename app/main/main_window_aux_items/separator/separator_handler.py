@@ -3,7 +3,6 @@ from PyQt5.QtGui import QPen, QColor
 from PyQt5.QtWidgets import QGraphicsItem
 
 from .separator import Separator, find_nearest_point, SeparatorEmitter
-from datetime import datetime
 
 SUPER_SEPARATOR_FACTOR = 1.5
 
@@ -248,7 +247,6 @@ class SeparatorHandler:
                 new_separator.setPen(self._super_pen)
             else:
                 new_separator.setPen(self._regular_pen)
-        print("Separators created ", datetime.now())
 
         for i in range(1, len(self.separators) - 1):
             self.separators[i][0].set_fixed_points(

@@ -32,6 +32,7 @@ class TextLabel(QLabel):
         """
         self._clause_texts = clause_texts
         self._super_clause_texts = super_clause_texts
+        self._clauses_type_selected = True
         self.setText("<p style=\"line-height:200%\">" + " ".join(clause_texts).replace("\n", "<br>") + "<p>")
 
     def set_clauses_type(self, is_normal_clauses: bool) -> None:

@@ -41,7 +41,6 @@ def manage_file(file: str, operation: str, data: str = None) -> str:
         if not f.open(QIODevice.ReadOnly | QIODevice.Text):
             return ""
         stream = QTextStream(f)
-        stream.setCodec(QTextCodec.codecForName("UTF-8"))
         while not stream.atEnd():
             result += stream.readLine() + "\n"
         f.close()

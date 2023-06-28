@@ -35,11 +35,10 @@ def _remove_text_format(text: str) -> str:
 def _find_boundaries_word(word: str):
     finder = QTextBoundaryFinder(QTextBoundaryFinder.Line, word)
     result = []
-    index = 0
+    index = finder.toNextBoundary()
     while index != -1:
-        index = finder.toNextBoundary()
         result.append(index)
-    result.pop()
+        index = finder.toNextBoundary()
     result.pop()
     return result
 

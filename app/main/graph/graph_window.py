@@ -1,8 +1,8 @@
 import numpy as np
-from PyQt5.QtCore import QFile, QTextStream, QUrl
-from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtCore import QFile, QTextStream, QUrl, Qt
+from PyQt5.QtGui import QDesktopServices, QCursor
 from PyQt5.QtWidgets import (
-    QInputDialog, QFileDialog
+    QInputDialog, QFileDialog, QApplication
 )
 
 from ..lct_handler import LCTHandler
@@ -113,11 +113,22 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
         Select the visible functions in the graph from clauses or super clauses depending on is_normal_clause parameter.
         :param is_normal_clause: True if is clauses, False if is super clauses.
         """
+        app = QApplication.instance()
+
+        app.setOverrideCursor(QCursor(Qt.WaitCursor))
+
         self._text.set_clauses_type(is_normal_clause)
         if is_normal_clause:
             self._load_data_in_the_graph(self._clause_data)
         else:
             self._load_data_in_the_graph(self._super_clause_data)
+
+        if self._actionSD.isEnabled():
+            self._actionSD.setChecked(True)
+        if self._actionSG.isEnabled():
+            self._actionSG.setChecked(True)
+
+        app.restoreOverrideCursor()
 
     def update_graphs(self, lct_handler: LCTHandler) -> None:
         """

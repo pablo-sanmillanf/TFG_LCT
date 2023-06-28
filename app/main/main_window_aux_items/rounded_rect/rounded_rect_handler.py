@@ -357,7 +357,7 @@ class RoundedRectHandler:
 
             # Add new color init_index entry for the new rects group
             self._color_indexes.append(0)
-            self._update_background_color_rects_group(0, 0)
+            self._last_created_separator_index = 0
         else:
             for i in reversed(range(len(self._separators))):
                 if (point.y() > self._separators[i][0].pos().y() or
@@ -383,7 +383,6 @@ class RoundedRectHandler:
             # Add new color init_index entry for the new rects group
             self._color_indexes.insert(1, 0)
             self._last_created_separator_index = 0
-            # self._update_background_color_rects_group(0, 0)
 
     def _insert_rect(self, point: QPointF) -> int:
         """
