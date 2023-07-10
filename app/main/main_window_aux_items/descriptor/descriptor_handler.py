@@ -50,9 +50,8 @@ def _exponentialSearchDescriptors(exp_list: list[list[Descriptor | float | float
 def _exponentialSearchDescriptorsLimitPoints(exp_list: list[list[Descriptor | float | float | float]],
                                              wanted_pos: QPointF) -> int:
     """
-    Finds the descriptor that has the position wanted_pos using an exponential search.
-    :param exp_list: The list of all descriptors to search for. Each element has more data but the only relevant element
-    is the first.
+    Finds the descriptor whose limits points are around wanted_pos using an exponential search.
+    :param exp_list: The list of all descriptors to search for.
     :param wanted_pos: The desire position as a QPointF.
     :return: The index in the list where the desired Descriptor is.
     """
@@ -79,6 +78,7 @@ def _exponentialSearchDescriptorsLimitPoints(exp_list: list[list[Descriptor | fl
             else:
                 first = mid + 1
     return bin_index + int(exp_index / 2)
+
 
 def _exponentialSearchSeparators(exp_list: list[list[Separator | int | QPointF]], wanted_index: int) -> int:
     """
@@ -176,10 +176,11 @@ class DescriptorHandler:
         """
         return self._default_text
 
-    def add_separator_listeners(self, created: typing.Any, pos_changed_fn: typing.Any, clicked_on_the_border_fn: typing.Any,
-                                removed_fn: typing.Any) -> None:
+    def add_separator_listeners(self, created: typing.Any, pos_changed_fn: typing.Any,
+                                clicked_on_the_border_fn: typing.Any, removed_fn: typing.Any) -> None:
         """
         Set the separator listeners of the handler.
+        :param created: This signal will be emitted when a separator is created.
         :param pos_changed_fn: This signal will be emitted when a separator is moved.
         :param clicked_on_the_border_fn: This signal will be emitted when a separator is clicked when is on the border
                                          of a line.
@@ -432,7 +433,10 @@ class DescriptorHandler:
 
             self._set_descriptor_pos(i)
 
-    def update_last_created_descriptor_group(self):
+    def update_last_created_descriptor_group(self) -> None:
+        """
+        Updates the text of the last created descriptor group.
+        """
         self._descriptors[self._last_created_descriptor_group][0].emit_text_changed(False)
 
     def set_texts(self, labels: list[str], values: list[list[str]]) -> None:
@@ -589,14 +593,14 @@ class DescriptorHandler:
                 return i
         raise RuntimeError("UPWARDS FINISH WITHOUT RETURNING")
 
-    def _separator_created(self, moved_separator: QGraphicsItem, point: QPointF) -> None:
+    def _separator_created(self, created_separator: QGraphicsItem, point: QPointF) -> None:
         """
-        Updates the rectangle positions and size according to the new position of moved_separator. This function
-        should be called every time a Separator has moved.
-        :param moved_separator: The separator that has moved.
+        Updates the positions and number of the Descriptors affected by the creation of the new separator. This function
+        should be called every time a Separator has created.
+        :param created_separator: The separator that has created.
         :param point: The position of the separator.
         """
-        self._add_separator(moved_separator, point)
+        self._add_separator(created_separator, point)
 
     def _separator_position_changed(self, moved_separator: QGraphicsItem, point: QPointF) -> None:
         """

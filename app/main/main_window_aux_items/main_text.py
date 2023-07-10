@@ -68,6 +68,7 @@ class MainText(QGraphicsTextItem):
         self.setZValue(1)
         self._line_height = line_height
         self._text = text
+        self._aux_text_item = QGraphicsTextItem()
 
         # Add specific format
         font = self.font()
@@ -122,6 +123,32 @@ class MainText(QGraphicsTextItem):
         font = self.font()
         font.setPointSize(size)
         self.setFont(font)
+        self._aux_text_item.setFont(self.font())
+
+    def _check_jitter_width(self, start_index: int, end_index: int) -> bool:
+        """
+        Checks if the words of the self._words_width structure in the interval [start_index, end_index) have a width
+        greater than the maximum width of the main_text element. This is checked by inserting those words into an
+        auxiliary QGraphicsTextItem and is done with this procedure because of some jitter between calls of the bounding
+        rect function due to internal rounding.
+        :param start_index: Start index of the self._words_width structure. The word of this index is included in the
+                            calculation.
+        :param end_index: End index of the self._words_width structure. The word of this index is not included in the
+                          calculation.
+        :return: True if the width of the resulting string is greater than the width of the element, False otherwise.
+        """
+        aux_text = ""
+        for i in range(start_index, end_index):
+            if self._words_width[i][2]:
+                aux_text += self._words_width[i][1]
+            else:
+                aux_text += (self._words_width[i][1] + " ")
+        if self._words_width[end_index - 1][2]:
+            self._aux_text_item.setHtml(aux_text)
+        else:
+            self._aux_text_item.setHtml(aux_text[:-1])
+
+        return self._aux_text_item.boundingRect().width() > self.boundingRect().width()
 
     def _get_words_width(self, text_list: list[str]) -> list[tuple[int | float, str, bool]]:
         """
@@ -216,22 +243,22 @@ class MainText(QGraphicsTextItem):
                 else:
                     words_width += (self._words_width[i][0] + space)
 
-                if words_width - space > self.textWidth():  # This line is full
-
-                    # Add line
-                    points.append((
-                        vertical_padding + line_vertical_offset * line_index + self.pos().y(),
-                        self._get_x_values(
-                            words_start_index,
-                            i - 1,
-                            False,
-                            horizontal_padding,
-                            half_space
-                        )
-                    ))
-                    line_index += 1
-                    words_width = 2 * horizontal_padding + self._words_width[i][0] + space
-                    words_start_index = i
+                if words_width - space > self.textWidth():  # This line can be full
+                    if self._check_jitter_width(words_start_index, i + 1):  # This line is definitely full
+                        # Add line
+                        points.append((
+                            vertical_padding + line_vertical_offset * line_index + self.pos().y(),
+                            self._get_x_values(
+                                words_start_index,
+                                i - 1,
+                                False,
+                                horizontal_padding,
+                                half_space
+                            )
+                        ))
+                        line_index += 1
+                        words_width = 2 * horizontal_padding + self._words_width[i][0] + space
+                        words_start_index = i
         if skip:
             words_start_index = i + 1
             points[-1][1][-1][1] += "\n"
@@ -352,14 +379,14 @@ class MainText(QGraphicsTextItem):
         :return: Half of what the character space occupies with the given font and the padding introduced by
                  QGraphicsTextItem.
         """
-        text1 = QGraphicsTextItem(" ")
-        text2 = QGraphicsTextItem("  ")
-        text1.setFont(self.font())
-        text2.setFont(self.font())
+        self._aux_text_item.setPlainText(" ")
+        len_text1 = self._aux_text_item.boundingRect().width()
+        self._aux_text_item.setPlainText("  ")
+        len_text2 = self._aux_text_item.boundingRect().width()
 
         # Resolve the system of equations
-        space = text2.boundingRect().width() - text1.boundingRect().width()
-        padding = text1.boundingRect().width() - text2.boundingRect().width() / 2
+        space = len_text2 - len_text1
+        padding = len_text1 - len_text2 / 2
 
         return space / 2, padding
 
@@ -375,14 +402,14 @@ class MainText(QGraphicsTextItem):
         :return: The padding height introduced by QGraphicsTextItem and the height that occupies the text plus the
                  padding height between line texts.
         """
-        aux = QGraphicsTextItem()
-        aux.setFont(self.font())
 
-        aux.setHtml('<p align="justify" style="line-height:' + str(self._line_height) + '%">Test</p>')
-        height_1 = aux.boundingRect().height()
+        self._aux_text_item.setHtml('<p align="justify" style="line-height:' + str(self._line_height) + '%">Test</p>')
+        height_1 = self._aux_text_item.boundingRect().height()
 
-        aux.setHtml('<p align="justify" style="line-height:' + str(self._line_height) + '%">Test<br>Test</p>')
-        height_2 = aux.boundingRect().height()
+        self._aux_text_item.setHtml(
+            '<p align="justify" style="line-height:' + str(self._line_height) + '%">Test<br>Test</p>'
+        )
+        height_2 = self._aux_text_item.boundingRect().height()
 
         # Resolve the system of equations
         strip_plus_line_spacing = height_2 - height_1

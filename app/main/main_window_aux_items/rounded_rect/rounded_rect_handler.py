@@ -9,9 +9,8 @@ from .rounded_rect import RoundedRect
 
 def _exponentialSearchRects(exp_list: list[RoundedRect], wanted_pos: QPointF) -> int:
     """
-    Finds the descriptor that has the position wanted_pos using an exponential search.
-    :param exp_list: The list of all descriptors to search for. Each element has more data but the only relevant element
-    is the first.
+    Finds the rect that has the position wanted_pos using an exponential search.
+    :param exp_list: The list of all rects to search for.
     :param wanted_pos: The desire position as a QPointF.
     :return: The index in the list where the desired Descriptor is.
     """
@@ -90,6 +89,7 @@ class RoundedRectHandler:
                                 removed_fn: typing.Any) -> None:
         """
         Set the separator listeners of the handler.
+        :param created: This signal will be emitted when a separator is created.
         :param pos_changed_fn: This signal will be emitted when a separator is moved.
         :param clicked_on_the_border_fn: This signal will be emitted when a separator is clicked when is on the border
                                          of a line.
@@ -309,7 +309,10 @@ class RoundedRectHandler:
         for i in range(len(self._separators)):
             self._update_background_color_rects_group(i, self._color_indexes[i + 1])
 
-    def update_last_created_rects_group(self):
+    def update_last_created_rects_group(self) -> None:
+        """
+        Updates the background color of the last created Rects group.
+        """
         self._update_background_color_rects_group(
             self._last_created_separator_index, self._color_indexes[self._last_created_separator_index + 1]
         )
@@ -487,14 +490,14 @@ class RoundedRectHandler:
                 return i
         raise RuntimeError("UPWARDS FINISH WITHOUT RETURNING")
 
-    def _separator_created(self, moved_separator: QGraphicsItem, point: QPointF) -> None:
+    def _separator_created(self, created_separator: QGraphicsItem, point: QPointF) -> None:
         """
-        Updates the rectangle positions and size according to the new position of moved_separator. This function
-        should be called every time a Separator has moved.
-        :param moved_separator: The separator that has moved.
+        Updates the rectangle positions and size according to the new separator. This function
+        should be called every time a Separator has created.
+        :param created_separator: The separator that has created.
         :param point: The position of the separator.
         """
-        self._add_separator(moved_separator, point)
+        self._add_separator(created_separator, point)
 
     def _separator_position_changed(self, moved_separator: QGraphicsItem, point: QPointF) -> None:
         """

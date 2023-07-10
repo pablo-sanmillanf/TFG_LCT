@@ -11,7 +11,7 @@ from .separator.separator_handler import SeparatorHandler
 from .rounded_rect.rounded_rect_handler import RoundedRectHandler
 
 from collections import Counter
-from datetime import datetime
+
 
 def most_common(lst: list[str]) -> str:
     """
@@ -446,7 +446,16 @@ class Classifier:
                         super_sep_points[super_sep_ind].x() == complete_point_list[y_index][1][x_index][0] and \
                         super_sep_points[super_sep_ind].y() == complete_point_list[y_index][0]:
                     super_sep_ind += 1
-                    result.append((group, most_common([i[1] for i in group])))
+                    result.append(
+                        (
+                            group,
+                            ";".join(
+                                [most_common(i) for i in (
+                                    np.transpose([i[1].split(";") for i in group])
+                                )]
+                            )
+                        )
+                    )
                     group = []
 
                 if complete_point_list[y_index][1][x_index][1] != '':
@@ -456,7 +465,16 @@ class Classifier:
                         text += (" " + complete_point_list[y_index][1][x_index][1])
 
         group.append((text[1:], descriptors_list[sep_ind]))
-        result.append((group, most_common([i[1] for i in group])))
+        result.append(
+            (
+                group,
+                ";".join(
+                    [most_common(i) for i in (
+                        np.transpose([i[1].split(";") for i in group])
+                    )]
+                )
+            )
+        )
 
         return result
 
@@ -532,8 +550,6 @@ class Classifier:
                        and/or "SG".
         :param values: A list with all the editable parts for each group of descriptors.
         """
-        a = datetime.now()
-        print("Start ", a)
 
         self.emitter.classifier_has_changed.emit()
 
@@ -565,7 +581,6 @@ class Classifier:
         ))
         self._descriptors_handler.set_default_text(default_descriptor, False)
         self._descriptors_handler.set_texts(labels, values)
-        print("End ", datetime.now() - a)
 
     def set_width(self, width: float) -> None:
         """

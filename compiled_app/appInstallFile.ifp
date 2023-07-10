@@ -37,8 +37,8 @@ CustomDisplayIcon = <InstallPath>\
 [Licence]
 Licence dialog = 0
 [Finish]
-Sart program = 1
-Reboot computer = 0
+Sart program = 0
+Reboot computer = 1
 Program = <InstallPath>\app.exe
 ProgramArguments = 
 [Shortcuts]
@@ -74,6 +74,60 @@ RunProgs = 0
 Execdlls = 0
 [Languages]
 [Files/Dirs]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\contourpy\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\kiwisolver\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\matplotlib\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\nltk\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\nltk_data\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\numpy\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\pandas\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\PIL\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\PyQt5\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\pytz\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\regex\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\scipy\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\scipy.libs\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\setuptools-65.5.0.dist-info\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tcl\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tcl8\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tk\
+N/A
+[Folder]
+C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\xmlschema\
+N/A
+[Folder]
 C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\_asyncio.pyd
 62.4 KB
 pyd
@@ -290,60 +344,6 @@ dll
 C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\VCRUNTIME140_1.dll
 37.4 KB
 dll
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\contourpy\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\kiwisolver\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\matplotlib\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\nltk\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\nltk_data\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\numpy\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\pandas\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\PIL\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\PyQt5\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\pytz\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\regex\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\scipy\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\scipy.libs\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\setuptools-65.5.0.dist-info\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tcl\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tcl8\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\tk\
-N/A
-[Folder]
-C:\Users\pablo\Documents\Uni\Semestre10\LCT_TFG\3_Repositorio\TFG_LCT\compiled_app\dist\app\xmlschema\
-N/A
-[Folder]
 [Licence_Begin]
 114
 {\rtf1\ansi\ansicpg1252\deff0\deflang3082{\fonttbl{\f0\fnil\fcharset0 Arial;}}

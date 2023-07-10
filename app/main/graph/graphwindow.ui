@@ -113,7 +113,7 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="_actionSave_Visibe_Chart_as_Image"/>
+    <addaction name="_actionSave_Visible_Chart_as_Image"/>
    </widget>
    <widget class="QMenu" name="_menuEdit">
     <property name="title">
@@ -153,9 +153,9 @@
    <addaction name="_menuView"/>
    <addaction name="_menuHelp"/>
   </widget>
-  <action name="_actionSave_Visibe_Chart_as_Image">
+  <action name="_actionSave_Visible_Chart_as_Image">
    <property name="text">
-    <string>Save Visibe Chart as Image</string>
+    <string>Save Visible Chart as Image</string>
    </property>
   </action>
   <action name="_actionSD">

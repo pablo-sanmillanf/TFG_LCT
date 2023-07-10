@@ -241,6 +241,7 @@ class MplWidget(QWidget):
         """
         Remove all the graphs from the _canvas.
         """
+        self._max_len = 0
         self._lines.clear()
         for sec_axis in self._secondary_axes:
             sec_axis.remove()

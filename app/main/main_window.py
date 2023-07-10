@@ -1,7 +1,7 @@
 import json
 
 from PyQt5.QtGui import QIcon, QCloseEvent, QDesktopServices
-from PyQt5.QtCore import QFile, QTextStream, QUrl, QIODevice, QTextCodec
+from PyQt5.QtCore import QFile, QTextStream, QUrl, QIODevice
 from PyQt5.QtWidgets import (
     QMainWindow, QInputDialog, QMessageBox, QFileDialog
 )

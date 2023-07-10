@@ -192,8 +192,9 @@ class SeparatorHandler:
             real_x = find_nearest_point(self._get_x_values(real_y), x)
             return real_x, real_y, index
         elif index != -1:
-            real_y = find_nearest_point(self._get_y_values(), y)
-            real_x = find_nearest_point(self._get_x_values(real_y), x)
+            pos = self.separators[index][0].complete_pos(True)
+            real_y = pos.y()
+            real_x = pos.x()
 
             for line in self._fixed_points:
                 if line[0] >= real_y:
@@ -205,7 +206,7 @@ class SeparatorHandler:
                                 if i == 0:
                                     # If this position is busy, increment by one the ind in separators array
                                     index += 1
-                            elif self.separators[index][0].complete_pos(True).x() == line[1][i] and \
+                            elif self.separators[index][0].complete_pos(True).x() == line[1][i][0] and \
                                     self.separators[index][0].complete_pos(True).y() == line[0]:
                                 # If this position is busy, increment by one the ind in separators array
                                 index += 1
@@ -229,12 +230,9 @@ class SeparatorHandler:
 
     def add_separators_without_checking(self, points: list[tuple[QPointF, bool]]) -> None:
         """
-        Add a separator in the nearest valid position. The two first added separators should be the bottom and upper
-        limits for all the rest of the separator.
-        :param x: The x coordinate
-        :param y: The y coordinate
-        :return: The created separator if success, None if error. There can be an error if the coordinates
-                 are out of bounds or if there is no more space to place a separator
+        Add all the separators to the canvas without checking the validity of the positions.
+        :param points: The separator points. The first element of each tuple is the position of the separator and the
+                       second is a boolean that indicates if it is a super separator.
         """
 
         for point in points:

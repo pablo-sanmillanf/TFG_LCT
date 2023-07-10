@@ -1,5 +1,5 @@
 import numpy as np
-from PyQt5.QtCore import QFile, QTextStream, QUrl, Qt
+from PyQt5.QtCore import QFile, QTextStream, QUrl, Qt, pyqtSignal
 from PyQt5.QtGui import QDesktopServices, QCursor
 from PyQt5.QtWidgets import (
     QInputDialog, QFileDialog, QApplication
@@ -22,6 +22,8 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
     is needed.
     """
 
+    _text_selected_emitter = pyqtSignal(int)
+
     def __init__(self, relative_path: str, help_url: str, visible_points: int = 10, *args, **kwargs) -> None:
         """
         Object creation.
@@ -43,16 +45,17 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
         self._clause_data = None
         self._super_clause_data = None
         self._clause_labels = None
-        self._mplWidget.point_clicked.connect(self._text.text_selected)
+        self._mplWidget.point_clicked.connect(self._text_selected)
+        self._text_selected_emitter.connect(self._text.text_selected)
 
         self._menuHelp.triggered.connect(lambda checked: QDesktopServices.openUrl(QUrl(help_url)))
 
         self._actiongroupTarget.setExclusive(True)
         self._actionClauses.triggered.connect(lambda x: self._change_target_action(True))
         self._actionSuperClauses.triggered.connect(lambda x: self._change_target_action(False))
-        self._actionSD.triggered.connect(self._sd_visibility_action)
-        self._actionSG.triggered.connect(self._sg_visibility_action)
-        self._actionSave_Visibe_Chart_as_Image.triggered.connect(self._save_figure)
+        self._actionSD.triggered.connect(lambda s: self._visibility_action(TEXT_SD, s))
+        self._actionSG.triggered.connect(lambda s: self._visibility_action(TEXT_SG, s))
+        self._actionSave_Visible_Chart_as_Image.triggered.connect(self._save_figure)
         self._actionVisible_points.triggered.connect(self._set_visible_points_dialog)
 
     def _save_figure(self, s: bool) -> None:
@@ -90,23 +93,22 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
             self._mplWidget.set_visible_points(value)
             self._set_slider_behaviour(len(self._text.get_data()))
 
-    def _sd_visibility_action(self, s: bool) -> None:
+    def _visibility_action(self, target: str, s: bool) -> None:
         """
-        Set the visibility of the SD function depending on the s state.
+        Set the visibility of the SD and SG functions depending on the s state and the target.
+        :param target: The function changed. Can be TEXT_SD or TEXT_SG.
         :param s: The state of the button.
         """
-        self._mplWidget.set_graph_visible(0, s)
-
-    def _sg_visibility_action(self, s: bool) -> None:
-        """
-        Set the visibility of the SG function depending on the s state. This function take into account if the target is
-        SG alone or together with SD.
-        :param s: The state of the button.
-        """
-        if self._actionSD.isEnabled():
-            self._mplWidget.set_graph_visible(1, s)
-        else:
+        if target == TEXT_SD:
             self._mplWidget.set_graph_visible(0, s)
+        elif target == TEXT_SG:
+            if self._actionSD.isEnabled():
+                self._mplWidget.set_graph_visible(1, s)
+            else:
+                self._mplWidget.set_graph_visible(0, s)
+
+        if not (self._actionSD.isChecked() or self._actionSG.isChecked()):
+            self._text_selected_emitter.emit(-1)
 
     def _change_target_action(self, is_normal_clause: bool) -> None:
         """
@@ -129,6 +131,15 @@ class GraphWindow(QtWidgets.QMainWindow, Ui_GraphWindow):
             self._actionSG.setChecked(True)
 
         app.restoreOverrideCursor()
+
+    def _text_selected(self, text_index: int) -> None:
+        """
+        Change the text in the QLabel to highlight the part of the text that correspond to the index passed as
+        parameter. This function acts as a proxy between the mpl_canvas and the text_label.
+        :param text_index: The index of the selected string.
+        """
+        if self._actionSD.isChecked() or self._actionSG.isChecked():
+            self._text_selected_emitter.emit(text_index)
 
     def update_graphs(self, lct_handler: LCTHandler) -> None:
         """
