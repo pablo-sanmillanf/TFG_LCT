@@ -4,15 +4,39 @@
 The two metrics considered in this tool are "semantic density", SD, and "semantic gravity", SG, and the researcher can decide whether to use both or only one of them for the analysis.
 On the other hand, two hierarchical levels of analysis have been proposed in this tool. The first one, in clauses as defined in the theory related to the Semantics dimension of LCT. The second one, in sets of clauses, called _super clauses_, and whose value is the mode of all the values of the set.  This second level has been created with the idea of grouping clauses belonging to the same context. Thus, if, for example, the researcher wants to determine the predominant value in each paragraph of a text, he can easily obtain it with this functionality.
 
-## Installation
+## Requeriments 
 
-TODO
+Python 3.11.0 has been used for the development of the tool described in this repository. There is no assurance that the tool will continue to work with earlier versions. 
 
-## Usage
+Also, the following list shows the tools and libraries required to run and compile the application. The installation of these packages has been done using the [pip](https://pip.pypa.io/en/stable/) tool.
 
-TODO
+```
+Package                   Version
+------------------------- ---------
+matplotlib                3.6.2
+nltk                      3.8.1
+numpy                     1.23.5
+pyinstaller               5.12.0
+PyQt5                     5.15.7
+scipy                     1.9.3
+xmlschema                 2.3.0
+```
 
-## Window Structure
+## Compilation
+
+If you want to recompile the application from the code, just go to the "**compiled_app**" folder and execute the following command:
+
+```
+pyinstaller -w -y -n "app" --icon=logo.ico --add-data=<Python_Path>"\Python311\Lib\site-packages\xmlschema\schemas;xmlschema\schemas" ../app/start_window.py
+```
+
+This will generate the executable and all its associated files in the "**dist/app**" folder. If there are any problems, first, execute the following command an then delete the "**build**" folder and run the previous command again.
+
+```
+pip3 install --upgrade PyInstaller pyinstaller-hooks-contrib
+```
+
+## Usage: Window Structure
 
 ### Start window
 
